@@ -444,60 +444,102 @@ def knell_template() -> Sprite:
 # stays recognisable across five silhouettes.
 # ---------------------------------------------------------------------------
 
-def _tool(form, seed: int, sparks, flare=None) -> Sprite:
-    """One Knell tool: the same measured vanilla form the Harmonic set uses,
-    in knell over a null-iron haft, plus a flare of extra pixels.
-
-    Sharing the form with the Harmonic set is deliberate. A smithing upgrade
-    should read as the same tool sharpened, not as an unrelated silhouette, so
-    the player recognises what they are holding and sees where it grew. The
-    flare is what makes Knell the louder of the two: a spur off the axe bit, a
-    point on the spade, a longer hoe blade.
-    """
-    head, haft = vf.tool_levels(form)
+def knell_pickaxe() -> Sprite:
+    """The Knell tier pickaxe: same north-star curved geometry as harmonic_pickaxe,
+    in pale knell metal over null iron with drawn horns and magenta sparks."""
     sp = Sprite()
-    for (x, y), level in haft.items():
-        level += 0.08 * (fbm(x * 2.1, y * 2.1, seed, octaves=2) - 0.5)
-        sp.put(x, y, NULL_IRON, NULL_IRON.tone(level))
-    for (x, y), level in head.items():
-        level += 0.09 * (fbm(x * 2.1, y * 2.1, seed + 6, octaves=2) - 0.5)
-        sp.put(x, y, KNELL, KNELL.tone(level))
-    for (x, y) in (flare or ()):
-        if 0 <= x < 16 and 0 <= y < 16:
-            sp.put(x, y, KNELL, KNELL.tone(0.86))
+    handle = stroke([(2.4, 14.4), (10.4, 5.6)], 1.05)
+    head = stroke(bezier((4.6, 3.6), (12.4, 2.0), (14.2, 10.8)), 1.05)
+    sp.paint(handle, NULL_IRON, 0.58, 5801, spread=0.34, light=0.26)
+    sp.paint(head - handle, KNELL, 0.64, 5807, spread=0.32, light=0.30)
+    # Subtle tier flare: slightly drawn horns
+    for (x, y) in ((4, 2), (14, 11)):
+        sp.put(x, y, KNELL, KNELL.tone(0.88))
     sp.outline()
-    sp.stamp(sparks, HARMONIC, 1.0)
+    sp.stamp([(9, 5), (10, 6)], NULL_IRON, 1.0)        # lashing at the eye
+    sp.stamp([(7, 3), (12, 3)], KNELL, 1.0)            # knell highlights
+    sp.stamp([(6, 3), (13, 5)], HARMONIC, 1.0)         # harmonic magenta sparks
     return sp
 
 
-def knell_pickaxe() -> Sprite:
-    """Vanilla's pickaxe form, with the head's two horns drawn out a pixel."""
-    return _tool(vf.PICKAXE, 5801, [(6, 3), (13, 5)],
-                 flare=[(5, 2), (11, 2), (14, 4)])
-
-
 def knell_axe() -> Sprite:
-    """Vanilla's axe form, with a spur off the back of the bit."""
-    return _tool(vf.AXE, 5813, [(9, 2), (12, 5)],
-                 flare=[(7, 2), (6, 3), (13, 4), (13, 5)])
+    """Vanilla's axe form, with a refined beard spur and knell metal."""
+    sp = Sprite()
+    head, haft = vf.tool_levels(vf.AXE)
+    for (x, y), level in haft.items():
+        level += 0.08 * (fbm(x * 2.1, y * 2.1, 5813, octaves=2) - 0.5)
+        sp.put(x, y, NULL_IRON, NULL_IRON.tone(level))
+    for (x, y), level in head.items():
+        level += 0.09 * (fbm(x * 2.1, y * 2.1, 5819, octaves=2) - 0.5)
+        sp.put(x, y, KNELL, KNELL.tone(level))
+    # Flare: clean connected spur at top pole and bottom beard
+    for (x, y) in ((8, 1), (7, 7)):
+        sp.put(x, y, KNELL, KNELL.tone(0.88))
+    sp.outline()
+    sp.stamp([(9, 5), (10, 6)], NULL_IRON, 1.0)        # lashing at eye
+    sp.stamp([(6, 4), (6, 5), (7, 7)], KNELL, 1.0)     # lit cutting edge
+    sp.stamp([(8, 2), (6, 4)], HARMONIC, 1.0)          # harmonic magenta sparks
+    return sp
 
 
 def knell_shovel() -> Sprite:
-    """Vanilla's shovel form, with the blade drawn to a point."""
-    return _tool(vf.SHOVEL, 5821, [(12, 4), (10, 3)],
-                 flare=[(14, 2), (9, 2), (13, 6)])
+    """Vanilla's shovel form, with a chisel tip in knell metal."""
+    sp = Sprite()
+    head, haft = vf.tool_levels(vf.SHOVEL)
+    for (x, y), level in haft.items():
+        level += 0.08 * (fbm(x * 2.1, y * 2.1, 5821, octaves=2) - 0.5)
+        sp.put(x, y, NULL_IRON, NULL_IRON.tone(level))
+    for (x, y), level in head.items():
+        level += 0.09 * (fbm(x * 2.1, y * 2.1, 5827, octaves=2) - 0.5)
+        sp.put(x, y, KNELL, KNELL.tone(level))
+    # Flare: clean connected chisel tip at (14, 2)
+    sp.put(14, 2, KNELL, KNELL.tone(0.90))
+    sp.outline()
+    sp.stamp([(8, 7), (9, 6)], NULL_IRON, 1.0)
+    sp.stamp([(10, 3), (12, 3), (14, 2)], KNELL, 1.0)
+    sp.stamp([(11, 3), (13, 5)], HARMONIC, 1.0)
+    return sp
 
 
 def knell_hoe() -> Sprite:
-    """Vanilla's hoe form, with the blade lengthened along the bar."""
-    return _tool(vf.HOE, 5833, [(7, 2), (12, 3)],
-                 flare=[(5, 1), (5, 2), (10, 1)])
+    """Vanilla's hoe form, with a sharpened adze hook in knell metal."""
+    sp = Sprite()
+    head, haft = vf.tool_levels(vf.HOE)
+    for (x, y), level in haft.items():
+        level += 0.08 * (fbm(x * 2.1, y * 2.1, 5833, octaves=2) - 0.5)
+        sp.put(x, y, NULL_IRON, NULL_IRON.tone(level))
+    for (x, y), level in head.items():
+        level += 0.09 * (fbm(x * 2.1, y * 2.1, 5839, octaves=2) - 0.5)
+        sp.put(x, y, KNELL, KNELL.tone(level))
+    # Flare: clean connected beak point at (6, 1) and (6, 3)
+    for (x, y) in ((6, 1), (6, 3)):
+        sp.put(x, y, KNELL, KNELL.tone(0.88))
+    sp.outline()
+    sp.stamp([(10, 5), (9, 6)], NULL_IRON, 1.0)
+    sp.stamp([(7, 2), (8, 2), (6, 3)], KNELL, 1.0)
+    sp.stamp([(7, 1), (12, 3)], HARMONIC, 1.0)
+    return sp
 
 
 def knell_sword() -> Sprite:
-    """Vanilla's sword form, with the guard swept out to two tines."""
-    return _tool(vf.SWORD, 5841, [(13, 1), (4, 12)],
-                 flare=[(1, 6), (1, 7), (6, 6), (2, 10)])
+    """Vanilla's sword form, with swept guard quillons and knell metal."""
+    sp = Sprite()
+    head, haft = vf.tool_levels(vf.SWORD)
+    for (x, y), level in haft.items():
+        level += 0.08 * (fbm(x * 2.1, y * 2.1, 5841, octaves=2) - 0.5)
+        sp.put(x, y, NULL_IRON, NULL_IRON.tone(level))
+    for (x, y), level in head.items():
+        level += 0.09 * (fbm(x * 2.1, y * 2.1, 5847, octaves=2) - 0.5)
+        sp.put(x, y, KNELL, KNELL.tone(level))
+    # Subtle guard sweep flare (cleanly 4-connected at quillons)
+    for (x, y) in ((1, 6), (2, 5), (10, 13)):
+        if 0 <= x < 16 and 0 <= y < 16:
+            sp.put(x, y, KNELL, KNELL.tone(0.88))
+    sp.outline()
+    sp.stamp([(4, 11), (5, 10)], NULL_IRON, 1.0)
+    sp.stamp([(13, 2), (10, 5), (7, 8)], KNELL, 1.0)
+    sp.stamp([(4, 11), (13, 2)], HARMONIC, 1.0)
+    return sp
 
 
 # ---------------------------------------------------------------------------

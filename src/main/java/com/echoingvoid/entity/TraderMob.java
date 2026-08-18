@@ -136,6 +136,9 @@ public class TraderMob extends AbstractVillager {
         if (retaliationTimer > 0) {
             retaliationTimer--;
         }
+        if (!this.level().isClientSide()) {
+            restockIfDue();
+        }
     }
 
     /** True while the trader is still willing to fight back - what {@link ProtectorMob} watches. */
@@ -148,9 +151,20 @@ public class TraderMob extends AbstractVillager {
         return null;
     }
 
+    /** There is a real level now, so the trading screen should show its bar. */
     @Override
     public boolean showProgressBar() {
-        return false;
+        return true;
+    }
+
+    @Override
+    public int getVillagerXp() {
+        return this.tradeXp;
+    }
+
+    @Override
+    public void overrideXp(int xp) {
+        this.tradeXp = xp;
     }
 
     @Override
@@ -173,44 +187,132 @@ public class TraderMob extends AbstractVillager {
     }
 
     /**
-     * Populated once, on first trade rather than every call - a fixed trade table per variety
-     * reads more like "a trader who stocks this kind of goods" than a re-rolled shop every time.
+     * PLAYER: "make sure that the trader trades can level up as they are traded with more like
+     * normal villagers, and their trades are normalised every time."
+     *
+     * <p>Tier tables, one per level per variety. Trading fills the XP bar; crossing a threshold
+     * unlocks the next tier's offers, which are appended so earlier ones stay available - the
+     * same shape as a villager's career. Thresholds are vanilla's own
+     * ({@code VillagerData.NEXT_LEVEL_XP_THRESHOLDS} = 0/10/70/150/250) rather than invented
+     * numbers, so a player who knows how long a villager takes to max out already knows how long
+     * this takes.
      */
-    @Override
-    protected void updateTrades(ServerLevel level) {
-        MerchantOffers offers = this.getOffers();
-        if (!offers.isEmpty()) {
-            return;
-        }
+    private static final int[] LEVEL_XP = {0, 10, 70, 150, 250};
+    private static final int MAX_LEVEL = 5;
+
+    /** Vanilla restocks twice a day; this is the same interval, in ticks. */
+    private static final int RESTOCK_INTERVAL = 12000;
+
+    private int tradeLevel = 1;
+    private int tradeXp;
+    private long lastRestock;
+
+    public int tradeLevel() {
+        return tradeLevel;
+    }
+
+    /** Offers unlocked at exactly {@code level}, appended when that level is reached. */
+    private void addTier(MerchantOffers offers, int level) {
         switch (variety) {
             case OUTPOST -> {
-                offers.add(new MerchantOffer(new ItemCost(Items.EMERALD, 6),
-                        new ItemStack(ModItems.RESONANCE_SHARD.get(), 3), 12, 5, 0.05F));
-                offers.add(new MerchantOffer(new ItemCost(ModItems.RESONANCE_SHARD.get(), 8),
-                        new ItemStack(ModItems.NULL_IRON_INGOT.get(), 1), 8, 8, 0.05F));
-                offers.add(new MerchantOffer(new ItemCost(Items.EMERALD, 20),
-                        new ItemStack(Items.IRON_INGOT, 4), 6, 10, 0.05F));
-                offers.add(new MerchantOffer(new ItemCost(ModItems.VOID_GLASS_SHARD.get(), 6),
-                        new ItemStack(Items.EMERALD, 4), 6, 12, 0.05F));
+                switch (level) {
+                    case 1 -> {
+                        offers.add(new MerchantOffer(new ItemCost(Items.EMERALD, 6),
+                                new ItemStack(ModItems.RESONANCE_SHARD.get(), 3), 12, 5, 0.05F));
+                        offers.add(new MerchantOffer(new ItemCost(ModItems.VOID_GLASS_SHARD.get(), 6),
+                                new ItemStack(Items.EMERALD, 4), 12, 2, 0.05F));
+                    }
+                    case 2 -> {
+                        offers.add(new MerchantOffer(new ItemCost(Items.EMERALD, 20),
+                                new ItemStack(Items.IRON_INGOT, 4), 8, 10, 0.05F));
+                        offers.add(new MerchantOffer(new ItemCost(ModItems.RESONANCE_SHARD.get(), 12),
+                                new ItemStack(Items.EMERALD, 5), 10, 5, 0.05F));
+                    }
+                    case 3 -> {
+                        offers.add(new MerchantOffer(new ItemCost(ModItems.RESONANCE_SHARD.get(), 8),
+                                new ItemStack(ModItems.NULL_IRON_INGOT.get(), 1), 6, 12, 0.05F));
+                        offers.add(new MerchantOffer(new ItemCost(Items.EMERALD, 14),
+                                new ItemStack(ModItems.BISMUTH_SEEDLING.get(), 2), 8, 8, 0.05F));
+                    }
+                    case 4 -> offers.add(new MerchantOffer(new ItemCost(Items.EMERALD, 26),
+                            new ItemStack(ModItems.NULL_IRON_INGOT.get(), 2), 5, 15, 0.05F));
+                    // The mask is the outpost's endgame stock: a player who has traded a
+                    // settlement all the way up can buy the means to build its guardian.
+                    case 5 -> offers.add(new MerchantOffer(new ItemCost(Items.EMERALD, 40),
+                            new ItemStack(ModItems.TUNERS_MASK_ITEM.get(), 1), 3, 20, 0.05F));
+                    default -> { }
+                }
             }
             case CAMP -> {
-                offers.add(new MerchantOffer(new ItemCost(Items.EMERALD, 4),
-                        new ItemStack(Items.COOKED_BEEF, 6), 16, 3, 0.05F));
-                offers.add(new MerchantOffer(new ItemCost(ModItems.BISMUTH_SEEDLING.get(), 3),
-                        new ItemStack(Items.EMERALD, 2), 10, 6, 0.05F));
-                offers.add(new MerchantOffer(new ItemCost(Items.EMERALD, 10),
-                        new ItemStack(Items.ARROW, 16), 12, 5, 0.05F));
-                offers.add(new MerchantOffer(new ItemCost(ModItems.RESONANCE_SHARD.get(), 4),
-                        new ItemStack(Items.TORCH, 8), 10, 4, 0.05F));
+                switch (level) {
+                    case 1 -> {
+                        offers.add(new MerchantOffer(new ItemCost(Items.EMERALD, 4),
+                                new ItemStack(Items.COOKED_BEEF, 6), 16, 3, 0.05F));
+                        offers.add(new MerchantOffer(new ItemCost(ModItems.BISMUTH_SEEDLING.get(), 3),
+                                new ItemStack(Items.EMERALD, 2), 12, 2, 0.05F));
+                    }
+                    case 2 -> {
+                        offers.add(new MerchantOffer(new ItemCost(Items.EMERALD, 10),
+                                new ItemStack(Items.ARROW, 16), 12, 5, 0.05F));
+                        offers.add(new MerchantOffer(new ItemCost(ModItems.RESONANCE_SHARD.get(), 4),
+                                new ItemStack(Items.TORCH, 8), 12, 4, 0.05F));
+                    }
+                    case 3 -> offers.add(new MerchantOffer(new ItemCost(Items.EMERALD, 12),
+                            new ItemStack(ModItems.RESONANCE_SHARD.get(), 5), 10, 8, 0.05F));
+                    case 4 -> offers.add(new MerchantOffer(new ItemCost(ModItems.RESONANCE_SHARD.get(), 10),
+                            new ItemStack(Items.EMERALD, 4), 8, 10, 0.05F));
+                    case 5 -> offers.add(new MerchantOffer(new ItemCost(Items.EMERALD, 18),
+                            new ItemStack(ModItems.VOID_GLASS_SHARD.get(), 4), 6, 15, 0.05F));
+                    default -> { }
+                }
             }
         }
     }
 
     @Override
+    protected void updateTrades(ServerLevel level) {
+        if (this.getOffers().isEmpty()) {
+            addTier(this.getOffers(), 1);
+        }
+    }
+
+    /**
+     * Trading pays the player in XP orbs as before, and pays the trader in trade XP. Crossing a
+     * threshold unlocks the next tier immediately, so the new stock appears in the open screen.
+     */
+    @Override
     protected void rewardTradeXp(MerchantOffer offer) {
         if (offer.shouldRewardExp()) {
             int popXp = 2 + this.random.nextInt(3);
             this.level().addFreshEntity(new ExperienceOrb(this.level(), this.getX(), this.getY() + 0.5, this.getZ(), popXp));
+        }
+        this.tradeXp += offer.getXp();
+        while (tradeLevel < MAX_LEVEL && tradeXp >= LEVEL_XP[tradeLevel]) {
+            tradeLevel++;
+            addTier(this.getOffers(), tradeLevel);
+            this.level().broadcastEntityEvent(this, (byte) 14); // the villager level-up particles
+        }
+    }
+
+    @Override
+    public boolean canRestock() {
+        return true;
+    }
+
+    /**
+     * "their trades are normalised every time" - every offer's use count goes back to zero on a
+     * restock, so a sold-out trader becomes tradeable again rather than being spent forever.
+     * Driven off game time rather than an internal counter so it also works for a trader that was
+     * unloaded for a while.
+     */
+    private void restockIfDue() {
+        long now = this.level().getGameTime();
+        if (now - lastRestock < RESTOCK_INTERVAL) {
+            return;
+        }
+        lastRestock = now;
+        for (MerchantOffer offer : this.getOffers()) {
+            offer.resetUses();
         }
     }
 
@@ -248,11 +350,17 @@ public class TraderMob extends AbstractVillager {
     protected void addAdditionalSaveData(ValueOutput output) {
         super.addAdditionalSaveData(output);
         output.putString("Variety", variety.name());
+        output.putInt("TradeLevel", tradeLevel);
+        output.putInt("TradeXp", tradeXp);
+        output.putLong("LastRestock", lastRestock);
     }
 
     @Override
     protected void readAdditionalSaveData(ValueInput input) {
         super.readAdditionalSaveData(input);
+        this.tradeLevel = Math.clamp(input.getIntOr("TradeLevel", 1), 1, MAX_LEVEL);
+        this.tradeXp = Math.max(0, input.getIntOr("TradeXp", 0));
+        this.lastRestock = input.getLongOr("LastRestock", 0L);
         this.variety = input.getString("Variety")
                 .map(name -> {
                     try {

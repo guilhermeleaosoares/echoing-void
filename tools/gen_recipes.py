@@ -89,6 +89,17 @@ def main() -> int:
     shaped("void_glass", ["##", "##"], {"#": glass_shard},
            f"{NS}:void_glass", count=2, category="building")
 
+    # ---- the Tuner's Mask: the key to building a guardian -------------------
+    # PLAYER: "make sure the tuners mask can be crafted and/or obtained naturally."
+    #
+    # A block of null-iron with the tuners' sigil struck into it and two shards
+    # set as the eyes. Deliberately the BLOCK rather than nine loose ingots, so
+    # the mask costs exactly what one segment of the body it completes costs -
+    # a guardian is seven blocks of null-iron all in, and the head is one of
+    # them. Shapeless because there is no arrangement worth memorising.
+    shapeless("tuners_mask", [f"{NS}:null_iron_block", shard, shard],
+              f"{NS}:tuners_mask", category="building")
+
     # ---- the tuning fork: the key to the Hollow Horizon ---------------------
     shaped("tuning_fork", ["S S", " S ", " I "], {"S": shard, "I": "minecraft:iron_ingot"},
            f"{NS}:tuning_fork", category="equipment")

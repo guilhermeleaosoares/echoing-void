@@ -116,6 +116,12 @@
           "name": "echoing_void:tuning_fork",
           "weight": 4,
           "quality": 2
+        },
+        {
+          "type": "minecraft:item",
+          "name": "echoing_void:tuners_mask",
+          "weight": 3,
+          "quality": 3
         }
       ]
     },

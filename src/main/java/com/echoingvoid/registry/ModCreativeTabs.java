@@ -65,6 +65,17 @@ public final class ModCreativeTabs {
         ModTerrainBlocks.tabOrder().forEach(emit);
         ModEffects.tabOrder().forEach(emit);
         ModHostOres.tabOrder().forEach(emit);
+        // PLAYER: "none of the knell stuff is showing up in the game, the creative
+        // inventory tab is outdated and only has some of the gear."
+        //
+        // Both halves of that were this: ModKnell and ModBlockFamilies each keep a
+        // tabOrder() of their own, and neither was ever asked for it. The items were
+        // registered the whole time - /give worked, the recipes worked - they simply
+        // had no tab to appear in, which in survival-adjacent play is the same thing
+        // as not existing. Any future DeferredRegister of items has to be added here
+        // too; there is no automatic discovery.
+        ModKnell.tabOrder().forEach(emit);
+        ModBlockFamilies.tabOrder().forEach(emit);
     }
 
     public static void register(BusGroup modBus) {

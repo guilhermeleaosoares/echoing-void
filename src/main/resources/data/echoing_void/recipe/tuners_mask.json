@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "building",
+  "ingredients": [
+    "echoing_void:null_iron_block",
+    "echoing_void:resonance_shard",
+    "echoing_void:resonance_shard"
+  ],
+  "result": {
+    "id": "echoing_void:tuners_mask"
+  }
+}

@@ -69,6 +69,7 @@ from ev_palette import (  # noqa: E402
     Ramp,
     _force_distinct,
     _hash2,
+    bayer,
     bevel_factor,
     build_ramp,
     fbm,
@@ -719,19 +720,82 @@ def t_amber_strata() -> Canvas:
 
 
 def t_polished_phonolite() -> Canvas:
-    """Worked dark stone: the grit is dialled almost out so the surface reads
-    smooth, and a soft diagonal sheen replaces the granular relief."""
+    """Worked dark stone: smooth gradual drift across the worked face with
+    shallow horizontal courses and no isolated dark outliers (max 1 ramp step
+    between neighbours), bounded by a 1px bevel frame measured off vanilla's
+    polished andesite / deepslate."""
     c = Canvas(POLISH_RAMP)
-    rock(c, 5401, POLISH_W, grain=16, grit=0.10, octaves=2, relief=0.30)
+    seed = 5408
+    grid = [[3] * SIZE for _ in range(SIZE)]
+
+    # 1. Smooth gradual base field across interior (rows 1..14, cols 1..14)
+    for y in range(1, SIZE - 1):
+        for x in range(1, SIZE - 1):
+            n = fbm(x * 0.7, y * 0.9, seed, octaves=2, period=SIZE)
+            lit = key_light_factor(x, y, SIZE) * 0.10
+            v = n + lit
+            if v < 0.42:
+                grid[y][x] = 2
+            elif v > 0.62:
+                grid[y][x] = 4
+            else:
+                grid[y][x] = 3
+
+    # 2. Shallow horizontal courses of lit stone (Tone 5)
+    # Staggered 2-4px horizontal streaks giving a cut-and-laid masonry read
+    courses = [
+        (2, 8, 4),
+        (3, 3, 3),
+        (6, 6, 4),
+        (8, 2, 3),
+        (8, 9, 4),
+        (10, 3, 4),
+        (11, 7, 3),
+        (12, 2, 4),
+        (14, 5, 3),
+    ]
+    for cy, cx0, clen in courses:
+        for k in range(clen):
+            x = cx0 + k
+            if 1 <= x <= 14:
+                grid[cy][x] = 5
+
+    # 3. Smooth constraint pass: enforce max delta of at most 1 ramp step between neighbours
+    for _ in range(4):
+        for y in range(1, SIZE - 1):
+            for x in range(1, SIZE - 1):
+                nbrs = [grid[ny][nx] for nx, ny in ((x+1, y), (x-1, y), (x, y+1), (x, y-1))
+                        if 1 <= nx <= 14 and 1 <= ny <= 14]
+                min_n = min(nbrs)
+                max_n = max(nbrs)
+                if grid[y][x] > max_n + 1:
+                    grid[y][x] = max_n + 1
+                elif grid[y][x] < min_n - 1:
+                    grid[y][x] = min_n - 1
+
+    for y in range(1, SIZE - 1):
+        for x in range(1, SIZE - 1):
+            c.set(x, y, grid[y][x])
+
+    # 4. Outer 1px bevel frame (measured off vanilla polished andesite)
+    # Top edge (y=0) & Left edge (x=0): lit highlight (tones 6 and 5)
+    for x in range(SIZE):
+        c.set(x, 0, 6 if _hash2(x, 0, 5403) > 0.35 else 5)
     for y in range(SIZE):
-        for x in range(SIZE):
-            if (x + y) % 16 in (2, 3):
-                bump_at(c, x, y, +1, 0, 6)
-            elif (x + y) % 16 in (10, 11):
-                bump_at(c, x, y, -1, 0, 6)
-    for x, y in ((2, 12), (13, 3)):        # chipped corner nicks
-        put(c, x, y, 0)
-        put(c, x - 1, y - 1, 5)
+        c.set(0, y, 6 if _hash2(0, y, 5407) > 0.35 else 5)
+    c.set(0, 0, 6)
+
+    # Bottom edge (y=15) & Right edge (x=15): shadow bevel (tones 0 and 1)
+    for x in range(SIZE):
+        c.set(x, 15, 0 if _hash2(x, 15, 5409) > 0.35 else 1)
+    for y in range(SIZE):
+        c.set(15, y, 0 if _hash2(15, y, 5411) > 0.35 else 1)
+    c.set(15, 15, 0)
+
+    # Mitred transition corners
+    c.set(15, 0, 2 if _hash2(15, 0, 5413) > 0.5 else 1)
+    c.set(0, 15, 5 if _hash2(0, 15, 5417) > 0.5 else 4)
+
     return c
 
 
@@ -1372,18 +1436,49 @@ def log_top(c: Canvas, seed: int, weights, bark_lo: int, bark_hi: int,
 
 
 def t_petrified_tuning_wood_side() -> Canvas:
-    """Fossilised sounding board: stone-grey grain with two bismuth tine
-    inlays, the tuning fork frozen into the trunk."""
+    """Petrified wood bark: strongly columnar vertical grain running full height,
+    with long continuous dark fissures between raised columns, measured off
+    vanilla's oak_log and spruce_log."""
     c = Canvas(TUNE_RAMP)
-    wood_side(c, 8101, TUNE_W, top=5, groove=0)
-    for x0 in (2, 10):
-        for y in range(2, 14):
-            put(c, x0, y, 6)
-            put(c, x0 + 1, y, 0)
-            put(c, x0 + 2, y, 5)
-        for y in (4, 5, 9, 10):
-            put(c, x0, y, 8)
-            put(c, x0 + 2, y, 7)
+    seed = 8101
+
+    for y in range(SIZE):
+        for x in range(SIZE):
+            # Slow wobble along y so the columns undulate naturally down the trunk
+            wobble = (fbm(x * 0.5, y, seed + 101, octaves=1, period=SIZE) - 0.5) * 1.2
+            eff_x = (x + wobble) % float(SIZE)
+
+            # Continuous columnar profile: 4 columns across 16px
+            phase = eff_x % 4.0
+            if phase < 0.8:
+                # Fissure channel (continuous dark line)
+                base_tone = 0 if phase < 0.4 else 1
+            elif phase < 1.8:
+                # Lit ridge crest on left flank of column
+                base_tone = 5 if phase < 1.4 else 4
+            elif phase < 3.0:
+                # Column mid body
+                base_tone = 3
+            else:
+                # Shadow slope into fissure
+                base_tone = 2
+
+            # Gentle vertical variation along the column
+            v_var = fbm(x * 1.5, y * 0.5, seed + 505, octaves=2, period=SIZE)
+            if v_var > 0.65 and base_tone >= 2:
+                base_tone = min(6, base_tone + 1)
+            elif v_var < 0.35 and base_tone >= 2:
+                base_tone = max(1, base_tone - 1)
+
+            # Fine vertical grain streak
+            fine = (_hash2(x, y, seed + 909) - 0.5) * 0.3
+            if fine > 0.12 and base_tone in (3, 4):
+                base_tone += 1
+            elif fine < -0.12 and base_tone in (3, 4):
+                base_tone -= 1
+
+            c.set(x, y, base_tone)
+
     return c
 
 
@@ -1885,7 +1980,7 @@ TEXTURES = [
     ("amber_strata", t_amber_strata, True),
     ("echo_slate", t_echo_slate, True),
     ("resonant_chalk", t_resonant_chalk, True),
-    ("polished_phonolite", t_polished_phonolite, True),
+    ("polished_phonolite", t_polished_phonolite, False),
     ("phonolite_bricks", t_phonolite_bricks, True),
     ("chalk_bricks", t_chalk_bricks, True),
     ("chime_sand", t_chime_sand, True),

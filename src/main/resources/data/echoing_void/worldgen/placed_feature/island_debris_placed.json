@@ -2,8 +2,12 @@
   "feature": "echoing_void:fallen_debris",
   "placement": [
     {
+      "type": "minecraft:rarity_filter",
+      "chance": 5
+    },
+    {
       "type": "minecraft:count",
-      "count": 8
+      "count": 2
     },
     {
       "type": "minecraft:in_square"

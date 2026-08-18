@@ -286,6 +286,11 @@ def gen_chests() -> None:
              item("minecraft:coal", 10, 2, 6),
              item(f"{NS}:harmonic_tuning_disc_alpha", 5, quality=2),
              item(f"{NS}:tuning_fork", 4, quality=2),
+             # PLAYER: "make sure the tuners mask can be crafted and/or obtained
+             # naturally." It is craftable now, but finding one in the forge of
+             # an outpost that already has a guardian standing outside is how a
+             # player works out what the thing is FOR without a recipe book.
+             item(f"{NS}:tuners_mask", 3, quality=3),
          ]},
         {"rolls": 1.0,
          "entries": [

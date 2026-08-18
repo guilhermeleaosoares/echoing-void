@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_null_iron_block": {
+      "conditions": {
+        "items": [
+          {
+            "items": "echoing_void:null_iron_block"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "echoing_void:tuners_mask"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_null_iron_block"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "echoing_void:tuners_mask"
+    ]
+  }
+}

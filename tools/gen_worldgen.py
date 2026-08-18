@@ -1813,10 +1813,21 @@ def gen_features() -> None:
     # whose matching hollow is cut by `sky_present` in the density graph instead.
     beneath_something = p_any(p_solid((0, 15, 0)), p_solid((0, 11, 0)),
                               p_solid((0, 7, 0)))
+    # PLAYER: "i dont really like the random artifacts that generate atop the
+    # floating island biome. i get that it adds variety, but they spawn far too
+    # frequently, they need to spawn at a twentieth the density."
+    #
+    # Was a flat count of 8 per chunk. A count of 1 is the floor, so a twentieth
+    # cannot be reached by lowering the count alone - it takes a rarity filter as
+    # well. rarity_filter 5 lets one chunk in five through, and 2 placements in
+    # those chunks gives 2/5 = 0.4 per chunk against the old 8, which is exactly
+    # one twentieth. The filter goes FIRST so it discards the chunk before any
+    # of the more expensive per-placement predicates run.
     write(pf / "island_debris_placed.json", {
         "feature": ev("fallen_debris"),
         "placement": [
-            {"type": "minecraft:count", "count": 8},
+            {"type": "minecraft:rarity_filter", "chance": 5},
+            {"type": "minecraft:count", "count": 2},
             {"type": "minecraft:in_square"},
             {"type": "minecraft:heightmap", "heightmap": "OCEAN_FLOOR_WG"},
             m_filter(p_all(p_replaceable(), p_tag(NATURAL_GROUND, (0, -1, 0)),

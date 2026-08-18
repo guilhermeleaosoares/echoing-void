@@ -729,17 +729,53 @@ def _harmonic_tool(form, seed: int, sparks: list) -> Sprite:
 
 def harmonic_sword() -> Sprite:
     """Vanilla's sword form: blade on the diagonal, guard, grip off the corner."""
-    return _harmonic_tool(vf.SWORD, 7301, [(4, 11)])
+    sp = Sprite()
+    head, haft = vf.tool_levels(vf.SWORD)
+    for (x, y), level in haft.items():
+        level += 0.08 * (fbm(x * 2.1, y * 2.1, 7301, octaves=2) - 0.5)
+        sp.put(x, y, NULL_IRON, NULL_IRON.tone(level))
+    for (x, y), level in head.items():
+        level += 0.08 * (fbm(x * 2.1, y * 2.1, 7307, octaves=2) - 0.5)
+        sp.put(x, y, BISMUTH, BISMUTH.tone(level))
+    sp.outline()
+    sp.stamp([(4, 11), (5, 10)], NULL_IRON, 1.0)        # guard collar
+    sp.stamp([(13, 2), (10, 5), (7, 8)], BISMUTH, 1.0)  # blade spine catch-lights
+    sp.stamp([(4, 11)], GOLD, 1.0)                       # gold specular spark at guard
+    return sp
 
 
 def harmonic_axe() -> Sprite:
     """Vanilla's axe form - the bit shape is what makes an axe read as an axe."""
-    return _harmonic_tool(vf.AXE, 7401, [(8, 2)])
+    sp = Sprite()
+    head, haft = vf.tool_levels(vf.AXE)
+    for (x, y), level in haft.items():
+        level += 0.08 * (fbm(x * 2.1, y * 2.1, 7401, octaves=2) - 0.5)
+        sp.put(x, y, NULL_IRON, NULL_IRON.tone(level))
+    for (x, y), level in head.items():
+        level += 0.08 * (fbm(x * 2.1, y * 2.1, 7407, octaves=2) - 0.5)
+        sp.put(x, y, BISMUTH, BISMUTH.tone(level))
+    sp.outline()
+    sp.stamp([(9, 5), (10, 6)], NULL_IRON, 1.0)        # lashing at eye
+    sp.stamp([(6, 4), (6, 5), (9, 2)], BISMUTH, 1.0)   # lit cutting edge & poll
+    sp.stamp([(8, 2)], GOLD, 1.0)                       # gold specular spark
+    return sp
 
 
 def harmonic_shovel() -> Sprite:
     """Vanilla's shovel form: a spade blade square on the end of the haft."""
-    return _harmonic_tool(vf.SHOVEL, 7501, [(11, 3)])
+    sp = Sprite()
+    head, haft = vf.tool_levels(vf.SHOVEL)
+    for (x, y), level in haft.items():
+        level += 0.08 * (fbm(x * 2.1, y * 2.1, 7501, octaves=2) - 0.5)
+        sp.put(x, y, NULL_IRON, NULL_IRON.tone(level))
+    for (x, y), level in head.items():
+        level += 0.08 * (fbm(x * 2.1, y * 2.1, 7507, octaves=2) - 0.5)
+        sp.put(x, y, BISMUTH, BISMUTH.tone(level))
+    sp.outline()
+    sp.stamp([(8, 7), (9, 6)], NULL_IRON, 1.0)         # ferrule/socket
+    sp.stamp([(10, 3), (12, 3), (9, 4)], BISMUTH, 1.0)  # spade lit ridge
+    sp.stamp([(11, 3)], GOLD, 1.0)                      # gold specular spark
+    return sp
 
 
 def harmonic_hoe() -> Sprite:
@@ -748,7 +784,19 @@ def harmonic_hoe() -> Sprite:
     This is the one head that is not on the haft's diagonal, and that is
     exactly what tells a hoe from an axe at 16x16.
     """
-    return _harmonic_tool(vf.HOE, 7601, [(7, 1)])
+    sp = Sprite()
+    head, haft = vf.tool_levels(vf.HOE)
+    for (x, y), level in haft.items():
+        level += 0.08 * (fbm(x * 2.1, y * 2.1, 7601, octaves=2) - 0.5)
+        sp.put(x, y, NULL_IRON, NULL_IRON.tone(level))
+    for (x, y), level in head.items():
+        level += 0.08 * (fbm(x * 2.1, y * 2.1, 7607, octaves=2) - 0.5)
+        sp.put(x, y, BISMUTH, BISMUTH.tone(level))
+    sp.outline()
+    sp.stamp([(10, 5), (9, 6)], NULL_IRON, 1.0)        # socket collar
+    sp.stamp([(7, 2), (8, 2), (6, 2)], BISMUTH, 1.0)   # lit adze edge
+    sp.stamp([(7, 1)], GOLD, 1.0)                       # gold specular spark
+    return sp
 
 
 def void_glass_rapier() -> Sprite:
