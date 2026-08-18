@@ -546,22 +546,55 @@ def knell_pickaxe() -> Sprite:
 
 
 def knell_axe() -> Sprite:
-    """The Knell tier war-axe: cohesive socketed head straddling the null-iron haft,
-    with a sweeping crescent cutting blade, dropped beard hook, and balanced back poll."""
+    """The Knell tier war-axe: exact vanilla rear lobe and haft socket passage
+    with a hollow circular parabolic cutting blade and harmonic magenta sparks."""
     sp = Sprite()
-    haft = stroke([(2.4, 14.4), (11.4, 4.8)], 1.05)
-    head_poly = poly([
-        (8.6, 1.0), (11.4, 1.0), (13.4, 4.4), (12.6, 6.6), (10.4, 6.6),
-        (8.4, 6.2), (5.8, 7.8), (4.6, 7.2),
-        (3.8, 5.0), (4.2, 2.8), (6.4, 1.0)
-    ])
-    sp.paint(haft, NULL_IRON, 0.58, 5813, spread=0.34, light=0.26)
-    sp.paint(head_poly - haft, KNELL, 0.66, 5819, spread=0.32, light=0.30)
+    haft_levels = {
+        (11, 4): 0.50, (12, 4): 0.55,
+        (12, 5): 0.40,
+        (9, 6): 0.52,
+        (8, 7): 0.50, (9, 7): 0.60, (10, 7): 0.38,
+        (7, 8): 0.50, (8, 8): 0.68, (9, 8): 0.38,
+        (6, 9): 0.50, (7, 9): 0.60, (8, 9): 0.38,
+        (5, 10): 0.50, (6, 10): 0.60, (7, 10): 0.38,
+        (4, 11): 0.50, (5, 11): 0.68, (6, 11): 0.38,
+        (3, 12): 0.50, (4, 12): 0.60, (5, 12): 0.38,
+        (2, 13): 0.50, (3, 13): 0.68, (4, 13): 0.38,
+        (2, 14): 0.38, (3, 14): 0.38,
+    }
+    rear_lobe_levels = {
+        (10, 6): 0.60, (11, 6): 0.55, (12, 6): 0.85, (13, 6): 0.35,
+        (11, 7): 0.75, (12, 7): 0.85, (13, 7): 0.35,
+        (11, 8): 0.35, (12, 8): 0.35,
+    }
+    front_blade_levels = {
+        (7, 1): 0.45, (8, 1): 0.85, (9, 1): 0.45, (10, 1): 0.40,
+        (6, 2): 0.45, (7, 2): 0.85, (8, 2): 0.85, (9, 2): 0.85, (10, 2): 0.75, (11, 2): 0.45,
+        (5, 3): 0.45, (6, 3): 0.85, (7, 3): 0.85, (8, 3): 0.75, (9, 3): 0.75, (10, 3): 0.70, (11, 3): 0.65, (12, 3): 0.45,
+        (5, 4): 0.85, (6, 4): 0.85, (7, 4): 0.75,             (9, 4): 0.65, (10, 4): 0.60,
+        (5, 5): 0.85, (6, 5): 0.75,             (8, 5): 0.60, (9, 5): 0.55, (10, 5): 0.50, (11, 5): 0.65,
+        (4, 6): 0.45, (5, 6): 0.85, (6, 6): 0.75, (7, 6): 0.65, (8, 6): 0.50,
+        (5, 7): 0.85, (6, 7): 0.75, (7, 7): 0.55,
+    }
+    for (x, y), lvl in haft_levels.items():
+        lvl += 0.08 * (fbm(x * 2.1, y * 2.1, 5813, octaves=2) - 0.5)
+        sp.put(x, y, NULL_IRON, NULL_IRON.tone(lvl))
+    for (x, y), lvl in {**rear_lobe_levels, **front_blade_levels}.items():
+        lvl += 0.09 * (fbm(x * 2.1, y * 2.1, 5819, octaves=2) - 0.5)
+        sp.put(x, y, KNELL, KNELL.tone(lvl))
     sp.outline()
-    sp.stamp([(9, 5), (10, 4)], NULL_IRON, 1.0)        # socket collar at eye
-    sp.stamp([(4, 3), (4, 4), (4, 5), (6, 1), (7, 1)], KNELL, 1.0) # cutting edge highlights
-    sp.stamp([(12, 5)], KNELL, 0.9)                     # back poll highlight
-    sp.stamp([(10, 1), (5, 7)], HARMONIC, 1.0)         # harmonic magenta sparks (crest & beard hook)
+    # Explicitly set rear lobe outer pixels to Knell's dark tone #462354 (index 1) to ensure they read as Head material
+    for p in ((13, 6), (13, 7), (11, 8), (12, 8)):
+        sp.put(p[0], p[1], KNELL, 1)
+    sp.stamp([(12, 6), (12, 7)], KNELL, 1.0)
+    sp.stamp([(10, 6), (11, 6), (11, 7)], KNELL, 0.75)
+    sp.stamp([(9, 6), (8, 7), (11, 4)], NULL_IRON, 1.0)
+    sp.stamp([(8, 1), (7, 2), (6, 3), (5, 4), (5, 5), (5, 6), (6, 7)], KNELL, 1.0)
+    sp.stamp([(7, 2), (5, 7)], HARMONIC, 1.0)
+    # Ensure hollow cutouts at (8,4) and (7,5) and gap at (10,8)
+    for p in ((8, 4), (7, 5), (10, 8)):
+        if p in sp.cell:
+            del sp.cell[p]
     return sp
 
 
