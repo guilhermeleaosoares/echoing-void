@@ -727,13 +727,18 @@ def bridge_stair() -> Template:
     for z in (0, 1, 2):
         t.fill(1, 1, z, 3, 1, z, deck)
         kerb(z, 1)
-    for i, z in enumerate((3, 4, 5)):             # the flight
+    # PLAYER: "the highest block of should be stairs is replaced by solid wood
+    # block which means the next structure block is generating one block too
+    # high up." The flight was three steps while the docstring - and the exit
+    # jigsaw - both assume a climb of four, so the last step was a plank and
+    # the deck began a block early.
+    for i, z in enumerate((3, 4, 5, 6)):          # the flight
         y = 2 + i
         for x in range(1, 4):
             t.stairs(x, y, z, CHALK_BRICK, "south")
             t.fill(x, 1, z, x, y - 1, z, CHALK_BRICK)
         kerb(z, y)
-    for z in range(6, 11):
+    for z in range(7, 11):                        # deck starts after the 4th step
         t.fill(1, 5, z, 3, 5, z, deck)
         kerb(z, 5)
     t.fill(1, 0, 8, 3, 4, 8, POLISHED)            # pier under the upper deck
@@ -797,15 +802,22 @@ def observatory() -> Template:
     t.fill(11, 7, 9, 11, 9, 9, AIR)
 
     # dome: glass ring plus a slab lip standing on the ring below
+    # PLAYER: "the slabs on the observatory roof instead of spawning in the
+    # lower half of the block space they are generating in the upper half."
+    # These sit on the glass ring below them, so they belong in the bottom half;
+    # in the top half each one left a half-block band of air under the lip.
+    # The other "top" slabs in this file - the chimney cap, the workbench and
+    # table tops, the bridge kerbs - are deliberately flush with the course
+    # above and are left alone.
     y = 11
     for r in (6, 5, 4, 3, 2, 1):
         for (x, z) in oct_ring(cx, cz, r):
             t.set(x, y, z, GLASS)
         for (x, z) in oct_ring(cx, cz, r + 1):
-            t.slab(x, y, z, POLISHED, "top")
+            t.slab(x, y, z, POLISHED, "bottom")
         y += 1
     for (x, z) in oct_ring(cx, cz, 1):
-        t.slab(x, y, z, POLISHED, "top")
+        t.slab(x, y, z, POLISHED, "bottom")
     t.set(cx, y, cz, POLISHED)
     t.wall(cx, y + 1, cz, POLISHED)
     t.set(cx, y + 2, cz, LANTERN)

@@ -949,14 +949,16 @@ def t_null_iron_ore() -> Canvas:
 
 
 NULL_BLOCK_RAMP = R("null_iron_block", [
-    shift(NI_BLACK, -0.20),               # 0 deepest shadow / seam
-    NI_BLACK,                             # 1 void black
-    mix(NI_BLACK, NI_DARK, 0.50),         # 2 dark null iron
-    NI_DARK,                              # 3 mid-dark body
-    mix(NI_DARK, NI_MID, 0.50),           # 4 mid body
-    NI_MID,                               # 5 lit body
-    mix(NI_MID, NI_LIGHT, 0.45),          # 6 cold bevel highlight
-    mix(NI_LIGHT, NI_PALE, 0.40),         # 7 rivet specular glint
+    NI_DARK,                                      # 0: deepest shadow / seam (lum ~27)
+    mix(NI_DARK, NI_MID, 0.50),                  # 1: shadow underplate / seam (lum ~36)
+    NI_MID,                                       # 2: mid-dark shadow (lum ~43)
+    mix(NI_MID, NI_STEEL, 0.50),                 # 3: soft shadow (lum ~52)
+    NI_STEEL,                                     # 4: forged body plate (lum ~61)
+    mix(NI_STEEL, NI_LIGHT, 0.50),               # 5: lit forged plate (lum ~70)
+    NI_LIGHT,                                     # 6: bright plate (lum ~78)
+    mix(NI_LIGHT, NI_PALE, 0.50),                # 7: cold bevel highlight (lum ~94)
+    NI_PALE,                                      # 8: bright bevel edge (lum ~111)
+    mix(NI_PALE, CH_MID, 0.40),                  # 9: rivet specular glint (lum ~138)
 ])
 
 
@@ -967,48 +969,48 @@ def t_null_iron_block() -> Canvas:
     seed = 7703
 
     # 1. Base plate: smooth forged directional gradient flowing from top-left to bottom-right
-    grid = [[3] * SIZE for _ in range(SIZE)]
+    grid = [[5] * SIZE for _ in range(SIZE)]
     for y in range(SIZE):
         for x in range(SIZE):
             diag = (30.0 - (x + y)) / 30.0
             n = fbm(x * 0.8, y * 0.8, seed, octaves=2, period=SIZE) - 0.5
             v = diag * 0.60 + n * 0.25 + 0.25
             if v < 0.25:
-                grid[y][x] = 2
-            elif v < 0.50:
-                grid[y][x] = 3
-            elif v < 0.75:
                 grid[y][x] = 4
-            else:
+            elif v < 0.50:
                 grid[y][x] = 5
+            elif v < 0.75:
+                grid[y][x] = 6
+            else:
+                grid[y][x] = 7
 
     # 2. Outer rim (row 0, col 0, row 15, col 15)
     for x in range(SIZE):
-        grid[0][x] = 4 if _hash2(x, 0, seed + 11) > 0.35 else 3
-        grid[15][x] = 1 if _hash2(x, 15, seed + 13) > 0.35 else 0
+        grid[0][x] = 6 if _hash2(x, 0, seed + 11) > 0.35 else 5
+        grid[15][x] = 2 if _hash2(x, 15, seed + 13) > 0.35 else 1
     for y in range(SIZE):
-        grid[y][0] = 4 if _hash2(0, y, seed + 17) > 0.35 else 3
-        grid[y][15] = 1 if _hash2(15, y, seed + 19) > 0.35 else 0
-    grid[0][0] = 4
-    grid[15][15] = 0
+        grid[y][0] = 6 if _hash2(0, y, seed + 17) > 0.35 else 5
+        grid[y][15] = 2 if _hash2(15, y, seed + 19) > 0.35 else 1
+    grid[0][0] = 6
+    grid[15][15] = 1
 
     # 3. Inset Bevel Frame (at x=1, y=1 and x=14, y=14)
     for i in range(1, SIZE - 1):
-        grid[1][i] = 6 if _hash2(i, 1, seed + 23) > 0.30 else 5
-        grid[i][1] = 6 if _hash2(1, i, seed + 29) > 0.30 else 5
+        grid[1][i] = 8 if _hash2(i, 1, seed + 23) > 0.30 else 7
+        grid[i][1] = 8 if _hash2(1, i, seed + 29) > 0.30 else 7
     for i in range(1, SIZE - 1):
-        grid[14][i] = 0 if _hash2(i, 14, seed + 31) > 0.35 else 1
-        grid[i][14] = 0 if _hash2(14, i, seed + 37) > 0.35 else 1
+        grid[14][i] = 1 if _hash2(i, 14, seed + 31) > 0.35 else 2
+        grid[i][14] = 1 if _hash2(14, i, seed + 37) > 0.35 else 2
 
     # 4. Recessed centre panel (rows 3..12, cols 3..12)
     # Inner shadow on top/left (step down into recess)
     for i in range(3, 13):
-        grid[3][i] = 1 if _hash2(i, 3, seed + 41) > 0.40 else 2
-        grid[i][3] = 1 if _hash2(3, i, seed + 43) > 0.40 else 2
+        grid[3][i] = 2 if _hash2(i, 3, seed + 41) > 0.40 else 3
+        grid[i][3] = 2 if _hash2(3, i, seed + 43) > 0.40 else 3
     # Lit bottom/right lip of the recess (catching light on the rim)
     for i in range(3, 13):
-        grid[12][i] = 4 if _hash2(i, 12, seed + 47) > 0.40 else 3
-        grid[i][12] = 4 if _hash2(12, i, seed + 49) > 0.40 else 3
+        grid[12][i] = 6 if _hash2(i, 12, seed + 47) > 0.40 else 5
+        grid[i][12] = 6 if _hash2(12, i, seed + 49) > 0.40 else 5
 
     # Interior recessed panel (rows 4..11, cols 4..11)
     for y in range(4, 12):
@@ -1017,20 +1019,20 @@ def t_null_iron_block() -> Canvas:
             n = fbm(x * 0.9, y * 0.9, seed + 101, octaves=2, period=8) - 0.5
             v = diag * 0.55 + n * 0.20 + 0.30
             if v < 0.28:
-                grid[y][x] = 2
-            elif v < 0.55:
-                grid[y][x] = 3
-            elif v < 0.80:
                 grid[y][x] = 4
-            else:
+            elif v < 0.55:
                 grid[y][x] = 5
+            elif v < 0.80:
+                grid[y][x] = 6
+            else:
+                grid[y][x] = 7
 
     # 5. Corner Rivets at (2, 2), (12, 2), (2, 12), (12, 12)
     for rx, ry in ((2, 2), (12, 2), (2, 12), (12, 12)):
-        grid[ry][rx] = 7          # specular glint
-        grid[ry][rx + 1] = 5      # right flank
-        grid[ry + 1][rx] = 5      # lower flank
-        grid[ry + 1][rx + 1] = 1  # shadow drop
+        grid[ry][rx] = 9          # specular glint
+        grid[ry][rx + 1] = 8      # right flank
+        grid[ry + 1][rx] = 8      # lower flank
+        grid[ry + 1][rx + 1] = 2  # shadow drop
 
     # 6. Smooth relaxation pass on the interior to enforce gradual drift
     for _ in range(3):
@@ -1040,12 +1042,13 @@ def t_null_iron_block() -> Canvas:
                     continue
                 nbrs = [grid[ny][nx] for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1))
                         if 0 <= nx < SIZE and 0 <= ny < SIZE]
-                min_n = min(nbrs)
-                max_n = max(nbrs)
-                if grid[y][x] > max_n + 1:
-                    grid[y][x] = max_n + 1
-                elif grid[y][x] < min_n - 1:
-                    grid[y][x] = min_n - 1
+                if nbrs:
+                    min_n = min(nbrs)
+                    max_n = max(nbrs)
+                    if grid[y][x] > max_n + 1:
+                        grid[y][x] = max_n + 1
+                    elif grid[y][x] < min_n - 1:
+                        grid[y][x] = min_n - 1
 
     for y in range(SIZE):
         for x in range(SIZE):
@@ -1053,6 +1056,14 @@ def t_null_iron_block() -> Canvas:
 
     return c
 
+
+# The two carved-slit colours are appended to the block's ramp, so their INDEX
+# depends on how long that ramp happens to be. It has already changed length
+# once - the block gained two steps during a rework, the gold silently shifted
+# from 8/9 to 10/11, and the mask's eyes went plain steel. SLIT_DIM/SLIT_LIT
+# are derived rather than written down so that cannot recur.
+SLIT_DIM = len(NULL_BLOCK_RAMP.colors)
+SLIT_LIT = SLIT_DIM + 1
 
 MASK_RAMP = R("tuners_mask", NULL_BLOCK_RAMP.colors + [
     shift(GOLD, -0.25),   # 8 unlit slit
@@ -1091,13 +1102,13 @@ def t_tuners_mask_front() -> Canvas:
     # Twin angled slits, canted outward at the top - the same silhouette as the
     # guardian's own eye lights, just carved rather than emissive here.
     for x, y in ((4, 6), (5, 6), (4, 7), (5, 7), (5, 8), (6, 8), (5, 9), (6, 9)):
-        c.set(x, y, 8)
+        c.set(x, y, SLIT_DIM)
     for x, y in ((4, 6), (4, 7), (6, 8), (6, 9)):
-        c.set(x, y, 9)
+        c.set(x, y, SLIT_LIT)
     for x, y in ((11, 6), (10, 6), (11, 7), (10, 7), (10, 8), (9, 8), (10, 9), (9, 9)):
-        c.set(x, y, 8)
+        c.set(x, y, SLIT_DIM)
     for x, y in ((11, 6), (11, 7), (9, 8), (9, 9)):
-        c.set(x, y, 9)
+        c.set(x, y, SLIT_LIT)
     # A carved bridge and stern mouth line under the slits, so the front reads
     # as a face rather than two unconnected marks.
     for y in range(9, 13):

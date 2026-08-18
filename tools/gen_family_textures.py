@@ -133,6 +133,8 @@ from gen_block_textures import (  # noqa: E402
     NI_DARK,
     NI_LIGHT,
     NI_MID,
+    NI_PALE,
+    NI_STEEL,
     ORE_SITES,
     PH_DARK,
     PH_LIGHT,
@@ -939,12 +941,10 @@ BISMUTH_TONES = [BIS_RIM, BIS_BODY, BIS_CORE, BIS_SPARK]
 # Null iron is a hole, not a crystal, so its shells are inverted: the rim is the
 # lit lip of the pit and the core is void black.
 NULL_TONES = [
-    # The lit lip was mixed from phonolite, which put the ore's brightest tone
-    # on a different hue from the ingot it drops and the block it becomes.
-    mix(NI_LIGHT, BI_MID, 0.24),         # lit lip
-    NI_MID,                              # pit wall
-    NI_BLACK,                            # the void itself
-    mix(NI_MID, BI_MID, 0.55),           # cold glint on the rim
+    mix(NI_LIGHT, NI_PALE, 0.35),        # lit lip
+    NI_STEEL,                            # pit wall
+    NI_DARK,                             # the void itself
+    mix(NI_PALE, CH_MID, 0.30),          # cold glint on the rim
 ]
 
 

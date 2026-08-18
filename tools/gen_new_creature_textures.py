@@ -432,28 +432,24 @@ def trader_hand(base: Sheet, glow: Sheet, u, v, size, seed):
 # ---------------------------------------------------------------------------
 
 # The block's own three anchors (#08080A / #1A1A24 / #2A2A38, the "null_iron"
-# entry in docs/spec/art_direction.json), carried up into a cool phonolite
-# highlight so a bevel and a rivet can still catch light on a body this dark.
-# Without that top end the creature is a featureless silhouette at any range.
-# 9 steps rather than 7: at 7 the finished sheet only carried 9 distinct
-# colours and tripped the gate's 10-colour floor for entities, and the bevel
-# highlights had visible jumps between them.
+# The forged Null-Iron ramp on the unified hue 240 anchors, matching
+# null_iron_block, raw_null_iron, and null_iron_ingot.
 NULL_IRON = [
-    parse_hex("#060608"),   # 0 deepest shadow / crevice / underside (lum 6)
-    parse_hex("#08080A"),   # 1 void black ground (lum 8)
-    parse_hex("#13131A"),   # 2 dark null iron (lum 15)
-    parse_hex("#1A1A24"),   # 3 shadow plate (lum 27)
-    parse_hex("#23232F"),   # 4 mid plate (lum 35)
-    parse_hex("#2A2A38"),   # 5 lit plate (lum 43)
-    parse_hex("#333748"),   # 6 mid-light steel (lum 52)
-    parse_hex("#3C4253"),   # 7 bevel highlight (lum 62)
-    parse_hex("#4C566A"),   # 8 bright bevel edge (lum 85)
-    parse_hex("#5B677D"),   # 9 specular rivet glint (lum 95)
-    parse_hex("#6E7B94"),   # 10 sky-lit crown / catchlight (lum 122)
-    parse_hex("#8794AB"),   # 11 maximum specular glint (lum 145)
+    parse_hex("#1A1A24"),   # 0: deepest crevice shadow (lum 26.7)
+    parse_hex("#23232F"),   # 1: shadow underplate / seam (lum 35.9)
+    parse_hex("#2A2A38"),   # 2: mid-dark shadow (lum 43.0)
+    parse_hex("#333346"),   # 3: soft shadow plate (lum 52.4)
+    parse_hex("#3B3B52"),   # 4: forged body plate (lum 60.7)
+    parse_hex("#44445F"),   # 5: lit forged plate (lum 69.9)
+    parse_hex("#4C4C6A"),   # 6: bright plate (lum 78.2)
+    parse_hex("#5A5A7B"),   # 7: cold bevel highlight (lum 92.4)
+    parse_hex("#646487"),   # 8: bright bevel edge (lum 102.5)
+    parse_hex("#6E6E94"),   # 9: specular bevel / catchlight (lum 112.7)
+    parse_hex("#868CA9"),   # 10: rivet specular glint (lum 140.8)
+    parse_hex("#9AA3BA"),   # 11: maximum specular catch (lum 162.7)
 ]
 
-RIVET = parse_hex("#5B677D")
+RIVET = parse_hex("#868CA9")
 
 
 def _pick_ni(level: float) -> RGBA:

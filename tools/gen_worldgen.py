@@ -2062,11 +2062,16 @@ def gen_structure() -> None:
     write(MOD / "worldgen" / "structure_set" / f"{STRUCT}.json", {
         "placement": {
             "type": "minecraft:random_spread",
-            "frequency": 0.8,
+            # PLAYER: "the outposts spawn too frequently."
+            # Was 0.8 / sep 6 / spacing 20 = 1 per 500 chunks. Now 1 per 2560
+            # chunks - roughly 820 blocks apart, rarer than a village and still
+            # commoner than a pillager outpost - with a 10-chunk minimum gap
+            # that comfortably exceeds the structure's own 96-block footprint.
+            "frequency": 0.4,
             "frequency_reduction_method": "default",
             "salt": 20260817,
-            "separation": 6,
-            "spacing": 20,
+            "separation": 10,
+            "spacing": 32,
         },
         "structures": [{"structure": f"{NS}:{STRUCT}", "weight": 1}],
     })
