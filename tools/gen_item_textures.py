@@ -770,7 +770,7 @@ def harmonic_sword() -> Sprite:
 
 def harmonic_axe() -> Sprite:
     """A crystalline war-axe: exact vanilla rear lobe and haft socket passage
-    with a solid, large circular parabolic cutting blade and harmonic gold sparks."""
+    with a large circular parabolic cutting blade, hollow-cut, and gold sparks."""
     sp = Sprite()
     haft_levels = {
         (11, 4): 0.50, (12, 4): 0.55,
@@ -794,8 +794,11 @@ def harmonic_axe() -> Sprite:
         (7, 1): 0.45, (8, 1): 0.85, (9, 1): 0.45, (10, 1): 0.40,
         (6, 2): 0.45, (7, 2): 0.85, (8, 2): 0.85, (9, 2): 0.85, (10, 2): 0.75, (11, 2): 0.45,
         (5, 3): 0.45, (6, 3): 0.85, (7, 3): 0.85, (8, 3): 0.75, (9, 3): 0.75, (10, 3): 0.70, (11, 3): 0.65, (12, 3): 0.45,
-        (5, 4): 0.85, (6, 4): 0.85, (7, 4): 0.75, (8, 4): 0.65, (9, 4): 0.65, (10, 4): 0.60,
-        (5, 5): 0.85, (6, 5): 0.75, (7, 5): 0.65, (8, 5): 0.60, (9, 5): 0.55, (10, 5): 0.50, (11, 5): 0.65,
+        # (8, 4) and (7, 5) are deliberately absent: the hollow cut through the
+        # blade. Both tiers carry it - it is the shape the reviewer wanted, and
+        # the two are distinguished by material rather than by geometry.
+        (5, 4): 0.85, (6, 4): 0.85, (7, 4): 0.75, (9, 4): 0.65, (10, 4): 0.60,
+        (5, 5): 0.85, (6, 5): 0.75, (8, 5): 0.60, (9, 5): 0.55, (10, 5): 0.50, (11, 5): 0.65,
         (4, 6): 0.45, (5, 6): 0.85, (6, 6): 0.75, (7, 6): 0.65, (8, 6): 0.50,
         (5, 7): 0.85, (6, 7): 0.75, (7, 7): 0.55,
     }
