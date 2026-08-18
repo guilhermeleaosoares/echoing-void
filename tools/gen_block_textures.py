@@ -943,34 +943,108 @@ def t_null_iron_ore() -> Canvas:
 
 
 NULL_BLOCK_RAMP = R("null_iron_block", [
-    shift(NI_BLACK, -0.20),
-    NI_BLACK,
-    mix(NI_BLACK, NI_DARK, 0.55),
-    NI_DARK,
-    mix(NI_DARK, NI_MID, 0.55),
-    NI_MID,
-    mix(NI_MID, PH_MID, 0.45),
-    mix(NI_MID, BI_MID, 0.35),
+    shift(NI_BLACK, -0.20),               # 0 deepest shadow / seam
+    NI_BLACK,                             # 1 void black
+    mix(NI_BLACK, NI_DARK, 0.50),         # 2 dark null iron
+    NI_DARK,                              # 3 mid-dark body
+    mix(NI_DARK, NI_MID, 0.50),           # 4 mid body
+    NI_MID,                               # 5 lit body
+    mix(NI_MID, PH_LIGHT, 0.45),          # 6 cold bevel highlight
+    mix(PH_LIGHT, PH_PALE, 0.40),         # 7 rivet specular glint
 ])
 
 
 def t_null_iron_block() -> Canvas:
-    """Dense plate: bevelled inset border, recessed centre panel, corner rivets,
-    and a cold sheen along the top-left of the recess."""
+    """Dense forged plate: bevelled inset frame, recessed centre panel, corner rivets,
+    and a smooth directional metallic sheen across the face."""
     c = Canvas(NULL_BLOCK_RAMP)
-    rock(c, 7703, (0.08, 0.20, 0.30, 0.24, 0.13, 0.05), grain=8, grit=0.30,
-         relief=0.40)
-    frame_inset(c, hi=6, lo=0)
+    seed = 7703
+
+    # 1. Base plate: smooth forged directional gradient flowing from top-left to bottom-right
+    grid = [[3] * SIZE for _ in range(SIZE)]
+    for y in range(SIZE):
+        for x in range(SIZE):
+            diag = (30.0 - (x + y)) / 30.0
+            n = fbm(x * 0.8, y * 0.8, seed, octaves=2, period=SIZE) - 0.5
+            v = diag * 0.60 + n * 0.25 + 0.25
+            if v < 0.25:
+                grid[y][x] = 2
+            elif v < 0.50:
+                grid[y][x] = 3
+            elif v < 0.75:
+                grid[y][x] = 4
+            else:
+                grid[y][x] = 5
+
+    # 2. Outer rim (row 0, col 0, row 15, col 15)
+    for x in range(SIZE):
+        grid[0][x] = 4 if _hash2(x, 0, seed + 11) > 0.35 else 3
+        grid[15][x] = 1 if _hash2(x, 15, seed + 13) > 0.35 else 0
+    for y in range(SIZE):
+        grid[y][0] = 4 if _hash2(0, y, seed + 17) > 0.35 else 3
+        grid[y][15] = 1 if _hash2(15, y, seed + 19) > 0.35 else 0
+    grid[0][0] = 4
+    grid[15][15] = 0
+
+    # 3. Inset Bevel Frame (at x=1, y=1 and x=14, y=14)
+    for i in range(1, SIZE - 1):
+        grid[1][i] = 6 if _hash2(i, 1, seed + 23) > 0.30 else 5
+        grid[i][1] = 6 if _hash2(1, i, seed + 29) > 0.30 else 5
+    for i in range(1, SIZE - 1):
+        grid[14][i] = 0 if _hash2(i, 14, seed + 31) > 0.35 else 1
+        grid[i][14] = 0 if _hash2(14, i, seed + 37) > 0.35 else 1
+
+    # 4. Recessed centre panel (rows 3..12, cols 3..12)
+    # Inner shadow on top/left (step down into recess)
+    for i in range(3, 13):
+        grid[3][i] = 1 if _hash2(i, 3, seed + 41) > 0.40 else 2
+        grid[i][3] = 1 if _hash2(3, i, seed + 43) > 0.40 else 2
+    # Lit bottom/right lip of the recess (catching light on the rim)
+    for i in range(3, 13):
+        grid[12][i] = 4 if _hash2(i, 12, seed + 47) > 0.40 else 3
+        grid[i][12] = 4 if _hash2(12, i, seed + 49) > 0.40 else 3
+
+    # Interior recessed panel (rows 4..11, cols 4..11)
     for y in range(4, 12):
         for x in range(4, 12):
-            if x in (4, 11) or y in (4, 11):
-                c.set(x, y, 0 if (x == 4 or y == 4) else 6)
+            diag = (22.0 - (x + y)) / 22.0
+            n = fbm(x * 0.9, y * 0.9, seed + 101, octaves=2, period=8) - 0.5
+            v = diag * 0.55 + n * 0.20 + 0.30
+            if v < 0.28:
+                grid[y][x] = 2
+            elif v < 0.55:
+                grid[y][x] = 3
+            elif v < 0.80:
+                grid[y][x] = 4
             else:
-                bump_at(c, x, y, -1, 1, 4)
-    for x, y in ((6, 6), (7, 6), (6, 7)):
-        c.set(x, y, 7)
-    for x, y in ((2, 2), (12, 2), (2, 12), (12, 12)):
-        rivet(c, x, y, 6, 0)
+                grid[y][x] = 5
+
+    # 5. Corner Rivets at (2, 2), (12, 2), (2, 12), (12, 12)
+    for rx, ry in ((2, 2), (12, 2), (2, 12), (12, 12)):
+        grid[ry][rx] = 7          # specular glint
+        grid[ry][rx + 1] = 5      # right flank
+        grid[ry + 1][rx] = 5      # lower flank
+        grid[ry + 1][rx + 1] = 1  # shadow drop
+
+    # 6. Smooth relaxation pass on the interior to enforce gradual drift
+    for _ in range(3):
+        for y in range(1, SIZE - 1):
+            for x in range(1, SIZE - 1):
+                if any(abs(x - rx) <= 1 and abs(y - ry) <= 1 for rx, ry in ((2, 2), (12, 2), (2, 12), (12, 12))):
+                    continue
+                nbrs = [grid[ny][nx] for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1))
+                        if 0 <= nx < SIZE and 0 <= ny < SIZE]
+                min_n = min(nbrs)
+                max_n = max(nbrs)
+                if grid[y][x] > max_n + 1:
+                    grid[y][x] = max_n + 1
+                elif grid[y][x] < min_n - 1:
+                    grid[y][x] = min_n - 1
+
+    for y in range(SIZE):
+        for x in range(SIZE):
+            c.set(x, y, grid[y][x])
+
     return c
 
 
@@ -990,12 +1064,24 @@ def t_tuners_mask_front() -> Canvas:
     twin slits protector_head (gen_new_creature_textures.py) lights the summoned
     guardian's own face with, so the trigger block and the mob it builds visibly
     share one design language before the player has even seen the mob."""
+    # The plate is not re-drawn here, it is COPIED from t_null_iron_block and
+    # then carved. That is deliberate: the first version reproduced the block's
+    # look with its own rock()/frame_inset()/rivet() calls, and the moment the
+    # block itself was reworked the two drifted apart - the block became a
+    # smooth forged plate while the mask stayed grainy, so a mask placed on a
+    # null-iron body no longer read as the same material. Copying the indices
+    # makes that impossible: whatever the block looks like, the mask is that
+    # exact face with a sigil cut into it.
+    #
+    # The index copy is sound because MASK_RAMP is NULL_BLOCK_RAMP's colours
+    # plus two gold entries appended, so indices 0-7 mean the same tone in both
+    # ramps and 8-9 are the carved slit colours only the mask has.
+    plate = t_null_iron_block()
     c = Canvas(MASK_RAMP)
-    rock(c, 7741, (0.08, 0.20, 0.30, 0.24, 0.13, 0.05), grain=8, grit=0.30,
-         relief=0.40)
-    frame_inset(c, hi=6, lo=0)
-    for x, y in ((2, 2), (13, 2), (2, 13), (13, 13)):
-        rivet(c, x, y, 6, 0)
+    for y in range(SIZE):
+        for x in range(SIZE):
+            c.set(x, y, plate.get(x, y))
+
     # Twin angled slits, canted outward at the top - the same silhouette as the
     # guardian's own eye lights, just carved rather than emissive here.
     for x, y in ((4, 6), (5, 6), (4, 7), (5, 7), (5, 8), (6, 8), (5, 9), (6, 9)):

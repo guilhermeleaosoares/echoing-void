@@ -50,7 +50,7 @@ from PIL import Image  # noqa: E402
 import gen_block_textures as gb  # noqa: E402
 import gen_item_textures as gi  # noqa: E402
 import ev_vanilla_forms as vf  # noqa: E402
-from ev_palette import Canvas, fbm, key_light_factor, mix, shift, unique_colors  # noqa: E402
+from ev_palette import Canvas, SIZE, _hash2, fbm, key_light_factor, mix, shift, unique_colors  # noqa: E402
 
 ROOT = TOOLS.parent
 TEX = ROOT / "src" / "main" / "resources" / "assets" / "echoing_void" / "textures"
@@ -129,14 +129,16 @@ ORE_RAMP = R("knell_ore", list(PH5) + [RES_RIM, RES_BODY, RES_CORE, RES_SPARK])
 #: The storage block: a worked metal plate, built the same way null_iron_block
 #: is so the two read as a matched pair on a wall, one black and one white.
 BLOCK_RAMP = R("knell_block", [
-    mix(gb.AR_DEEP, gb.VOID_BLACK, 0.50),
-    mix(gb.AR_DEEP, gb.AR_MID, 0.40),
-    mix(gb.AR_MID, gb.PH_LIGHT, 0.50),
-    mix(gb.PH_PALE, gb.CH_SHADOW, 0.50),
-    gb.CH_MID,
-    gb.CH_LIGHT,
-    gb.CH_HIGH,
-    mix(gb.CH_HIGH, gb.AR_BRIGHT, 0.28),
+    mix(gb.AR_MID, gb.CH_SHADOW, 0.40),           # 0 darkest corner seam (lum ~115)
+    gb.CH_SHADOW,                                  # 1 shadow underplate / bevel (lum ~145)
+    mix(gb.CH_SHADOW, gb.CH_MID, 0.40),           # 2 mid-dark shadow (lum ~158)
+    mix(gb.CH_SHADOW, gb.CH_MID, 0.70),           # 3 soft shadow (lum ~170)
+    gb.CH_MID,                                    # 4 pale metal body (lum ~179)
+    mix(gb.CH_MID, gb.CH_LIGHT, 0.50),            # 5 pale metal lit (lum ~195)
+    gb.CH_LIGHT,                                  # 6 bright plate (lum ~210)
+    gb.CH_HIGH,                                   # 7 highlight bevel (lum ~226)
+    mix(gb.CH_HIGH, gb.parse_hex("#FFFFFF"), 0.50),  # 8 specular white catch (lum ~242)
+    mix(gb.CH_LIGHT, gb.AR_BRIGHT, 0.28),         # 9 harmonic magenta resonance (lum ~185)
 ])
 
 #: Null-iron chassis with amber indicator lights, per the spec's description of
@@ -197,43 +199,102 @@ def t_knell_ore() -> Canvas:
 
 
 def t_knell_block() -> Canvas:
-    """Nine ingots pressed into a plate: bevelled border, recessed centre panel
-    carrying a magenta harmonic cross, and rivets at the corners."""
+    """Nine ingots pressed into a dense pale plate: bevelled inset frame,
+    recessed centre panel with subtle magenta harmonic resonance weave,
+    and specular corner rivets."""
     c = Canvas(BLOCK_RAMP)
-    # Weighted toward the top of the ramp and clamped to 3..6: knell's whole
-    # identity is that it is the PALEST metal in the mod, against netherite's
-    # black and null iron's blacker. A block that spent a third of its pixels in
-    # the shadow tones came out grey and lost that contrast entirely.
-    gb.rock(c, 6607, (0.10, 0.26, 0.38, 0.26), grain=8, grit=0.28, relief=0.40)
+    seed = 6607
+
+    # 1. Base plate: smooth forged directional gradient flowing from top-left to bottom-right
+    grid = [[5] * SIZE for _ in range(SIZE)]
     for y in range(SIZE):
         for x in range(SIZE):
-            c.idx[y][x] = 3 + c.idx[y][x]
-    gb.clamp_body(c, 3, 6)
-    # Border kept inside the pale end of the ramp. A dark border on a near-white
-    # block is a strong line, and nine of these on a wall turn into a grid; the
-    # vanilla metal blocks all keep their border within a step or two of the
-    # face for exactly that reason.
-    gb.frame_inset(c, hi=6, lo=3)
+            diag = (30.0 - (x + y)) / 30.0
+            n = fbm(x * 0.8, y * 0.8, seed, octaves=2, period=SIZE) - 0.5
+            v = diag * 0.55 + n * 0.20 + 0.30
+            if v < 0.25:
+                grid[y][x] = 4
+            elif v < 0.50:
+                grid[y][x] = 5
+            elif v < 0.75:
+                grid[y][x] = 6
+            else:
+                grid[y][x] = 7
 
-    # Recessed panel, lit on its top-left lip and shadowed on the bottom-right.
-    # The floor stays inside 4..6: a dark hole in the middle would make the
-    # block read as a frame around a void rather than as a solid pale ingot.
+    # 2. Outer perimeter rim (row 0, col 0, row 15, col 15)
+    for x in range(SIZE):
+        grid[0][x] = 7 if _hash2(x, 0, seed + 11) > 0.35 else 6
+        grid[15][x] = 3 if _hash2(x, 15, seed + 13) > 0.35 else 2
+    for y in range(SIZE):
+        grid[y][0] = 7 if _hash2(0, y, seed + 17) > 0.35 else 6
+        grid[y][15] = 3 if _hash2(15, y, seed + 19) > 0.35 else 2
+    grid[0][0] = 7
+    grid[15][15] = 1
+
+    # 3. Inset Bevel Frame (at x=1, y=1 and x=14, y=14)
+    for i in range(1, SIZE - 1):
+        grid[1][i] = 8 if _hash2(i, 1, seed + 23) > 0.30 else 7
+        grid[i][1] = 8 if _hash2(1, i, seed + 29) > 0.30 else 7
+    for i in range(1, SIZE - 1):
+        grid[14][i] = 2 if _hash2(i, 14, seed + 31) > 0.35 else 3
+        grid[i][14] = 2 if _hash2(14, i, seed + 37) > 0.35 else 3
+
+    # 4. Recessed centre panel (rows 3..12, cols 3..12)
+    for i in range(3, 13):
+        grid[3][i] = 3 if _hash2(i, 3, seed + 41) > 0.40 else 4
+        grid[i][3] = 3 if _hash2(3, i, seed + 43) > 0.40 else 4
+    for i in range(3, 13):
+        grid[12][i] = 7 if _hash2(i, 12, seed + 47) > 0.40 else 6
+        grid[i][12] = 7 if _hash2(12, i, seed + 49) > 0.40 else 6
+
+    # Interior recessed panel (rows 4..11, cols 4..11)
     for y in range(4, 12):
         for x in range(4, 12):
-            if x in (4, 11) or y in (4, 11):
-                c.set(x, y, 6 if (x == 4 or y == 4) else 3)
+            diag = (22.0 - (x + y)) / 22.0
+            n = fbm(x * 0.9, y * 0.9, seed + 101, octaves=2, period=8) - 0.5
+            v = diag * 0.55 + n * 0.20 + 0.30
+            if v < 0.28:
+                grid[y][x] = 4
+            elif v < 0.55:
+                grid[y][x] = 5
+            elif v < 0.80:
+                grid[y][x] = 6
             else:
-                gb.bump_at(c, x, y, -1, 4, 5)
+                grid[y][x] = 7
 
-    # the harmonic: a cross of magenta through the recess, the one saturated
-    # thing on the block
-    for i in range(6, 10):
-        c.set(i, 7, 7)
-        c.set(8, i - 1, 7)
-    c.set(8, 7, 7)
+    # 5. Center harmonic resonance weave
+    for x, y in ((7, 7), (8, 7), (7, 8), (8, 8)):
+        grid[y][x] = 9
 
-    for x, y in ((2, 2), (12, 2), (2, 12), (12, 12)):
-        gb.rivet(c, x, y, 6, 2)
+    # 6. Corner Rivets at (2, 2), (12, 2), (2, 12), (12, 12)
+    for rx, ry in ((2, 2), (12, 2), (2, 12), (12, 12)):
+        grid[ry][rx] = 8          # specular white glint
+        grid[ry][rx + 1] = 7      # right flank
+        grid[ry + 1][rx] = 7      # lower flank
+        grid[ry + 1][rx + 1] = 3  # shadow drop
+
+    # 7. Smooth relaxation pass on the interior to enforce gradual drift
+    for _ in range(3):
+        for y in range(1, SIZE - 1):
+            for x in range(1, SIZE - 1):
+                if any(abs(x - rx) <= 1 and abs(y - ry) <= 1 for rx, ry in ((2, 2), (12, 2), (2, 12), (12, 12))):
+                    continue
+                if (x, y) in ((7, 7), (8, 7), (7, 8), (8, 8)):
+                    continue
+                nbrs = [grid[ny][nx] for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1))
+                        if 0 <= nx < SIZE and 0 <= ny < SIZE and (nx, ny) not in ((7, 7), (8, 7), (7, 8), (8, 8))]
+                if nbrs:
+                    min_n = min(nbrs)
+                    max_n = max(nbrs)
+                    if grid[y][x] > max_n + 1:
+                        grid[y][x] = max_n + 1
+                    elif grid[y][x] < min_n - 1:
+                        grid[y][x] = min_n - 1
+
+    for y in range(SIZE):
+        for x in range(SIZE):
+            c.set(x, y, grid[y][x])
+
     return c
 
 
