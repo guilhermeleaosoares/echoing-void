@@ -769,49 +769,38 @@ def harmonic_sword() -> Sprite:
 
 
 def harmonic_axe() -> Sprite:
-    """A crystalline bearded war-axe: sweeping crescent bit, acoustic eye,
-    and a counter-weighted poll in bismuth on a null-iron haft."""
+    """A crystalline war-axe: solid head sitting entirely on the upper-left of
+    the null-iron haft, with a curved cutting face, poll crest, and harmonic gold sparks."""
     sp = Sprite()
-    haft = stroke([(2.4, 14.4), (10.4, 5.6)], 1.05)
-    head = poly([
-        (8.8, 1.2), (10.8, 1.2), (13.6, 4.8), (12.4, 6.6),
-        (10.2, 5.8), (8.6, 7.8), (5.2, 8.4),
-        (4.4, 6.4), (4.8, 3.6), (7.0, 1.6)
+    haft = stroke([(2.4, 14.4), (11.4, 5.4)], 1.05)
+    head_poly = poly([
+        (8.6, 1.2), (11.4, 1.2), (12.4, 4.4), (10.6, 6.2),
+        (8.4, 7.8), (6.2, 7.4), (4.4, 5.6), (4.8, 3.4), (7.0, 1.4)
     ])
     sp.paint(haft, NULL_IRON, 0.58, 7401, spread=0.34, light=0.26)
-    sp.paint(head - haft, BISMUTH, 0.64, 7407, spread=0.32, light=0.30)
-
-    # Resonator slot / acoustic cutout in the blade cheek
-    for p in ((7, 5), (8, 4)):
-        sp.clear(*p)
-
+    sp.paint(head_poly - haft, BISMUTH, 0.64, 7407, spread=0.32, light=0.30)
     sp.outline()
-    sp.stamp([(9, 5), (10, 6)], NULL_IRON, 1.0)        # lashing at eye
-    sp.stamp([(5, 4), (5, 6), (8, 1)], BISMUTH, 1.0)   # cutting edge & crest highlights
-    sp.stamp([(7, 2), (5, 7)], GOLD, 1.0)              # harmonic sparks
+    sp.stamp([(10, 5), (11, 4)], NULL_IRON, 1.0)       # socket collar at eye
+    sp.stamp([(5, 4), (5, 5), (7, 2), (8, 2)], BISMUTH, 1.0) # cutting edge highlights
+    sp.stamp([(9, 1), (6, 7)], GOLD, 1.0)              # harmonic gold sparks (crest & beard)
     return sp
 
 
 def harmonic_shovel() -> Sprite:
-    """A resonant pointed spade: diamond trenching scoop with fluted wings,
-    reinforced spine, and chisel tip in bismuth on a null-iron haft."""
+    """A resonant spade: symmetrical diamond scoop with defined chisel tip,
+    central reinforced spine, and balanced harmonic gold accents."""
     sp = Sprite()
-    haft = stroke([(2.4, 14.4), (8.4, 7.6)], 1.05)
-    scoop = poly([
-        (8.2, 7.4), (6.4, 5.6), (7.4, 3.8), (10.6, 1.2), (14.4, 1.4),
-        (13.4, 4.4), (11.4, 7.6), (9.6, 8.4)
-    ])
-    sp.paint(haft, NULL_IRON, 0.58, 7501, spread=0.34, light=0.26)
-    sp.paint(scoop - haft, BISMUTH, 0.62, 7507, spread=0.32, light=0.30)
-
-    # Fluted acoustic cutouts on the wings
-    for p in ((8, 6), (10, 8)):
-        sp.clear(*p)
-
+    head, haft = vf.tool_levels(vf.SHOVEL)
+    for (x, y), level in haft.items():
+        level += 0.08 * (fbm(x * 2.1, y * 2.1, 7501, octaves=2) - 0.5)
+        sp.put(x, y, NULL_IRON, NULL_IRON.tone(level))
+    for (x, y), level in head.items():
+        level += 0.08 * (fbm(x * 2.1, y * 2.1, 7507, octaves=2) - 0.5)
+        sp.put(x, y, BISMUTH, BISMUTH.tone(level))
     sp.outline()
-    sp.stamp([(8, 7), (9, 6)], NULL_IRON, 1.0)         # socket ferrule
-    sp.stamp([(13, 2), (11, 2), (9, 3)], BISMUTH, 1.0) # spine & chisel tip
-    sp.stamp([(12, 3), (8, 4)], GOLD, 1.0)             # harmonic sparks
+    sp.stamp([(9, 6), (8, 7)], NULL_IRON, 1.0)         # socket ferrule
+    sp.stamp([(12, 3), (11, 4), (10, 5)], BISMUTH, 1.0)# central spade spine
+    sp.stamp([(13, 4), (10, 7)], GOLD, 1.0)            # symmetrical harmonic gold sparks
     return sp
 
 
