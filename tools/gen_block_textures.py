@@ -131,6 +131,12 @@ AR_BRIGHT = parse_hex(P["arcane"]["bright"])
 NI_BLACK = parse_hex(P["null_iron"]["black"])
 NI_DARK = parse_hex(P["null_iron"]["dark"])
 NI_MID = parse_hex(P["null_iron"]["mid"])
+# The light half of null-iron, at the same hue as its darks. Before these
+# existed every null-iron ramp reached for phonolite when it needed a
+# highlight, which is why the metal drifted from violet to blue as it lit.
+NI_STEEL = parse_hex(P["null_iron"]["steel"])
+NI_LIGHT = parse_hex(P["null_iron"]["light"])
+NI_PALE = parse_hex(P["null_iron"]["pale"])
 
 INK = parse_hex("#2B2D42")   # legacy anchor, still in ev_palette.PALETTES
 
@@ -949,8 +955,8 @@ NULL_BLOCK_RAMP = R("null_iron_block", [
     NI_DARK,                              # 3 mid-dark body
     mix(NI_DARK, NI_MID, 0.50),           # 4 mid body
     NI_MID,                               # 5 lit body
-    mix(NI_MID, PH_LIGHT, 0.45),          # 6 cold bevel highlight
-    mix(PH_LIGHT, PH_PALE, 0.40),         # 7 rivet specular glint
+    mix(NI_MID, NI_LIGHT, 0.45),          # 6 cold bevel highlight
+    mix(NI_LIGHT, NI_PALE, 0.40),         # 7 rivet specular glint
 ])
 
 

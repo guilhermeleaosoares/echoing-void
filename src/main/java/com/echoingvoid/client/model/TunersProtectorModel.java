@@ -63,58 +63,60 @@ public class TunersProtectorModel extends EntityModel<LivingEntityRenderState> {
                 "legs",
                 CubeListBuilder.create()
                         .mirror()
-                        .texOffs(0, 24)
-                        .addBox(-6.0F, 0.0F, -3.0F, 5.0F, 10.0F, 6.0F)
+                        .texOffs(84, 0)
+                        .addBox(-8.0F, 0.0F, -4.0F, 6.0F, 12.0F, 8.0F)
                         .mirror(false)
-                        .texOffs(0, 24)
-                        .addBox(2.0F, 0.0F, -3.0F, 5.0F, 10.0F, 6.0F),
-                PartPose.offset(0.0F, -10.0F, 0.0F));
+                        .texOffs(84, 0)
+                        .addBox(2.0F, 0.0F, -4.0F, 6.0F, 12.0F, 8.0F),
+                PartPose.offset(0.0F, -12.0F, 0.0F));
 
         PartDefinition torso = legs.addOrReplaceChild(
                 "torso",
                 CubeListBuilder.create()
-                        .texOffs(0, 0)
-                        .addBox(-7.0F, -16.0F, -4.0F, 14.0F, 16.0F, 8.0F),
+                        .texOffs(58, 23)
+                        .addBox(-6.0F, -5.0F, -3.0F, 12.0F, 5.0F, 6.0F)
+                        .texOffs(28, 0)
+                        .addBox(-9.0F, -16.0F, -5.0F, 18.0F, 11.0F, 10.0F)
+                        .texOffs(0, 40)
+                        .addBox(-5.0F, -17.0F, -4.0F, 10.0F, 2.0F, 8.0F),
                 PartPose.offset(0.0F, 0.0F, 0.0F));
 
         torso.addOrReplaceChild(
                 "head",
                 CubeListBuilder.create()
-                        .texOffs(22, 24)
-                        .addBox(-2.0F, 0.0F, -2.0F, 4.0F, 4.0F, 4.0F)
-                        .texOffs(84, 0)
-                        .addBox(-4.0F, -8.0F, -4.0F, 8.0F, 8.0F, 8.0F),
-                PartPose.offset(0.0F, -20.0F, 0.0F));
+                        .texOffs(26, 23)
+                        .addBox(-4.0F, -8.0F, -5.0F, 8.0F, 8.0F, 8.0F),
+                PartPose.offset(0.0F, -16.0F, 0.0F));
 
         PartDefinition arm_l_upper = torso.addOrReplaceChild(
                 "arm_l_upper",
                 CubeListBuilder.create()
                         .mirror()
-                        .texOffs(64, 0)
-                        .addBox(-1.0F, -1.0F, -3.0F, 4.0F, 11.0F, 6.0F),
-                PartPose.offset(-10.0F, -15.0F, 0.0F));
+                        .texOffs(0, 23)
+                        .addBox(-3.0F, -1.0F, -3.5F, 6.0F, 10.0F, 7.0F),
+                PartPose.offset(-12.0F, -14.0F, 0.0F));
 
         arm_l_upper.addOrReplaceChild(
                 "arm_l_lower",
                 CubeListBuilder.create()
                         .mirror()
-                        .texOffs(44, 0)
-                        .addBox(-1.0F, -1.0F, -3.0F, 4.0F, 15.0F, 6.0F),
-                PartPose.offset(0.0F, 10.0F, 0.0F));
+                        .texOffs(0, 0)
+                        .addBox(-3.0F, 0.0F, -4.0F, 6.0F, 15.0F, 8.0F),
+                PartPose.offset(0.0F, 9.0F, 0.0F));
 
         PartDefinition arm_r_upper = torso.addOrReplaceChild(
                 "arm_r_upper",
                 CubeListBuilder.create()
-                        .texOffs(64, 0)
-                        .addBox(-3.0F, -1.0F, -3.0F, 4.0F, 11.0F, 6.0F),
-                PartPose.offset(10.0F, -15.0F, 0.0F));
+                        .texOffs(0, 23)
+                        .addBox(-3.0F, -1.0F, -3.5F, 6.0F, 10.0F, 7.0F),
+                PartPose.offset(12.0F, -14.0F, 0.0F));
 
         arm_r_upper.addOrReplaceChild(
                 "arm_r_lower",
                 CubeListBuilder.create()
-                        .texOffs(44, 0)
-                        .addBox(-3.0F, -1.0F, -3.0F, 4.0F, 15.0F, 6.0F),
-                PartPose.offset(0.0F, 10.0F, 0.0F));
+                        .texOffs(0, 0)
+                        .addBox(-3.0F, 0.0F, -4.0F, 6.0F, 15.0F, 8.0F),
+                PartPose.offset(0.0F, 9.0F, 0.0F));
 
         return LayerDefinition.create(mesh, 128, 128);
     }

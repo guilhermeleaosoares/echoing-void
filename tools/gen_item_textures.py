@@ -101,6 +101,14 @@ ANCHOR = {
     "bis_deep": "#0B7A8C", "bis_mid": "#3FD0E0", "bis_bright": "#00E5FF", "bis_gold": "#FFD700",
     "arc_deep": "#3A1D47", "arc_mid": "#5A2E6B", "arc_light": "#B14A9E", "arc_bright": "#FF007F",
     "ni_black": "#08080A", "ni_dark": "#1A1A24", "ni_mid": "#2A2A38",
+    # Null-iron had only three anchors, all hue 240, none lighter than
+    # luminance 19 - so every ramp that needed a light tone borrowed
+    # phonolite, which sits at hue ~220. The result was a metal whose
+    # darks were violet and whose lights were blue: the ingot and the
+    # armour visibly did not match the block or the ore. These three are
+    # the phonolite tones rotated to hue 240 at identical saturation and
+    # luminance, so swapping them in moves the hue and nothing else.
+    "ni_steel": "#3B3B52", "ni_light": "#4C4C6A", "ni_pale": "#6E6E94",
     "vg_ink": "#0F0F14", "vg_blue": "#5E81AC", "ink": "#2B2D42",
 }
 
@@ -156,10 +164,10 @@ NULL_IRON = Material("null_iron", [
     col("ni_black", "ni_black"),
     col("void_black", "ni_dark", 8),
     col("ni_dark", "ni_mid", 8),
-    col("ni_mid", "ph_mid", 8),
-    col("ph_mid", "ph_light", 6),
-    col("ph_light", "ph_pale", 11),
-    col("ph_pale", "chalk_mid", 8),
+    col("ni_mid", "ni_steel", 8),
+    col("ni_steel", "ni_light", 6),
+    col("ni_light", "ni_pale", 11),
+    col("ni_pale", "chalk_mid", 8),
 ])
 
 # Petrified tuning wood: the warm handle stock. Vanilla's single strongest tool

@@ -582,15 +582,26 @@ def protector_head(base: Sheet, glow: Sheet, u, v, size, seed):
             _plate_panel(base, rect, face, seed, base_level=4.4, rivets=rivs)
 
 
-def protector_neck(base: Sheet, glow: Sheet, u, v, size, seed):
-    """The collar joint: sunk into shadow with a top collar highlight."""
+def protector_waist(base: Sheet, glow: Sheet, u, v, size, seed):
+    """The articulated waist: tapered lower chassis connecting chest to legs."""
     w, h, d = size
     faces = box_faces(u, v, w, h, d)
     for face, rect in faces.items():
-        x0, y0, fw, fh = rect
-        _plate_panel(base, rect, face, seed, base_level=2.0, rivets=())
-        for i in range(fw):
-            base.set(x0 + i, y0, NULL_IRON[6])
+        if face in ("north", "south"):
+            _plate_panel(base, rect, face, seed, base_level=4.0,
+                         rivets=((1, 2), (w - 2, 2)))
+        elif face == "down":
+            _plate_panel(base, rect, face, seed, base_level=1.5)
+        else:
+            _plate_panel(base, rect, face, seed, base_level=3.0)
+
+
+def protector_collar(base: Sheet, glow: Sheet, u, v, size, seed):
+    """Raised forged collar rim cradling the Tuner's Mask."""
+    w, h, d = size
+    faces = box_faces(u, v, w, h, d)
+    for face, rect in faces.items():
+        _plate_panel(base, rect, face, seed, base_level=4.8)
 
 
 def protector_arm(base: Sheet, glow: Sheet, u, v, size, seed):
@@ -598,7 +609,6 @@ def protector_arm(base: Sheet, glow: Sheet, u, v, size, seed):
     w, h, d = size
     faces = box_faces(u, v, w, h, d)
     for face, rect in faces.items():
-        x0, y0, fw, fh = rect
         if face == "up":
             _plate_panel(base, rect, face, seed, base_level=5.6, bevel_scale=1.2)
         elif face in ("north", "south"):
@@ -606,7 +616,7 @@ def protector_arm(base: Sheet, glow: Sheet, u, v, size, seed):
         elif face == "west":  # Outer left flank / inner right flank
             _plate_panel(base, rect, face, seed, base_level=4.6)
         else:  # east
-            _plate_panel(base, rect, face, seed, base_level=3.6)
+            _plate_panel(base, rect, face, seed, base_level=3.4)
 
 
 def protector_fist(base: Sheet, glow: Sheet, u, v, size, seed):
@@ -651,10 +661,10 @@ def protector_leg(base: Sheet, glow: Sheet, u, v, size, seed):
             if face in ("north", "south"):
                 for i in range(1, fw - 1):
                     base.set(x0 + i, y0 + 3, NULL_IRON[6])
-            # Reinforced boot rim at y=8..9
+            # Reinforced boot rim at y=10..11
             for i in range(fw):
-                base.set(x0 + i, y0 + 8, NULL_IRON[7])
-                base.set(x0 + i, y0 + 9, NULL_IRON[1])
+                base.set(x0 + i, y0 + 10, NULL_IRON[7])
+                base.set(x0 + i, y0 + 11, NULL_IRON[1])
 
 
 def protector_plate(base: Sheet, glow: Sheet, u, v, size, seed):
@@ -726,8 +736,9 @@ PAINTERS = {
     },
     "tuners_protector": {
         "torso": protector_torso,
+        "waist": protector_waist,
+        "collar": protector_collar,
         "head": protector_head,
-        "neck": protector_neck,
         "arm": protector_arm,
         "fist": protector_fist,
         "leg": protector_leg,

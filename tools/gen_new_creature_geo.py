@@ -289,42 +289,40 @@ def build_tuner_trader() -> Model:
 # ---------------------------------------------------------------------------
 
 def build_tuners_protector() -> Model:
-    """An iron-golem-shaped guardian: a boxy torso noticeably NARROWER than
-    the arm span either side of it, a head that clears the shoulder line by a
-    full head-height rather than sitting flush with it, and long arms that
-    reach past the knee - measured against the proportions that make the real
-    iron golem read as "this thing hits very hard" before it ever swings:
-    long arms, a head that stands proud of the shoulders, legs planted but not
-    bulkier than the torso they carry.
-    """
+    """An imposing forged iron guardian: a massive broad chest chassis (18w x 11h x 10d),
+    a tapered waist (12w x 5h x 6d), heavy pauldron collar cradling the Tuner's Mask
+    head, massive articulated arms with clenched fists reaching past the knee,
+    and heavy pillar legs planted with a wide stance."""
     m = Model("tuners_protector", 128, 128)
 
     m.bone("root", (0, 0, 0))
 
-    legs = m.bone("legs", (0, 10, 0), parent="root")
+    # Heavy pillar legs (y=0..12) with a 4-unit stance gap between them
+    legs = m.bone("legs", (0, 12, 0), parent="root")
     for side, sign in (("l", -1), ("r", 1)):
-        m.cube(legs, (4 * sign - 2, 0, -3), (5, 10, 6), "leg", mirror=(sign < 0))
+        x0 = 2 if sign > 0 else -8
+        m.cube(legs, (x0, 0, -4), (6, 12, 8), "leg", mirror=(sign < 0))
 
-    torso = m.bone("torso", (0, 10, 0), parent="legs")
-    m.cube(torso, (-7, 10, -4), (14, 16, 8), "torso")
+    # Torso: articulated waist (y=12..17), massive broad chest (y=17..28), and collar rim (y=27..29)
+    torso = m.bone("torso", (0, 12, 0), parent="legs")
+    m.cube(torso, (-6, 12, -3), (12, 5, 6), "waist")
+    m.cube(torso, (-9, 17, -5), (18, 11, 10), "torso")
+    m.cube(torso, (-5, 27, -4), (10, 2, 8), "collar")
 
-    # The neck is deliberately tall - this is what clears the head off the
-    # shoulder line instead of sinking it into a collar the way the first
-    # pass did.
-    head = m.bone("head", (0, 30, 0), parent="torso")
-    m.cube(head, (-2, 26, -2), (4, 4, 4), "neck")
-    m.cube(head, (-4, 30, -4), (8, 8, 8), "head")
+    # Head: Tuner's Mask (8x8x8) nestled firmly into the shoulder collar at y=28..36
+    head = m.bone("head", (0, 28, 0), parent="torso")
+    m.cube(head, (-4, 28, -5), (8, 8, 8), "head")
 
-    # Arms flank the torso rather than sitting flush against it, and run the
-    # full height of the torso plus past its base - the "reaches past the
-    # knee" proportion that is the single strongest iron-golem read there is.
+    # Massive articulated arms: upper arms attached at wide shoulders, long forearms & fists
     for side, sign in (("l", -1), ("r", 1)):
-        shoulder_x = 10 * sign
-        upper = m.bone(f"arm_{side}_upper", (shoulder_x, 25, 0), parent="torso")
-        x0 = 7 * sign if sign > 0 else 7 * sign - 4
-        m.cube(upper, (x0, 15, -3), (4, 11, 6), "arm", mirror=(sign < 0))
-        lower = m.bone(f"arm_{side}_lower", (shoulder_x, 15, 0), parent=f"arm_{side}_upper")
-        m.cube(lower, (x0, 1, -3), (4, 15, 6), "fist", mirror=(sign < 0))
+        sh_x = 12 * sign
+        upper = m.bone(f"arm_{side}_upper", (sh_x, 26, 0), parent="torso")
+        ux0 = 9 if sign > 0 else -15
+        m.cube(upper, (ux0, 17, -3.5), (6, 10, 7), "arm", mirror=(sign < 0))
+
+        lower = m.bone(f"arm_{side}_lower", (sh_x, 17, 0), parent=f"arm_{side}_upper")
+        lx0 = 9 if sign > 0 else -15
+        m.cube(lower, (lx0, 2, -4), (6, 15, 8), "fist", mirror=(sign < 0))
 
     return m
 

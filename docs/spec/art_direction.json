@@ -1,11 +1,8 @@
 {
   "_comment": "Art direction v2. Supersedes the 4-6 indexed colour rule from the original brief, which produced flat, un-Minecraft-like art. Vanilla 16x16 textures typically carry 8-16 colours, a dark outline on items, and a consistent top-left key light. That is the target now.",
-
   "identity": "Sound made stone. The Hollow Horizon is a spectrogram in rock: cold dark bass at depth, warm bright treble in the highlands, with resonant cyan and magenta glows running through it like harmonics. Depth should be readable from colour alone - a player who can see the strata knows roughly how high they are.",
-
   "palette": {
     "_families": "Four families: a neutral slate-to-chalk spine, a warm amber band, a cold cyan glow, and an arcane magenta/violet glow. Neutrals carry the world; the two glows are the accents and must stay rare enough to read as light sources.",
-
     "void": {
       "black": "#0B0D12",
       "shadow": "#14161D"
@@ -43,13 +40,21 @@
     "null_iron": {
       "black": "#08080A",
       "dark": "#1A1A24",
-      "mid": "#2A2A38"
+      "mid": "#2A2A38",
+      "steel": "#3B3B52",
+      "light": "#4C4C6A",
+      "pale": "#6E6E94"
     }
   },
-
   "texture_rules": {
-    "size": [16, 16],
-    "colours_per_texture": [6, 16],
+    "size": [
+      16,
+      16
+    ],
+    "colours_per_texture": [
+      6,
+      16
+    ],
     "key_light": "top-left, consistently, on every texture",
     "item_outline": "Every non-block item must have a dark outline (1px, darkest tone of its own family, NOT pure black) around its silhouette, exactly as vanilla items do. This is the single biggest reason the current items read as wrong.",
     "item_silhouette": "Items must be readable as objects at 16x16 against any background: clear shape, transparent surround, no full-bleed squares.",
@@ -58,9 +63,7 @@
     "shading": "3-4 value steps minimum per material, plus noise/mottling. Flat single-value fills read as programmer art.",
     "seamless": "full-cube natural blocks must still tile at the 0/15 seam"
   },
-
   "_block_variety_note": "The dimension reads as dead because it is built from three blocks. The Nether feels alive because it ships roughly twenty-five: several stones, two nyliums, two woods, two leaf-equivalents, vines, shroomlights, glowstone, magma, soul sand. Variety of BLOCK TYPE and HUE is what makes terrain lively - retexturing the same three blocks cannot fix it. The set below is sized accordingly. Leaves in particular must be distinguished by COLOUR, not merely by transparency: three separate leaf blocks in three different hues.",
-
   "new_environment_blocks": [
     {
       "id": "resonant_chalk",
@@ -253,7 +256,6 @@
       "cross_model": true
     }
   ],
-
   "strata_bands": {
     "_comment": "Surface rules paint by altitude so depth is legible at a glance.",
     "above_150": "resonant_chalk with resonance_moss on exposed top faces",
@@ -262,6 +264,5 @@
     "30_to_70": "raw_phonolite",
     "below_30": "raw_phonolite with humming_crystal clusters"
   },
-
   "terrain_intent": "Navigable. The current build is a near-solid mass of black stone that players tunnel through for hundreds of blocks. Wanted instead: open sky, large connected landmasses with walkable surfaces, real caves and chasms, and floating islands as a feature above the main terrain rather than the entire terrain."
 }
