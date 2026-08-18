@@ -129,16 +129,17 @@ ORE_RAMP = R("knell_ore", list(PH5) + [RES_RIM, RES_BODY, RES_CORE, RES_SPARK])
 #: The storage block: a worked metal plate, built the same way null_iron_block
 #: is so the two read as a matched pair on a wall, one black and one white.
 BLOCK_RAMP = R("knell_block", [
-    mix(gb.AR_MID, gb.CH_SHADOW, 0.40),           # 0 darkest corner seam (lum ~115)
-    gb.CH_SHADOW,                                  # 1 shadow underplate / bevel (lum ~145)
-    mix(gb.CH_SHADOW, gb.CH_MID, 0.40),           # 2 mid-dark shadow (lum ~158)
+    mix(gb.AR_MID, gb.CH_SHADOW, 0.40),           # 0 darkest corner seam (lum ~107)
+    gb.CH_SHADOW,                                  # 1 shadow underplate / bevel (lum ~147)
+    mix(gb.CH_SHADOW, gb.CH_MID, 0.40),           # 2 mid-dark shadow (lum ~161)
     mix(gb.CH_SHADOW, gb.CH_MID, 0.70),           # 3 soft shadow (lum ~170)
     gb.CH_MID,                                    # 4 pale metal body (lum ~179)
     mix(gb.CH_MID, gb.CH_LIGHT, 0.50),            # 5 pale metal lit (lum ~195)
     gb.CH_LIGHT,                                  # 6 bright plate (lum ~210)
     gb.CH_HIGH,                                   # 7 highlight bevel (lum ~226)
     mix(gb.CH_HIGH, gb.parse_hex("#FFFFFF"), 0.50),  # 8 specular white catch (lum ~242)
-    mix(gb.CH_LIGHT, gb.AR_BRIGHT, 0.28),         # 9 harmonic magenta resonance (lum ~185)
+    mix(gb.CH_LIGHT, gb.AR_BRIGHT, 0.28),         # 9 harmonic rose-silver glow (lum ~191)
+    mix(gb.CH_HIGH, gb.AR_BRIGHT, 0.28),          # 10 bright harmonic ridge glow (lum ~205)
 ])
 
 #: Null-iron chassis with amber indicator lights, per the spec's description of
@@ -200,8 +201,8 @@ def t_knell_ore() -> Canvas:
 
 def t_knell_block() -> Canvas:
     """Nine ingots pressed into a dense pale plate: bevelled inset frame,
-    recessed centre panel with subtle magenta harmonic resonance weave,
-    and specular corner rivets."""
+    recessed centre panel with harmonic magenta glow emanating along the ridges
+    and inner seams, and specular corner rivets."""
     c = Canvas(BLOCK_RAMP)
     seed = 6607
 
@@ -232,20 +233,45 @@ def t_knell_block() -> Canvas:
     grid[15][15] = 1
 
     # 3. Inset Bevel Frame (at x=1, y=1 and x=14, y=14)
+    # Ridge highlight carries bright harmonic glow along sections of the frame
     for i in range(1, SIZE - 1):
-        grid[1][i] = 8 if _hash2(i, 1, seed + 23) > 0.30 else 7
-        grid[i][1] = 8 if _hash2(1, i, seed + 29) > 0.30 else 7
+        if 4 <= i <= 10 and _hash2(i, 1, seed + 21) > 0.35:
+            grid[1][i] = 10  # bright harmonic ridge glow
+        else:
+            grid[1][i] = 8 if _hash2(i, 1, seed + 23) > 0.30 else 7
+
+        if 4 <= i <= 10 and _hash2(1, i, seed + 27) > 0.35:
+            grid[i][1] = 10  # bright harmonic ridge glow
+        else:
+            grid[i][1] = 8 if _hash2(1, i, seed + 29) > 0.30 else 7
+
     for i in range(1, SIZE - 1):
         grid[14][i] = 2 if _hash2(i, 14, seed + 31) > 0.35 else 3
         grid[i][14] = 2 if _hash2(14, i, seed + 37) > 0.35 else 3
 
-    # 4. Recessed centre panel (rows 3..12, cols 3..12)
+    # 4. Recessed centre panel seams (rows 3..12, cols 3..12)
+    # The inner step-down seam at row 3 / col 3 and lip at row 12 / col 12 emanate harmonic glow
     for i in range(3, 13):
-        grid[3][i] = 3 if _hash2(i, 3, seed + 41) > 0.40 else 4
-        grid[i][3] = 3 if _hash2(3, i, seed + 43) > 0.40 else 4
+        if 4 <= i <= 11 and _hash2(i, 3, seed + 40) > 0.25:
+            grid[3][i] = 9   # harmonic glow seam
+        else:
+            grid[3][i] = 3 if _hash2(i, 3, seed + 41) > 0.40 else 4
+
+        if 4 <= i <= 11 and _hash2(3, i, seed + 42) > 0.25:
+            grid[i][3] = 9   # harmonic glow seam
+        else:
+            grid[i][3] = 3 if _hash2(3, i, seed + 43) > 0.40 else 4
+
     for i in range(3, 13):
-        grid[12][i] = 7 if _hash2(i, 12, seed + 47) > 0.40 else 6
-        grid[i][12] = 7 if _hash2(12, i, seed + 49) > 0.40 else 6
+        if 4 <= i <= 11 and _hash2(i, 12, seed + 46) > 0.30:
+            grid[12][i] = 10 # bright harmonic ridge lip
+        else:
+            grid[12][i] = 7 if _hash2(i, 12, seed + 47) > 0.40 else 6
+
+        if 4 <= i <= 11 and _hash2(12, i, seed + 48) > 0.30:
+            grid[i][12] = 10 # bright harmonic ridge lip
+        else:
+            grid[i][12] = 7 if _hash2(12, i, seed + 49) > 0.40 else 6
 
     # Interior recessed panel (rows 4..11, cols 4..11)
     for y in range(4, 12):
@@ -262,27 +288,23 @@ def t_knell_block() -> Canvas:
             else:
                 grid[y][x] = 7
 
-    # 5. Center harmonic resonance weave
-    for x, y in ((7, 7), (8, 7), (7, 8), (8, 8)):
-        grid[y][x] = 9
-
-    # 6. Corner Rivets at (2, 2), (12, 2), (2, 12), (12, 12)
+    # 5. Corner Rivets at (2, 2), (12, 2), (2, 12), (12, 12)
     for rx, ry in ((2, 2), (12, 2), (2, 12), (12, 12)):
         grid[ry][rx] = 8          # specular white glint
         grid[ry][rx + 1] = 7      # right flank
         grid[ry + 1][rx] = 7      # lower flank
         grid[ry + 1][rx + 1] = 3  # shadow drop
 
-    # 7. Smooth relaxation pass on the interior to enforce gradual drift
+    # 6. Smooth relaxation pass on the interior to enforce gradual drift
     for _ in range(3):
         for y in range(1, SIZE - 1):
             for x in range(1, SIZE - 1):
                 if any(abs(x - rx) <= 1 and abs(y - ry) <= 1 for rx, ry in ((2, 2), (12, 2), (2, 12), (12, 12))):
                     continue
-                if (x, y) in ((7, 7), (8, 7), (7, 8), (8, 8)):
+                if grid[y][x] in (9, 10):
                     continue
                 nbrs = [grid[ny][nx] for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1))
-                        if 0 <= nx < SIZE and 0 <= ny < SIZE and (nx, ny) not in ((7, 7), (8, 7), (7, 8), (8, 8))]
+                        if 0 <= nx < SIZE and 0 <= ny < SIZE and grid[ny][nx] not in (9, 10)]
                 if nbrs:
                     min_n = min(nbrs)
                     max_n = max(nbrs)
