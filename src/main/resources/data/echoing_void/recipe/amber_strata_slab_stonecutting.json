@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "echoing_void:amber_strata",
+  "result": {
+    "id": "echoing_void:amber_strata_slab",
+    "count": 2
+  }
+}

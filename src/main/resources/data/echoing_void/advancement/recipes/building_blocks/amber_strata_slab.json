@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_amber_strata": {
+      "conditions": {
+        "items": [
+          {
+            "items": "echoing_void:amber_strata"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "echoing_void:amber_strata_slab"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_amber_strata"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "echoing_void:amber_strata_slab"
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/template_trapdoor_bottom",
+  "textures": {
+    "texture": "echoing_void:block/amber_bough_trapdoor"
+  }
+}

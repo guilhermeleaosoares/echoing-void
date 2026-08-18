@@ -1,0 +1,16 @@
+{
+  "placement": {
+    "type": "minecraft:random_spread",
+    "frequency": 0.8,
+    "frequency_reduction_method": "default",
+    "salt": 20260817,
+    "separation": 6,
+    "spacing": 20
+  },
+  "structures": [
+    {
+      "structure": "echoing_void:outpost_of_the_tuners",
+      "weight": 1
+    }
+  ]
+}

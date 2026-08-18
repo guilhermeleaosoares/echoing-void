@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "R": "echoing_void:knell_ingot",
+    "B": "echoing_void:resonance_shard",
+    "N": "echoing_void:null_iron_ingot",
+    "T": "minecraft:smithing_table"
+  },
+  "pattern": [
+    "BRB",
+    "NTN",
+    "NNN"
+  ],
+  "result": {
+    "id": "echoing_void:knell_integrator"
+  }
+}

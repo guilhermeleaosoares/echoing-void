@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_stripped_humming_stem": {
+      "conditions": {
+        "items": [
+          {
+            "items": "echoing_void:stripped_humming_stem"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "echoing_void:stripped_humming_hyphae"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_stripped_humming_stem"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "echoing_void:stripped_humming_hyphae"
+    ]
+  }
+}

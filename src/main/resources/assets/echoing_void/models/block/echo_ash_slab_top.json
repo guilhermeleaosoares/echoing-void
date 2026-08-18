@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/slab_top",
+  "textures": {
+    "bottom": "echoing_void:block/echo_ash_planks",
+    "side": "echoing_void:block/echo_ash_planks",
+    "top": "echoing_void:block/echo_ash_planks"
+  }
+}

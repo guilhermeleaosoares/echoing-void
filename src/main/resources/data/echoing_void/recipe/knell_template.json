@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "S": "echoing_void:resonance_shard",
+    "N": "echoing_void:null_iron_ingot"
+  },
+  "pattern": [
+    " S ",
+    "SNS",
+    " S "
+  ],
+  "result": {
+    "id": "echoing_void:knell_template",
+    "count": 2
+  }
+}

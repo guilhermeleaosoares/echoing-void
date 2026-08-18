@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "echoing_void:frequency_siphon"
+        }
+      ]
+    }
+  ],
+  "random_sequence": "echoing_void:blocks/frequency_siphon"
+}

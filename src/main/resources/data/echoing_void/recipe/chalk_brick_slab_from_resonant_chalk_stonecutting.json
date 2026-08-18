@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "echoing_void:resonant_chalk",
+  "result": {
+    "id": "echoing_void:chalk_brick_slab",
+    "count": 2
+  }
+}

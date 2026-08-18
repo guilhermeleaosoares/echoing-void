@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "echoing_void:block/petrified_tuning_slab"
+    },
+    "type=double": {
+      "model": "echoing_void:block/petrified_tuning_planks"
+    },
+    "type=top": {
+      "model": "echoing_void:block/petrified_tuning_slab_top"
+    }
+  }
+}

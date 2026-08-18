@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "group": "echoing_void_wooden_fence",
+  "key": {
+    "#": "minecraft:stick",
+    "W": "echoing_void:humming_planks"
+  },
+  "pattern": [
+    "W#W",
+    "W#W"
+  ],
+  "result": {
+    "id": "echoing_void:humming_fence",
+    "count": 3
+  }
+}

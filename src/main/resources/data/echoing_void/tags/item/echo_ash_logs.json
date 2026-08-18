@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "echoing_void:echo_ash_log",
+    "echoing_void:stripped_echo_ash_log",
+    "echoing_void:echo_ash_wood",
+    "echoing_void:stripped_echo_ash_wood"
+  ]
+}

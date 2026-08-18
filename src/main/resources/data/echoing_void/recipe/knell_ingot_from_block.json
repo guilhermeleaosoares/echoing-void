@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "echoing_void:knell_block"
+  ],
+  "result": {
+    "id": "echoing_void:knell_ingot",
+    "count": 9
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/fence_post",
+  "textures": {
+    "texture": "echoing_void:block/amber_bough_planks"
+  }
+}

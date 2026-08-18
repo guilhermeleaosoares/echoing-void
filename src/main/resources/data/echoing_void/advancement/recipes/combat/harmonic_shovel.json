@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_resonance_shard": {
+      "conditions": {
+        "items": [
+          {
+            "items": "echoing_void:resonance_shard"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "echoing_void:harmonic_shovel"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_resonance_shard"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "echoing_void:harmonic_shovel"
+    ]
+  }
+}

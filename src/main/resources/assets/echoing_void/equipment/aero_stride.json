@@ -1,0 +1,14 @@
+{
+  "layers": {
+    "humanoid": [
+      {
+        "texture": "echoing_void:aero_stride"
+      }
+    ],
+    "humanoid_baby": [
+      {
+        "texture": "echoing_void:aero_stride"
+      }
+    ]
+  }
+}

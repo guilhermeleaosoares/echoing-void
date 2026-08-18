@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "group": "echoing_void_wooden_door",
+  "key": {
+    "#": "echoing_void:humming_planks"
+  },
+  "pattern": [
+    "##",
+    "##",
+    "##"
+  ],
+  "result": {
+    "id": "echoing_void:humming_door",
+    "count": 3
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "criteria": {
+    "knell_ingot": {
+      "conditions": {
+        "items": [
+          {
+            "items": "echoing_void:knell_ingot"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "echoing_void:knell_ingot"
+    },
+    "title": {
+      "translate": "advancements.echoing_void.knell.ingot.title"
+    },
+    "description": {
+      "translate": "advancements.echoing_void.knell.ingot.description"
+    }
+  },
+  "requirements": [
+    [
+      "knell_ingot"
+    ]
+  ],
+  "parent": "echoing_void:knell/root"
+}

@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "echoing_void:block/null_iron_block",
+    "north": "echoing_void:block/tuners_mask_front",
+    "south": "echoing_void:block/null_iron_block",
+    "east": "echoing_void:block/null_iron_block",
+    "west": "echoing_void:block/null_iron_block",
+    "up": "echoing_void:block/null_iron_block",
+    "down": "echoing_void:block/null_iron_block"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/template_fence_gate",
+  "textures": {
+    "texture": "echoing_void:block/amber_bough_planks"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/slab",
+  "textures": {
+    "bottom": "echoing_void:block/chalk_bricks",
+    "side": "echoing_void:block/chalk_bricks",
+    "top": "echoing_void:block/chalk_bricks"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "type": "forge:add_features",
+  "biomes": "#minecraft:is_overworld",
+  "features": "echoing_void:ore_null_iron_overworld_placed",
+  "step": "underground_ores"
+}

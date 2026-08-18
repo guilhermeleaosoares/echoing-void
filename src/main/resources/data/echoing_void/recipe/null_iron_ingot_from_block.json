@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "echoing_void:null_iron_block"
+  ],
+  "result": {
+    "id": "echoing_void:null_iron_ingot",
+    "count": 9
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "group": "echoing_void_stone_stairs",
+  "key": {
+    "#": "echoing_void:resonant_chalk"
+  },
+  "pattern": [
+    "#  ",
+    "## ",
+    "###"
+  ],
+  "result": {
+    "id": "echoing_void:resonant_chalk_stairs",
+    "count": 4
+  }
+}

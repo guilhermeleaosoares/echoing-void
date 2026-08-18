@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/outer_stairs",
+  "textures": {
+    "bottom": "echoing_void:block/echo_slate",
+    "side": "echoing_void:block/echo_slate",
+    "top": "echoing_void:block/echo_slate"
+  }
+}

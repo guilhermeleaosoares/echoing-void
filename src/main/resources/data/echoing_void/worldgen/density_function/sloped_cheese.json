@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:add",
+  "argument1": {
+    "type": "minecraft:mul",
+    "argument1": 4.0,
+    "argument2": {
+      "type": "minecraft:quarter_negative",
+      "argument": {
+        "type": "minecraft:mul",
+        "argument1": "echoing_void:depth",
+        "argument2": "echoing_void:factor"
+      }
+    }
+  },
+  "argument2": "minecraft:overworld/base_3d_noise"
+}

@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_phonolite_bricks": {
+      "conditions": {
+        "items": [
+          {
+            "items": "echoing_void:phonolite_bricks"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "echoing_void:phonolite_brick_stairs"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_phonolite_bricks"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "echoing_void:phonolite_brick_stairs"
+    ]
+  }
+}

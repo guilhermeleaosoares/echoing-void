@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_echo_ash_planks": {
+      "conditions": {
+        "items": [
+          {
+            "items": "echoing_void:echo_ash_planks"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "echoing_void:echo_ash_door"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_echo_ash_planks"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "echoing_void:echo_ash_door"
+    ]
+  }
+}

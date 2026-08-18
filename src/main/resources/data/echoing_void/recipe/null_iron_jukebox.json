@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "P": "echoing_void:raw_phonolite",
+    "N": "echoing_void:null_iron_ingot"
+  },
+  "pattern": [
+    "PPP",
+    "PNP",
+    "PPP"
+  ],
+  "result": {
+    "id": "echoing_void:null_iron_jukebox"
+  }
+}

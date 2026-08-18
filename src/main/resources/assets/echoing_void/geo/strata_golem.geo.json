@@ -1,0 +1,569 @@
+{
+  "format_version": "1.12.0",
+  "minecraft:geometry": [
+    {
+      "description": {
+        "identifier": "geometry.strata_golem",
+        "texture_width": 128,
+        "texture_height": 128,
+        "visible_bounds_width": 3.5,
+        "visible_bounds_height": 4.0,
+        "visible_bounds_offset": [
+          0,
+          1.75,
+          0
+        ]
+      },
+      "bones": [
+        {
+          "name": "root",
+          "pivot": [
+            0,
+            0,
+            0
+          ],
+          "cubes": []
+        },
+        {
+          "name": "chassis",
+          "pivot": [
+            0,
+            24,
+            0
+          ],
+          "parent": "root",
+          "cubes": [
+            {
+              "origin": [
+                -13,
+                22,
+                -10
+              ],
+              "size": [
+                26,
+                16,
+                20
+              ],
+              "uv": [
+                0,
+                0
+              ]
+            },
+            {
+              "origin": [
+                -9,
+                17,
+                -7
+              ],
+              "size": [
+                18,
+                6,
+                14
+              ],
+              "uv": [
+                48,
+                87
+              ]
+            }
+          ]
+        },
+        {
+          "name": "chassis_plate",
+          "pivot": [
+            0,
+            38,
+            0
+          ],
+          "parent": "chassis",
+          "cubes": [
+            {
+              "origin": [
+                -15,
+                38,
+                -8
+              ],
+              "size": [
+                30,
+                6,
+                20
+              ],
+              "uv": [
+                0,
+                36
+              ]
+            },
+            {
+              "origin": [
+                -19,
+                35,
+                -5
+              ],
+              "size": [
+                4,
+                9,
+                14
+              ],
+              "uv": [
+                92,
+                62
+              ],
+              "mirror": true
+            },
+            {
+              "origin": [
+                15,
+                35,
+                -5
+              ],
+              "size": [
+                4,
+                9,
+                14
+              ],
+              "uv": [
+                92,
+                62
+              ]
+            }
+          ]
+        },
+        {
+          "name": "head",
+          "pivot": [
+            0,
+            36,
+            -10
+          ],
+          "parent": "chassis",
+          "cubes": [
+            {
+              "origin": [
+                -7,
+                23,
+                -24
+              ],
+              "size": [
+                14,
+                13,
+                12
+              ],
+              "uv": [
+                0,
+                62
+              ]
+            },
+            {
+              "origin": [
+                -6,
+                19,
+                -23
+              ],
+              "size": [
+                12,
+                4,
+                10
+              ],
+              "uv": [
+                0,
+                108
+              ]
+            }
+          ]
+        },
+        {
+          "name": "cluster_fore",
+          "pivot": [
+            0,
+            44,
+            -6
+          ],
+          "parent": "chassis_plate",
+          "cubes": [
+            {
+              "origin": [
+                -5,
+                44,
+                -8
+              ],
+              "size": [
+                5,
+                20,
+                5
+              ],
+              "uv": [
+                92,
+                0
+              ]
+            },
+            {
+              "origin": [
+                1,
+                44,
+                -5
+              ],
+              "size": [
+                3,
+                13,
+                3
+              ],
+              "uv": [
+                112,
+                0
+              ]
+            },
+            {
+              "origin": [
+                -8,
+                44,
+                -4
+              ],
+              "size": [
+                2,
+                8,
+                2
+              ],
+              "uv": [
+                100,
+                36
+              ]
+            }
+          ]
+        },
+        {
+          "name": "cluster_mid",
+          "pivot": [
+            0,
+            44,
+            1
+          ],
+          "parent": "chassis_plate",
+          "cubes": [
+            {
+              "origin": [
+                0,
+                44,
+                -1
+              ],
+              "size": [
+                5,
+                20,
+                5
+              ],
+              "uv": [
+                92,
+                0
+              ]
+            },
+            {
+              "origin": [
+                -5,
+                44,
+                1
+              ],
+              "size": [
+                3,
+                13,
+                3
+              ],
+              "uv": [
+                112,
+                0
+              ]
+            },
+            {
+              "origin": [
+                6,
+                44,
+                2
+              ],
+              "size": [
+                2,
+                8,
+                2
+              ],
+              "uv": [
+                100,
+                36
+              ]
+            }
+          ]
+        },
+        {
+          "name": "cluster_aft",
+          "pivot": [
+            0,
+            44,
+            7
+          ],
+          "parent": "chassis_plate",
+          "cubes": [
+            {
+              "origin": [
+                -6,
+                44,
+                5
+              ],
+              "size": [
+                3,
+                13,
+                3
+              ],
+              "uv": [
+                112,
+                0
+              ]
+            },
+            {
+              "origin": [
+                0,
+                44,
+                6
+              ],
+              "size": [
+                5,
+                20,
+                5
+              ],
+              "uv": [
+                92,
+                0
+              ]
+            },
+            {
+              "origin": [
+                -2,
+                44,
+                3
+              ],
+              "size": [
+                2,
+                8,
+                2
+              ],
+              "uv": [
+                100,
+                36
+              ]
+            }
+          ]
+        },
+        {
+          "name": "leg_l_front_upper",
+          "pivot": [
+            -10,
+            24,
+            -8
+          ],
+          "parent": "chassis",
+          "cubes": [
+            {
+              "origin": [
+                -15,
+                9,
+                -13
+              ],
+              "size": [
+                10,
+                13,
+                10
+              ],
+              "uv": [
+                52,
+                62
+              ]
+            }
+          ]
+        },
+        {
+          "name": "leg_l_front_lower",
+          "pivot": [
+            -10,
+            9,
+            -8
+          ],
+          "parent": "leg_l_front_upper",
+          "cubes": [
+            {
+              "origin": [
+                -16,
+                0,
+                -14
+              ],
+              "size": [
+                12,
+                9,
+                12
+              ],
+              "uv": [
+                0,
+                87
+              ]
+            }
+          ]
+        },
+        {
+          "name": "leg_l_back_upper",
+          "pivot": [
+            -10,
+            24,
+            8
+          ],
+          "parent": "chassis",
+          "cubes": [
+            {
+              "origin": [
+                -15,
+                9,
+                3
+              ],
+              "size": [
+                10,
+                13,
+                10
+              ],
+              "uv": [
+                52,
+                62
+              ]
+            }
+          ]
+        },
+        {
+          "name": "leg_l_back_lower",
+          "pivot": [
+            -10,
+            9,
+            8
+          ],
+          "parent": "leg_l_back_upper",
+          "cubes": [
+            {
+              "origin": [
+                -16,
+                0,
+                2
+              ],
+              "size": [
+                12,
+                9,
+                12
+              ],
+              "uv": [
+                0,
+                87
+              ]
+            }
+          ]
+        },
+        {
+          "name": "leg_r_front_upper",
+          "pivot": [
+            10,
+            24,
+            -8
+          ],
+          "parent": "chassis",
+          "cubes": [
+            {
+              "origin": [
+                5,
+                9,
+                -13
+              ],
+              "size": [
+                10,
+                13,
+                10
+              ],
+              "uv": [
+                52,
+                62
+              ]
+            }
+          ]
+        },
+        {
+          "name": "leg_r_front_lower",
+          "pivot": [
+            10,
+            9,
+            -8
+          ],
+          "parent": "leg_r_front_upper",
+          "cubes": [
+            {
+              "origin": [
+                4,
+                0,
+                -14
+              ],
+              "size": [
+                12,
+                9,
+                12
+              ],
+              "uv": [
+                0,
+                87
+              ]
+            }
+          ]
+        },
+        {
+          "name": "leg_r_back_upper",
+          "pivot": [
+            10,
+            24,
+            8
+          ],
+          "parent": "chassis",
+          "cubes": [
+            {
+              "origin": [
+                5,
+                9,
+                3
+              ],
+              "size": [
+                10,
+                13,
+                10
+              ],
+              "uv": [
+                52,
+                62
+              ]
+            }
+          ]
+        },
+        {
+          "name": "leg_r_back_lower",
+          "pivot": [
+            10,
+            9,
+            8
+          ],
+          "parent": "leg_r_back_upper",
+          "cubes": [
+            {
+              "origin": [
+                4,
+                0,
+                2
+              ],
+              "size": [
+                12,
+                9,
+                12
+              ],
+              "uv": [
+                0,
+                87
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

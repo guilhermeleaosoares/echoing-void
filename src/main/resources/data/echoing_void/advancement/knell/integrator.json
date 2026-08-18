@@ -1,0 +1,31 @@
+{
+  "criteria": {
+    "integrator": {
+      "conditions": {
+        "items": [
+          {
+            "items": "echoing_void:knell_integrator"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "echoing_void:knell_integrator"
+    },
+    "title": {
+      "translate": "advancements.echoing_void.knell.integrator.title"
+    },
+    "description": {
+      "translate": "advancements.echoing_void.knell.integrator.description"
+    }
+  },
+  "requirements": [
+    [
+      "integrator"
+    ]
+  ],
+  "parent": "echoing_void:knell/ingot"
+}

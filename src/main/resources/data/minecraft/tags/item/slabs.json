@@ -1,0 +1,12 @@
+{
+  "replace": false,
+  "values": [
+    "echoing_void:raw_phonolite_slab",
+    "echoing_void:polished_phonolite_slab",
+    "echoing_void:phonolite_brick_slab",
+    "echoing_void:resonant_chalk_slab",
+    "echoing_void:chalk_brick_slab",
+    "echoing_void:echo_slate_slab",
+    "echoing_void:amber_strata_slab"
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "music_disc.harmonic_alpha": {
+    "sounds": [
+      {
+        "name": "minecraft:records/otherside",
+        "stream": true
+      }
+    ],
+    "subtitle": "subtitles.echoing_void.music_disc.harmonic_alpha"
+  },
+  "music_disc.harmonic_beta": {
+    "sounds": [
+      {
+        "name": "minecraft:records/relic",
+        "stream": true
+      }
+    ],
+    "subtitle": "subtitles.echoing_void.music_disc.harmonic_beta"
+  },
+  "music_disc.harmonic_gamma": {
+    "sounds": [
+      {
+        "name": "minecraft:records/precipice",
+        "stream": true
+      }
+    ],
+    "subtitle": "subtitles.echoing_void.music_disc.harmonic_gamma"
+  }
+}

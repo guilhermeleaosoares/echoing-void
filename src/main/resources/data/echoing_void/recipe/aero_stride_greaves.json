@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "G": "echoing_void:void_glass_shard",
+    "S": "echoing_void:resonance_shard"
+  },
+  "pattern": [
+    "G G",
+    "S S"
+  ],
+  "result": {
+    "id": "echoing_void:aero_stride_greaves"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "echoing_void:polished_phonolite",
+  "result": {
+    "id": "echoing_void:polished_phonolite_stairs"
+  }
+}

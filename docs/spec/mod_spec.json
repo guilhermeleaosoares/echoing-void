@@ -1,0 +1,502 @@
+{
+  "_comment": "Canonical contract for The Echoing Void. Single source of truth shared by the Python asset pipeline and the Java registration code. Derived from the Master Gauntlet Protocol brief (prompt.pdf).",
+  "mod": {
+    "id": "echoing_void",
+    "name": "The Echoing Void",
+    "package": "com.echoingvoid",
+    "version": "1.0.0",
+    "minecraft": "26.2",
+    "forge": "26.2-65.1.1",
+    "java": 25,
+    "pack_format": 107
+  },
+  "palettes": {
+    "resonant_bismuth": [
+      "#00E5FF",
+      "#FF007F",
+      "#FFD700",
+      "#2B2D42"
+    ],
+    "phonolite": [
+      "#1C1D21",
+      "#3B4252",
+      "#4C566A"
+    ],
+    "void_glass": [
+      "#0F0F1480",
+      "#5E81ACCC"
+    ],
+    "null_iron": [
+      "#08080A",
+      "#1A1A24"
+    ]
+  },
+  "texture_rules": {
+    "size": [
+      16,
+      16
+    ],
+    "key_light": "top-left",
+    "seamless_edge_wrap": "required on full cube blocks (column 0 must tile against column 15, row 0 against row 15)",
+    "indexed_colors_per_texture": [
+      4,
+      6
+    ],
+    "no_single_color_fills": true
+  },
+  "blocks": [
+    {
+      "id": "resonant_bismuth_ore",
+      "class": "ResonantBismuthOreBlock",
+      "hardness": 4.5,
+      "blast": 3.0,
+      "tool": "pickaxe",
+      "tier": "diamond",
+      "sound": "AMETHYST",
+      "light": 3,
+      "palette": "resonant_bismuth",
+      "base_palette": "phonolite",
+      "textures": [
+        "resonant_bismuth_ore"
+      ],
+      "drops": {
+        "item": "resonance_shard",
+        "min": 1,
+        "max": 3,
+        "fortune": true
+      },
+      "traits": [
+        "emits vibration particle on step"
+      ]
+    },
+    {
+      "id": "deepslate_resonant_bismuth_ore",
+      "class": "ResonantBismuthOreBlock",
+      "hardness": 6.0,
+      "blast": 4.0,
+      "tool": "pickaxe",
+      "tier": "diamond",
+      "sound": "DEEPSLATE",
+      "light": 3,
+      "palette": "resonant_bismuth",
+      "textures": [
+        "deepslate_resonant_bismuth_ore"
+      ],
+      "drops": {
+        "item": "resonance_shard",
+        "min": 1,
+        "max": 3,
+        "fortune": true
+      },
+      "traits": [
+        "deepslate variant, increased resistance"
+      ]
+    },
+    {
+      "id": "raw_phonolite",
+      "class": "Block",
+      "hardness": 5.0,
+      "blast": 6.0,
+      "tool": "pickaxe",
+      "tier": "diamond",
+      "sound": "BASALT",
+      "light": 0,
+      "palette": "phonolite",
+      "textures": [
+        "raw_phonolite"
+      ],
+      "traits": [
+        "volcanic slate base"
+      ]
+    },
+    {
+      "id": "phonolite_bricks",
+      "class": "Block",
+      "hardness": 5.5,
+      "blast": 6.0,
+      "tool": "pickaxe",
+      "tier": "diamond",
+      "sound": "STONE",
+      "light": 0,
+      "palette": "phonolite",
+      "textures": [
+        "phonolite_bricks"
+      ],
+      "traits": [
+        "portal frame block",
+        "high blast resistance"
+      ]
+    },
+    {
+      "id": "void_glass",
+      "class": "VoidGlassBlock",
+      "hardness": 0.8,
+      "blast": 0.5,
+      "tool": "any",
+      "tier": null,
+      "silk_touch_only": true,
+      "sound": "GLASS",
+      "light": 0,
+      "palette": "void_glass",
+      "textures": [
+        "void_glass"
+      ],
+      "render": "translucent",
+      "traits": [
+        "negates fall damage",
+        "zero-gravity walk surface"
+      ]
+    },
+    {
+      "id": "null_iron_ore",
+      "class": "NullIronOreBlock",
+      "hardness": 5.0,
+      "blast": 6.0,
+      "tool": "pickaxe",
+      "tier": "netherite",
+      "sound": "ANCIENT_DEBRIS",
+      "light": 0,
+      "palette": "null_iron",
+      "textures": [
+        "null_iron_ore"
+      ],
+      "drops": {
+        "item": "raw_null_iron",
+        "min": 1,
+        "max": 1
+      },
+      "traits": [
+        "diminishes adjacent block light by 1"
+      ]
+    },
+    {
+      "id": "null_iron_block",
+      "class": "NullIronBlock",
+      "hardness": 8.0,
+      "blast": 12.0,
+      "tool": "pickaxe",
+      "tier": "netherite",
+      "sound": "NETHERITE_BLOCK",
+      "light": 0,
+      "palette": "null_iron",
+      "textures": [
+        "null_iron_block"
+      ],
+      "traits": [
+        "absorbs explosion blast radii within 3 blocks"
+      ]
+    },
+    {
+      "id": "petrified_tuning_wood",
+      "class": "PetrifiedTuningWoodBlock",
+      "hardness": 3.0,
+      "blast": 3.0,
+      "tool": "axe",
+      "tier": "iron",
+      "sound": "WOOD",
+      "light": 0,
+      "palette": "phonolite",
+      "accent_palette": "resonant_bismuth",
+      "textures": [
+        "petrified_tuning_wood_side",
+        "petrified_tuning_wood_top"
+      ],
+      "traits": [
+        "Hollow Horizon tree trunk",
+        "strippable",
+        "rotatable pillar"
+      ],
+      "stripped_variant": "stripped_petrified_tuning_wood"
+    },
+    {
+      "id": "stripped_petrified_tuning_wood",
+      "class": "RotatedPillarBlock",
+      "hardness": 3.0,
+      "blast": 3.0,
+      "tool": "axe",
+      "tier": "iron",
+      "sound": "WOOD",
+      "light": 0,
+      "palette": "phonolite",
+      "textures": [
+        "stripped_petrified_tuning_wood_side",
+        "stripped_petrified_tuning_wood_top"
+      ],
+      "traits": [
+        "stripped form of petrified_tuning_wood"
+      ],
+      "_note": "support block required by the strippable trait; not one of the 12 headline blocks"
+    },
+    {
+      "id": "calcified_resonance_leaves",
+      "class": "CalcifiedResonanceLeavesBlock",
+      "hardness": 0.4,
+      "blast": 0.2,
+      "tool": "hoe",
+      "tier": null,
+      "shears": true,
+      "sound": "AZALEA_LEAVES",
+      "light": 6,
+      "palette": "resonant_bismuth",
+      "base_palette": "phonolite",
+      "textures": [
+        "calcified_resonance_leaves"
+      ],
+      "render": "cutout_mipped",
+      "drops": {
+        "item": "bismuth_seedling",
+        "chance": 0.05
+      },
+      "traits": [
+        "ambient harmonic rustle",
+        "drops bismuth seedlings"
+      ]
+    },
+    {
+      "id": "frequency_siphon",
+      "class": "FrequencySiphonBlock",
+      "hardness": 3.5,
+      "blast": 4.0,
+      "tool": "pickaxe",
+      "tier": "iron",
+      "sound": "COPPER",
+      "light": 1,
+      "palette": "resonant_bismuth",
+      "textures": [
+        "frequency_siphon_top",
+        "frequency_siphon_side",
+        "frequency_siphon_bottom"
+      ],
+      "block_entity": "FrequencySiphonBlockEntity",
+      "traits": [
+        "listens for vibrations via GameEventListener",
+        "emits analog redstone 1-15",
+        "no global polling"
+      ]
+    },
+    {
+      "id": "inversion_anvil",
+      "class": "InversionAnvilBlock",
+      "hardness": 6.0,
+      "blast": 1200.0,
+      "tool": "pickaxe",
+      "tier": "diamond",
+      "sound": "ANVIL",
+      "light": 2,
+      "palette": "null_iron",
+      "accent_palette": "resonant_bismuth",
+      "textures": [
+        "inversion_anvil_top",
+        "inversion_anvil_side"
+      ],
+      "menu": "InversionAnvilMenu",
+      "traits": [
+        "uncrafts items into raw ingots/gems based on remaining durability"
+      ]
+    },
+    {
+      "id": "acoustic_lock_box",
+      "class": "AcousticLockBoxBlock",
+      "hardness": 50.0,
+      "blast": 1200.0,
+      "tool": "none",
+      "tier": null,
+      "unbreakable_by_hand": true,
+      "sound": "METAL",
+      "light": 0,
+      "palette": "null_iron",
+      "accent_palette": "resonant_bismuth",
+      "textures": [
+        "acoustic_lock_box_front",
+        "acoustic_lock_box_side",
+        "acoustic_lock_box_top"
+      ],
+      "block_entity": "AcousticLockBoxBlockEntity",
+      "traits": [
+        "Sound Vault safe",
+        "opens via matching pitch sequence"
+      ]
+    }
+  ],
+  "items": [
+    {
+      "id": "resonance_shard",
+      "palette": "resonant_bismuth",
+      "kind": "material"
+    },
+    {
+      "id": "raw_null_iron",
+      "palette": "null_iron",
+      "kind": "material"
+    },
+    {
+      "id": "null_iron_ingot",
+      "palette": "null_iron",
+      "accent_palette": "resonant_bismuth",
+      "kind": "material"
+    },
+    {
+      "id": "void_glass_shard",
+      "palette": "void_glass",
+      "kind": "material"
+    },
+    {
+      "id": "bismuth_seedling",
+      "palette": "resonant_bismuth",
+      "kind": "material"
+    },
+    {
+      "id": "tuning_fork",
+      "palette": "resonant_bismuth",
+      "accent_palette": "null_iron",
+      "kind": "tool",
+      "traits": [
+        "portal ignition frequency check",
+        "tunes acoustic lock box"
+      ]
+    },
+    {
+      "id": "harmonic_tuning_disc_alpha",
+      "palette": "resonant_bismuth",
+      "kind": "disc"
+    },
+    {
+      "id": "harmonic_tuning_disc_beta",
+      "palette": "phonolite",
+      "accent_palette": "resonant_bismuth",
+      "kind": "disc"
+    },
+    {
+      "id": "harmonic_tuning_disc_gamma",
+      "palette": "null_iron",
+      "accent_palette": "resonant_bismuth",
+      "kind": "disc"
+    }
+  ],
+  "tools": [
+    {
+      "id": "harmonic_pickaxe",
+      "kind": "pickaxe",
+      "material": "resonant_bismuth",
+      "palette": "resonant_bismuth",
+      "traits": [
+        "mined blocks shatter along acoustic fault lines in a rhythmic 3x3 pattern when swung to tempo"
+      ]
+    },
+    {
+      "id": "sonic_lance",
+      "kind": "weapon",
+      "material": "null_iron",
+      "palette": "null_iron",
+      "accent_palette": "resonant_bismuth",
+      "traits": [
+        "charges by absorbing incoming projectile damage",
+        "discharges forward piercing shockwave"
+      ]
+    },
+    {
+      "id": "void_glass_rapier",
+      "kind": "weapon",
+      "material": "void_glass",
+      "palette": "void_glass",
+      "accent_palette": "resonant_bismuth",
+      "traits": [
+        "bypasses 50% of target armor",
+        "temporary invisibility on critical strike"
+      ]
+    }
+  ],
+  "armor": [
+    {
+      "id": "resonance",
+      "set_name": "Resonance Armor",
+      "material": "null_iron + resonant_bismuth hybrid",
+      "palette": "null_iron",
+      "accent_palette": "resonant_bismuth",
+      "pieces": [
+        "helmet",
+        "chestplate",
+        "leggings",
+        "boots"
+      ],
+      "traits": [
+        "stores incoming kinetic damage",
+        "double-tap crouch releases concussive shockwave pulse"
+      ]
+    },
+    {
+      "id": "aero_stride_greaves",
+      "set_name": "Aero-Stride Greaves",
+      "material": "void_glass + resonant_bismuth",
+      "palette": "void_glass",
+      "accent_palette": "resonant_bismuth",
+      "slot": "boots",
+      "traits": [
+        "eliminates fall damage with zero-gravity drift zone on impact",
+        "enables wall-running"
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "id": "echo_weaver",
+      "geo": "echo_weaver.geo.json",
+      "texture_size": [
+        128,
+        128
+      ],
+      "geometry": "segmented cephalothorax, 4 acoustic crests, 8 multi-jointed legs (femur, tibia, tarsus)",
+      "traits": [
+        "ceiling pathfinding with cached raycast nodes"
+      ]
+    },
+    {
+      "id": "strata_golem",
+      "geo": "strata_golem.geo.json",
+      "texture_size": [
+        128,
+        128
+      ],
+      "geometry": "low center of mass, quadruped rock chassis, detachable crystal spire back clusters"
+    },
+    {
+      "id": "resonance_wraith",
+      "geo": "resonance_wraith.geo.json",
+      "texture_size": [
+        128,
+        128
+      ],
+      "geometry": "floating core with 4 undulating layered ribbon bands"
+    }
+  ],
+  "worldgen": {
+    "dimension": "the_hollow_horizon",
+    "portal_frame": "phonolite_bricks",
+    "portal_igniter": "tuning_fork",
+    "features": [
+      "floating petrified strata",
+      "inverted gravity zones",
+      "acoustic fog"
+    ],
+    "structure": "outpost_of_the_tuners",
+    "jigsaw_templates": [
+      "resonance_forge",
+      "observatory_dome",
+      "sound_vault",
+      "connecting_chain_bridge"
+    ],
+    "loot_tables": [
+      "chests/resonance_forge",
+      "chests/observatory_dome",
+      "chests/sound_vault"
+    ]
+  },
+  "performance": {
+    "directives": [
+      "spatial partitioning via GameEventListener / VibrationSystem on Frequency Siphon; strictly no global entity polling",
+      "zero-allocation tick loops: reuse mutable BlockPos and AABB instances",
+      "pre-computed 3D density noise grids per 16x16x16 chunk section",
+      "cached raycast nodes for Echo Weaver ceiling pathfinding"
+    ]
+  }
+}

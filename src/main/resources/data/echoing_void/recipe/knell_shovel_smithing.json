@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:smithing_transform",
+  "addition": "echoing_void:knell_ingot",
+  "base": "echoing_void:harmonic_shovel",
+  "result": {
+    "id": "echoing_void:knell_shovel"
+  },
+  "template": "echoing_void:knell_template"
+}

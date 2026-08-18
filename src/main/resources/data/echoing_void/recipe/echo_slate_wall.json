@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "group": "echoing_void_stone_wall",
+  "key": {
+    "#": "echoing_void:echo_slate"
+  },
+  "pattern": [
+    "###",
+    "###"
+  ],
+  "result": {
+    "id": "echoing_void:echo_slate_wall",
+    "count": 6
+  }
+}

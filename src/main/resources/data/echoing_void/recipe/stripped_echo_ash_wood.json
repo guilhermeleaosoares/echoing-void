@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "group": "echoing_void_bark",
+  "key": {
+    "#": "echoing_void:stripped_echo_ash_log"
+  },
+  "pattern": [
+    "##",
+    "##"
+  ],
+  "result": {
+    "id": "echoing_void:stripped_echo_ash_wood",
+    "count": 3
+  }
+}

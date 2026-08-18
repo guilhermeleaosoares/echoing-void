@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "echoing_void:block/hollow_horizon_portal_ns"
+    },
+    "axis=z": {
+      "model": "echoing_void:block/hollow_horizon_portal_ew"
+    }
+  }
+}

@@ -1,0 +1,413 @@
+{
+ "_comment": "Expansion round 2. Player feedback: not enough block variety, terrain and structures need real craft, ores must exist in the Overworld in the right host rock, and there should be a tier above netherite. This file is the contract for all of it.",
+ "new_tier": {
+  "name": "Knell",
+  "_renamed_from": "Was called Resonite. REJECTED by the player: 'the new ore should have a more differentiating name to the resonance set, so change the name of one or the other'. Resonite and Resonance read as the same word in an inventory. The existing Resonance armour set is already registered and renaming it would break saves, so the unbuilt tier is the one that moved. A knell is a bell rung slowly for a death - endgame, ominous, still sound-themed, and unmistakable next to Resonance. The rename is DONE; these ids are current.",
+  "_exclusivity_REINFORCED": "Stated twice by the player. knell_ore generates ONLY in echoing_void:the_hollow_horizon. Not the Overworld, not the Nether, at any depth, under any circumstances. This is the whole point of the tier: it is gated by PLACE, not by depth, so reaching it means going through the portal.",
+  "_art_requirements": {
+   "ingots": "PLAYER: 'make the knell and null iron ingots have a shape more similar to vanilla in game ingots'. Measure vanilla iron_ingot.png / gold_ingot.png / netherite_ingot.png and match the silhouette - the rounded parallelogram, bright top face, darker lower-right, notched corners. Ours currently read as generic lumps. Applies to knell_ingot AND null_iron_ingot.",
+   "gear_silhouette": "PLAYER: 'add slightly more unique looks to the Knell armour and tool sets and resonance armor set, make them not look so vanilla, like how netherite switches it up a bit'. Netherite keeps the silhouette readable but changes the material language. Knell gear is the tier above netherite and should be the most distinctive thing in the mod: keep it legible at 16x16 so a sword still reads as a sword, but change the profile - a different guard, a fractured or split blade, asymmetric plating. The existing Resonance set also needs pushing further from plain vanilla shapes.",
+   "armour_trims": "PLAYER: 'make sure that the armors are compatible with armor trims'. Every armour set in the mod - Knell, Resonance and Aero-Stride - must accept trims: the minecraft:trimmable_armor item tag plus whatever the 26.2 equipment asset needs for the trim layers."
+  },
+  "_rationale": "A tier above the mod's own mid-tier has to be gated by something other than depth. Knell is Echoing Void only, sits in the deepest strata, needs a netherite pickaxe, and cannot be crafted into gear directly - it is integrated onto finished RESONANCE gear at the Knell Integrator.",
+  "ore": {
+   "id": "knell_ore",
+   "host": "raw_phonolite",
+   "dimension_only": "echoing_void:the_hollow_horizon",
+   "y_range": [
+    32,
+    96
+   ],
+   "rarity": "very rare - 2 veins per chunk, size 2",
+   "hardness": 9.0,
+   "blast": 12.0,
+   "tool": "pickaxe",
+   "tier": "netherite",
+   "light": 4,
+   "_y_range_revised": "Was [0, 34]. Measured against a generated world that window held 0.347% of the dimension rock and 3.76% of its phonolite (90% of phonolite is y48-95), and across 1552 fully generated chunks knell_ore spawned ZERO times - the endgame tier was unobtainable. The constant predated the terrain it described, so the band moved to where the deep strata actually is. very_biased_to_bottom is retained, so the ore still reads as the deepest strata, and it is still reachable only through the Hollow Horizon."
+  },
+  "items": [
+   "raw_knell",
+   "knell_ingot",
+   "knell_template"
+  ],
+  "block": "knell_block",
+  "gear": {
+   "prefix": "knell",
+   "pieces": [
+    "sword",
+    "pickaxe",
+    "axe",
+    "shovel",
+    "hoe",
+    "helmet",
+    "chestplate",
+    "leggings",
+    "boots"
+   ],
+   "above_netherite": {
+    "durability_multiplier": 1.6,
+    "attack_bonus": "+1.5 over netherite",
+    "armor_toughness": "+2 over netherite",
+    "knockback_resistance": "+0.1 over netherite",
+    "notes": "Fire resistant like netherite. Enchantability slightly above netherite."
+   }
+  },
+  "station": {
+   "id": "knell_integrator",
+   "name": "Knell Integrator",
+   "role": "A single-block advanced workstation. Right-clicking opens the vanilla smithing menu, so the interaction a player already knows carries over. Recipes are smithing_transform entries: KNELL TEMPLATE + the RESONANCE-TIER piece + KNELL INGOT -> the Knell piece. Note the base is the mod's own Resonance gear, NOT a netherite item - the ladder does not pass through netherite.",
+   "look": "A squat machine: null-iron chassis, a bismuth resonator ring on top, amber indicator lights, cabling down the sides. Must read as more advanced than an anvil or smithing table.",
+   "hardness": 6.0,
+   "blast": 1200.0,
+   "light": 7
+  }
+ },
+ "progression": {
+  "_comment": "PLAYER: 'make the resonance armor set and new armor and tool set be differentiated either in how hard they are to get and how good they are, how hard they are to craft or something.' Two sets that sit at the same point on the ladder make one of them pointless.",
+  "_LADDER": "PLAYER, revised: 'instead of going from netherite to knell, you go from resonance to knell. no need for a template for resonance, but you need knell templates to integrate the resonance armor with knell.' So the chain is RESONANCE -> KNELL, and it does NOT pass through netherite at all. This is the better shape: it makes the mod's own mid-tier set the mandatory stepping stone rather than an optional detour, so Resonance is never skippable and never wasted. A player who ignores Resonance cannot reach Knell.",
+  "_upgrade_rule": "Knell upgrades each piece from its RESONANCE-TIER equivalent, one for one, at the Knell Integrator: Resonance piece + Knell Ingot + Knell Template -> Knell piece. Because the Resonance tier previously had armour but no tools, it gains a full toolset so every Knell piece has something to come from.",
+  "resonance_tier_contents": {
+   "armour": [
+    "resonance_helmet",
+    "resonance_chestplate",
+    "resonance_leggings",
+    "resonance_boots"
+   ],
+   "tools": [
+    "harmonic_pickaxe (existing, keeps its rhythm mechanic)",
+    "harmonic_sword (new)",
+    "harmonic_axe (new)",
+    "harmonic_shovel (new)",
+    "harmonic_hoe (new)"
+   ],
+   "_note": "Sonic Lance and Void-Glass Rapier are deliberately OUTSIDE this ladder. They are sidegrades with distinct roles, not steps on it, and they do not upgrade to Knell - otherwise their identities collapse into the endgame set.",
+   "_naming": "PLAYER: 'name it as the harmonic tool set to keep it consistent, so harmonic sword axe shovel hoe, and they are still part of the resonance family and are the pathway to the knell set.' The set is named for the Harmonic Pickaxe, which already occupied the pickaxe slot on the same material; a second, differently named pickaxe would have been the odd one out. Harmonic gear is Resonance-tier and is the base every Knell tool is integrated onto.",
+   "_art": "Handles are dark null-iron, matching harmonic_pickaxe. Head and haft shapes are measured from vanilla's iron tools and split by hue (a haft pixel has R-B > 24), so an axe reads as an axe. Knell shares the identical form with added flare, so a smithing upgrade reads as the same tool sharpened."
+  },
+  "resonance_set": {
+   "tier": "mid game, reachable before ever opening a portal, and now MANDATORY as the base for Knell",
+   "materials": "Null-Iron Ingots + Resonance Shards. Both are Overworld-obtainable: bismuth in the stone and deepslate bands, null-iron rare and deep.",
+   "crafting": "Plain crafting table, one step, standard patterns. NO template. Nothing gates it but the ore.",
+   "power": "Diamond-plus. It sits between diamond and netherite rather than below both, because it is now on the critical path and a player will be wearing it for a long stretch.",
+   "identity": "Utility and defence. It banks incoming kinetic damage and dumps it as a shockwave on a double-crouch, so it rewards standing your ground. The new Resonance Sword feeds the same bank from dealing damage, closing the loop.",
+   "why_you_keep_it": "You cannot reach Knell without building it first, and its shockwave is a mechanic nothing else in the game has."
+  },
+  "knell_set": {
+   "tier": "endgame. Reached from Resonance, NOT from netherite.",
+   "materials": "Knell Ore, Hollow Horizon only, deepest strata, netherite pickaxe required.",
+   "crafting": "THREE gates. You need (a) the finished Resonance-tier piece, (b) a Knell Ingot, (c) a Knell Template, and (d) a Knell Integrator to put them together. Nothing about it can be shortcut at a crafting table.",
+   "template": "Knell Templates come only from Sound Vault chests. Duplicable like a vanilla smithing template - 7 diamonds plus a Chalk Bricks block - so losing one is a setback, not a dead end.",
+   "power": "PLAYER: 'the knell armor should be awesome.' It must be unambiguously the best armour available anywhere, comfortably past netherite: durability x1.6, +2 toughness, +0.1 knockback resistance, fire resistant, and it INHERITS the Resonance shockwave rather than losing it - the endgame set should not be a downgrade in utility. Knell tools likewise keep whatever their Resonance base did, so a Knell Pickaxe still shatters on tempo.",
+   "identity": "Everything the mid-tier did, plus the best raw numbers in the game. It is the reward for having done all of it."
+  },
+  "the_separation": "Resonance is cheap, early, craftable, and the only way up. Knell is expensive, late, gated behind the dimension and a rare template, and strictly better at everything. One is the road, the other is the destination - and because Knell inherits Resonance's mechanics, nothing you learned on the way is thrown away."
+ },
+ "weapon_roles": {
+  "_comment": "PLAYER: 'make sure that there are reasons to use the void lance or glass rapier or the resonance sword and have valuable differentiation and use cases.' Three weapons that differ only in damage numbers are one weapon. Each of these is the correct answer to a DIFFERENT question, and wrong for the others.",
+  "sonic_lance": {
+   "material": "Null-Iron - 2600 durability, slow swing",
+   "answers": "A crowd, or something shooting at you from range.",
+   "mechanic": "Charges by absorbing incoming PROJECTILE damage, then discharges a piercing line that hits everything in front of you. Being shot is what loads it.",
+   "weak_against": "A single melee target - the swing is slow and the charge never builds.",
+   "use_case": "Skeleton packs, Tuner Shades, anything ranged. The more they shoot, the harder you hit back."
+  },
+  "void_glass_rapier": {
+   "material": "Void-Glass - 180 durability, very fast, high enchantability",
+   "answers": "One heavily armoured target you want dead quickly.",
+   "mechanic": "Bypasses half the target's armour, and a critical strike grants a few seconds of invisibility to disengage.",
+   "weak_against": "Sustained fighting - it shatters fast, and against unarmoured mobs the bypass is wasted.",
+   "use_case": "Strata Golems (armour 14), armoured players, boss-shaped problems. Hit hard, vanish, come back."
+  },
+  "harmonic_sword": {
+   "material": "Resonant Bismuth - NEW WEAPON, balanced stats",
+   "answers": "You are wearing the Resonance set and want the shockwave sooner.",
+   "mechanic": "Every hit feeds the Resonance armour's kinetic bank directly, so the set's double-crouch shockwave charges from dealing damage as well as taking it. Without the set it is merely a decent sword.",
+   "weak_against": "Nothing in particular, and excellent at nothing without the armour - it is a synergy piece.",
+   "use_case": "The set's missing half. Turns Resonance from a defensive kit into a loop.",
+   "_renamed": "Was resonance_sword. Renamed to harmonic_sword with the rest of the toolset so the whole Resonance-tier tool family shares the Harmonic Pickaxe's name. Same weapon, same role."
+  },
+  "knell_sword": {
+   "material": "Knell - endgame",
+   "answers": "Everything, eventually.",
+   "mechanic": "Highest raw damage in the mod plus the tier's fire resistance. It does not need a gimmick; being unambiguously the best IS the reward for the gate it sits behind.",
+   "use_case": "Whatever is left."
+  }
+ },
+ "stone_families": {
+  "_comment": "Every stone gets the vanilla trio so players can actually build with them.",
+  "variants": [
+   "slab",
+   "stairs",
+   "wall"
+  ],
+  "bases": [
+   "raw_phonolite",
+   "polished_phonolite",
+   "phonolite_bricks",
+   "resonant_chalk",
+   "chalk_bricks",
+   "echo_slate",
+   "amber_strata"
+  ]
+ },
+ "wood_types": {
+  "_comment": "Four woods so groves read as different forests. Each is a full vanilla-style set. Plank textures must look like real Minecraft planks - horizontal board runs with visible seams and end-grain nicks - in the family hue, NOT noise.",
+  "variants": [
+   "log",
+   "stripped_log",
+   "wood",
+   "stripped_wood",
+   "planks",
+   "slab",
+   "stairs",
+   "fence",
+   "fence_gate",
+   "door",
+   "trapdoor"
+  ],
+  "types": [
+   {
+    "id": "petrified_tuning",
+    "name": "Petrified Tuning",
+    "family": "phonolite",
+    "leaves": "calcified_resonance_leaves",
+    "note": "existing dark wood"
+   },
+   {
+    "id": "humming",
+    "name": "Humming",
+    "family": "arcane",
+    "leaves": "violet_resonance_leaves",
+    "note": "existing violet wood"
+   },
+   {
+    "id": "echo_ash",
+    "name": "Echo Ash",
+    "family": "chalk",
+    "leaves": "ashen_resonance_leaves",
+    "note": "NEW pale bone-white wood for the chalk highlands"
+   },
+   {
+    "id": "amber_bough",
+    "name": "Amber Bough",
+    "family": "amber",
+    "leaves": "amber_resonance_leaves",
+    "note": "NEW warm wood for the amber band"
+   }
+  ]
+ },
+ "block_ids": {
+  "_comment": "AUTHORITATIVE ID MAP. The two existing woods predate this round and are NOT renamed - renaming a registered block breaks every existing world, loot table, recipe and tag that references it, which is a far worse cost than an inconsistent prefix. New woods follow the standard vanilla pattern instead.",
+  "_existing_woods_keep_their_ids": {
+   "petrified_tuning_wood": "IS THE LOG (rotatable pillar, bark sides + ring top). Despite the _wood suffix it behaves as oak_log does.",
+   "stripped_petrified_tuning_wood": "stripped log",
+   "humming_stem": "IS THE LOG. Nether-stem naming, like warped_stem.",
+   "stripped_humming_stem": "stripped log"
+  },
+  "_all_bark_variant_naming": "Because <id>_wood is already taken by the petrified log, the all-bark variants follow the Nether convention where it fits: petrified_tuning_bark, humming_hyphae (as warped_stem -> warped_hyphae). New woods use the plain overworld form, echo_ash_wood / amber_bough_wood.",
+  "woods": {
+   "petrified_tuning": {
+    "log": "petrified_tuning_wood",
+    "stripped_log": "stripped_petrified_tuning_wood",
+    "bark": "petrified_tuning_bark",
+    "stripped_bark": "stripped_petrified_tuning_bark",
+    "planks": "petrified_tuning_planks",
+    "slab": "petrified_tuning_slab",
+    "stairs": "petrified_tuning_stairs",
+    "fence": "petrified_tuning_fence",
+    "fence_gate": "petrified_tuning_fence_gate",
+    "door": "petrified_tuning_door",
+    "trapdoor": "petrified_tuning_trapdoor",
+    "leaves": "calcified_resonance_leaves"
+   },
+   "humming": {
+    "log": "humming_stem",
+    "stripped_log": "stripped_humming_stem",
+    "bark": "humming_hyphae",
+    "stripped_bark": "stripped_humming_hyphae",
+    "planks": "humming_planks",
+    "slab": "humming_slab",
+    "stairs": "humming_stairs",
+    "fence": "humming_fence",
+    "fence_gate": "humming_fence_gate",
+    "door": "humming_door",
+    "trapdoor": "humming_trapdoor",
+    "leaves": "violet_resonance_leaves"
+   },
+   "echo_ash": {
+    "log": "echo_ash_log",
+    "stripped_log": "stripped_echo_ash_log",
+    "bark": "echo_ash_wood",
+    "stripped_bark": "stripped_echo_ash_wood",
+    "planks": "echo_ash_planks",
+    "slab": "echo_ash_slab",
+    "stairs": "echo_ash_stairs",
+    "fence": "echo_ash_fence",
+    "fence_gate": "echo_ash_fence_gate",
+    "door": "echo_ash_door",
+    "trapdoor": "echo_ash_trapdoor",
+    "leaves": "ashen_resonance_leaves"
+   },
+   "amber_bough": {
+    "log": "amber_bough_log",
+    "stripped_log": "stripped_amber_bough_log",
+    "bark": "amber_bough_wood",
+    "stripped_bark": "stripped_amber_bough_wood",
+    "planks": "amber_bough_planks",
+    "slab": "amber_bough_slab",
+    "stairs": "amber_bough_stairs",
+    "fence": "amber_bough_fence",
+    "fence_gate": "amber_bough_fence_gate",
+    "door": "amber_bough_door",
+    "trapdoor": "amber_bough_trapdoor",
+    "leaves": "amber_resonance_leaves"
+   }
+  },
+  "ores": {
+   "_comment": "Three hosts per resource. The unprefixed id is the STONE host, matching vanilla where coal_ore is the stone one and deepslate_coal_ore the deep one. resonant_bismuth_ore and null_iron_ore already exist but are currently DRAWN with a phonolite host - their textures must be redrawn on a stone host, and the phonolite_ variants are the new blocks.",
+   "resonant_bismuth": [
+    "resonant_bismuth_ore",
+    "deepslate_resonant_bismuth_ore",
+    "phonolite_resonant_bismuth_ore"
+   ],
+   "null_iron": [
+    "null_iron_ore",
+    "deepslate_null_iron_ore",
+    "phonolite_null_iron_ore"
+   ],
+   "knell": [
+    "knell_ore"
+   ]
+  },
+  "stone_family_pattern": "<base>_slab, <base>_stairs, <base>_wall"
+ },
+ "new_blocks": [
+  {
+   "id": "ashen_resonance_leaves",
+   "family": "chalk",
+   "role": "Pale bone canopy for Echo Ash. Fourth leaf hue.",
+   "light": 2
+  },
+  {
+   "id": "null_iron_jukebox",
+   "family": "null_iron",
+   "role": "A jukebox in null-iron and bismuth. Plays the Harmonic Tuning Discs, which currently have nowhere to be played.",
+   "hardness": 4.0,
+   "light": 3
+  },
+  {
+   "id": "knell_block",
+   "family": "bismuth",
+   "role": "Storage block, strongly emissive."
+  }
+ ],
+ "overworld_ores": {
+  "_comment": "PLAYER COMPLAINT: the Overworld ore variants are drawn in phonolite, so they look wrong embedded in real stone. Every ore now has a host-matched variant, and the host rock in the texture must be the rock it is actually found in.",
+  "hosts": {
+   "stone": "vanilla stone texture language - grey, medium noise",
+   "deepslate": "vanilla deepslate language - dark, fine vertical grain",
+   "phonolite": "our own dark slate"
+  },
+  "ores": [
+   {
+    "resource": "resonant_bismuth",
+    "hosts": [
+     "stone",
+     "deepslate",
+     "phonolite"
+    ]
+   },
+   {
+    "resource": "null_iron",
+    "hosts": [
+     "stone",
+     "deepslate",
+     "phonolite"
+    ]
+   }
+  ],
+  "placement": "Resonant Bismuth generates in the Overworld in both stone and deepslate bands. Null-Iron is Overworld-rare and deep only. Both also generate in the Hollow Horizon in phonolite."
+ },
+ "biomes": {
+  "_comment": "PLAYER REQUEST: multiple biomes with different vegetation, mobs and terrain. Traversal difficulty is the axis that distinguishes them.",
+  "list": [
+   {
+    "id": "resonant_plains",
+    "name": "Resonant Plains",
+    "terrain": "Large connected islands with broad walkable tops. The forgiving biome - where a player arrives and gets their footing.",
+    "vegetation": "Amber Bough groves, resonance moss, echo sprouts, chime grass",
+    "mobs": "echo_weaver common, resonance_wraith uncommon",
+    "structure": "outpost_of_the_tuners"
+   },
+   {
+    "id": "shattered_octaves",
+    "name": "Shattered Octaves",
+    "terrain": "Many smaller islands at widely varying heights with large vertical gaps. Hard to traverse, deliberately.",
+    "vegetation": "sparse - humming stems, crystal blooms, bismuth clusters",
+    "mobs": "resonance_wraith common because it flies, strata_golem uncommon",
+    "structure": "tuner_encampment"
+   },
+   {
+    "id": "chalk_reaches",
+    "name": "Chalk Reaches",
+    "terrain": "High pale plateaus and cliffs of resonant chalk, above the amber band.",
+    "vegetation": "Echo Ash groves, ashen leaves, chime sand drifts",
+    "mobs": "strata_golem common, echo_weaver uncommon",
+    "structure": "none yet"
+   }
+  ]
+ },
+ "worldgen_fixes": {
+  "trees": "PLAYER COMPLAINT: trees generate too densely and sometimes inside one another. Space them with proper placement modifiers, cap per chunk, and require a clear column so trunks never intersect. Also NEVER inside a structure - the outpost currently has trees growing out of it.",
+  "strata": "PLAYER COMPLAINT: chalk and strata formations look random and overwhelming - a cliff tens of blocks across made entirely of one band. Bands must follow altitude coherently with a dithered boundary, not blotch.",
+  "islands": "PLAYER COMPLAINT: floating islands are near-vertical and blocky. They must be rugged and conical - wide flattish top, tapering underside to a rough point, irregular edges, never a straight wall. Each island should leave a roughly matching hollow in the ground beneath it, partly filled with fallen debris."
+ },
+ "structures": {
+  "_comment": "PLAYER COMPLAINT about the outpost: looks like a 5 year old drew it, there is no flow, bridges lead to walls that must be broken, there is no glass, roofs are flat, leaves and lanterns float. Use vanilla structures as the craft reference.",
+  "requirements": [
+   "Every jigsaw connection must open into a doorway or archway - a bridge must NEVER terminate against a solid wall.",
+   "Pitched or stepped roofs built from stairs and slabs. No flat slab-on-top roofs.",
+   "Real windows using void_glass, with frames.",
+   "Nothing floats: lanterns hang from chains attached to a ceiling, leaves attach to a trunk, every block has support.",
+   "Interior detail: workstations, chests, slabs and carpets as furniture, light placed deliberately.",
+   "Use stairs, slabs, walls, fences, doors and trapdoors now that they exist - flat cubes alone are what makes it read as primitive."
+  ],
+  "outpost_of_the_tuners": "Rebuild properly: a forge hall with a pitched roof, an observatory with a glass dome and a real interior, a sound vault, connected by bridges that meet doorways.",
+  "tuner_encampment": "NEW, for Shattered Octaves: a small camp - tents over frames, a campfire, supply crates, a tuning post. Cheap, scattered, readable at distance."
+ },
+ "portal": {
+  "animated_blocks": "The portal surface must animate. Give it an animated texture via a .mcmeta frame strip so the standing wave visibly moves.",
+  "travel_overlay": "PLAYER COMPLAINT: travelling shows the nether portal purple screen tint. Replace with a void/bismuth effect - deep blue-black with cyan and magenta harmonics."
+ },
+ "mobs": {
+  "existing": [
+   "echo_weaver",
+   "strata_golem",
+   "resonance_wraith"
+  ],
+  "new": [
+   {
+    "id": "chime_mote",
+    "role": "Small drifting ambient light, neutral. Follows players holding a Tuning Fork. The dimension should not be only hostile.",
+    "size": "small"
+   },
+   {
+    "id": "tuner_shade",
+    "role": "Humanoid ranged caster that fires resonance bolts and blinks away when approached.",
+    "size": "player-sized"
+   },
+   {
+    "id": "strata_burrower",
+    "role": "Burrows through stone, surfaces to ambush, dives underground when hurt and re-emerges behind you.",
+    "size": "medium"
+   }
+  ],
+  "ai_direction": "Each mob needs one behaviour a player can learn and play around, telegraphed clearly enough to counter.",
+  "balance_rules": {
+   "_source": "Direct player feedback after playing the previous build. These are corrections, not preferences.",
+   "no_guaranteed_blinds": "PLAYER: 'them blinding at every attack is too much, give it a chance instead.' Vision-denying effects (BLINDNESS, DARKNESS) must be a CHANCE on hit and short - roughly 25-33% at 30 ticks. The reliable part of a move is the one the player can see and play around; the punishing part is occasional. Two mobs blinding at once is unplayable. Already applied to EnsnareGoal (weaver): 25% at 30 ticks. ResonanceWraithEntity still applies DARKNESS on every burst and must be changed to match.",
+   "no_crowding": "PLAYER: 'the mobs are overwhelming as they spawn so many together.' Biome spawner entries use small groups - maxCount 1-2, not 3+ - and lower weights. Differentiate biomes by WHICH mob spawns, not by how many. Strata Golem stays rare; it is a setpiece. Solitary spawning for tuner_shade and strata_burrower. chime_mote is the exception: small clusters of the ambient light are desirable, since it is the only non-hostile creature."
+  }
+ }
+}

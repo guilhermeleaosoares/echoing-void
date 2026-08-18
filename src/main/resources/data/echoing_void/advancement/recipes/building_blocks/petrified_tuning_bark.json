@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_petrified_tuning_wood": {
+      "conditions": {
+        "items": [
+          {
+            "items": "echoing_void:petrified_tuning_wood"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "echoing_void:petrified_tuning_bark"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_petrified_tuning_wood"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "echoing_void:petrified_tuning_bark"
+    ]
+  }
+}

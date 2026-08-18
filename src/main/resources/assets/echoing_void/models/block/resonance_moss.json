@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/cube_bottom_top",
+  "textures": {
+    "top": "echoing_void:block/resonance_moss",
+    "side": "echoing_void:block/resonance_moss_side",
+    "bottom": "echoing_void:block/raw_phonolite"
+  }
+}

@@ -1,0 +1,66 @@
+{
+  "type": "echoing_void:the_hollow_horizon",
+  "generator": {
+    "type": "minecraft:noise",
+    "settings": "echoing_void:hollow_horizon",
+    "biome_source": {
+      "type": "minecraft:multi_noise",
+      "biomes": [
+        {
+          "biome": "echoing_void:shattered_octaves",
+          "parameters": {
+            "temperature": 0.0,
+            "humidity": 0.0,
+            "continentalness": [
+              -1.0,
+              -0.08
+            ],
+            "erosion": [
+              -1.0,
+              1.0
+            ],
+            "depth": 0.0,
+            "weirdness": 0.0,
+            "offset": 0.0
+          }
+        },
+        {
+          "biome": "echoing_void:resonant_plains",
+          "parameters": {
+            "temperature": 0.0,
+            "humidity": 0.0,
+            "continentalness": [
+              -0.08,
+              1.0
+            ],
+            "erosion": [
+              -1.0,
+              0.22
+            ],
+            "depth": 0.0,
+            "weirdness": 0.0,
+            "offset": 0.0
+          }
+        },
+        {
+          "biome": "echoing_void:chalk_reaches",
+          "parameters": {
+            "temperature": 0.0,
+            "humidity": 0.0,
+            "continentalness": [
+              -0.08,
+              1.0
+            ],
+            "erosion": [
+              0.22,
+              1.0
+            ],
+            "depth": 0.0,
+            "weirdness": 0.0,
+            "offset": 0.0
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,156 @@
+{
+  "type": "minecraft:chest",
+  "pools": [
+    {
+      "rolls": {
+        "type": "minecraft:uniform",
+        "min": 2.0,
+        "max": 4.0
+      },
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "echoing_void:null_iron_ingot",
+          "weight": 20,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 2.0,
+                "max": 5.0
+              },
+              "add": false
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "echoing_void:raw_null_iron",
+          "weight": 16,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 2.0,
+                "max": 4.0
+              },
+              "add": false
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "echoing_void:resonance_shard",
+          "weight": 14,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 4.0,
+                "max": 9.0
+              },
+              "add": false
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:diamond",
+          "weight": 10,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1.0,
+                "max": 3.0
+              },
+              "add": false
+            }
+          ]
+        },
+        {
+          "type": "minecraft:item",
+          "name": "minecraft:netherite_scrap",
+          "weight": 4,
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 1.0,
+                "max": 2.0
+              },
+              "add": false
+            }
+          ],
+          "quality": 2
+        }
+      ]
+    },
+    {
+      "rolls": 1.0,
+      "bonus_rolls": 0.5,
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "echoing_void:void_glass_rapier",
+          "weight": 6,
+          "quality": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "echoing_void:sonic_lance",
+          "weight": 5,
+          "quality": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "echoing_void:harmonic_pickaxe",
+          "weight": 5,
+          "quality": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "echoing_void:aero_stride_greaves",
+          "weight": 4,
+          "quality": 4
+        },
+        {
+          "type": "minecraft:item",
+          "name": "echoing_void:resonance_helmet",
+          "weight": 4,
+          "quality": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "echoing_void:resonance_chestplate",
+          "weight": 3,
+          "quality": 4
+        },
+        {
+          "type": "minecraft:item",
+          "name": "echoing_void:resonance_leggings",
+          "weight": 3,
+          "quality": 4
+        },
+        {
+          "type": "minecraft:item",
+          "name": "echoing_void:resonance_boots",
+          "weight": 4,
+          "quality": 3
+        },
+        {
+          "type": "minecraft:item",
+          "name": "echoing_void:harmonic_tuning_disc_gamma",
+          "weight": 8,
+          "quality": 2
+        }
+      ]
+    }
+  ],
+  "random_sequence": "echoing_void:chests/sound_vault"
+}

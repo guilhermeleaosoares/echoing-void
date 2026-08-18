@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "echoing_void:block/echo_slate_slab"
+    },
+    "type=double": {
+      "model": "echoing_void:block/echo_slate"
+    },
+    "type=top": {
+      "model": "echoing_void:block/echo_slate_slab_top"
+    }
+  }
+}

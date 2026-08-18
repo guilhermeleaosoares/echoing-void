@@ -1,0 +1,40 @@
+{
+  "type": "minecraft:block_pile",
+  "config": {
+    "state_provider": {
+      "type": "minecraft:weighted_state_provider",
+      "entries": [
+        {
+          "data": {
+            "Name": "echoing_void:raw_phonolite"
+          },
+          "weight": 30
+        },
+        {
+          "data": {
+            "Name": "echoing_void:echo_slate"
+          },
+          "weight": 24
+        },
+        {
+          "data": {
+            "Name": "echoing_void:amber_strata"
+          },
+          "weight": 18
+        },
+        {
+          "data": {
+            "Name": "echoing_void:resonant_chalk"
+          },
+          "weight": 14
+        },
+        {
+          "data": {
+            "Name": "echoing_void:chime_sand"
+          },
+          "weight": 14
+        }
+      ]
+    }
+  }
+}

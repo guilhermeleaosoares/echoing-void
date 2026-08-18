@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "echoing_void:chalk_bricks",
+  "result": {
+    "id": "echoing_void:chalk_brick_stairs"
+  }
+}

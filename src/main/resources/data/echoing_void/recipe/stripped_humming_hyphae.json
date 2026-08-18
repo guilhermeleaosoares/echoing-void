@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "group": "echoing_void_bark",
+  "key": {
+    "#": "echoing_void:stripped_humming_stem"
+  },
+  "pattern": [
+    "##",
+    "##"
+  ],
+  "result": {
+    "id": "echoing_void:stripped_humming_hyphae",
+    "count": 3
+  }
+}

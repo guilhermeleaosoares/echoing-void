@@ -1,0 +1,44 @@
+{
+  "criteria": {
+    "resonant_armour": {
+      "conditions": {
+        "items": [
+          {
+            "items": "echoing_void:knell_helmet"
+          },
+          {
+            "items": "echoing_void:knell_chestplate"
+          },
+          {
+            "items": "echoing_void:knell_leggings"
+          },
+          {
+            "items": "echoing_void:knell_boots"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "echoing_void:knell_chestplate"
+    },
+    "title": {
+      "translate": "advancements.echoing_void.knell.full_set.title"
+    },
+    "description": {
+      "translate": "advancements.echoing_void.knell.full_set.description"
+    },
+    "frame": "challenge"
+  },
+  "requirements": [
+    [
+      "resonant_armour"
+    ]
+  ],
+  "parent": "echoing_void:knell/integrate",
+  "rewards": {
+    "experience": 200
+  }
+}

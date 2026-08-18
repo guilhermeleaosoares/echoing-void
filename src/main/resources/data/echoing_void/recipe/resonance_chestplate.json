@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "N": "echoing_void:null_iron_ingot",
+    "S": "echoing_void:resonance_shard"
+  },
+  "pattern": [
+    "N N",
+    "NSN",
+    "NNN"
+  ],
+  "result": {
+    "id": "echoing_void:resonance_chestplate"
+  }
+}

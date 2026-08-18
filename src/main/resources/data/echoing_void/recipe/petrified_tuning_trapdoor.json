@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "group": "echoing_void_wooden_trapdoor",
+  "key": {
+    "#": "echoing_void:petrified_tuning_planks"
+  },
+  "pattern": [
+    "###",
+    "###"
+  ],
+  "result": {
+    "id": "echoing_void:petrified_tuning_trapdoor",
+    "count": 2
+  }
+}

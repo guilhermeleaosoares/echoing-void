@@ -1,0 +1,6 @@
+{
+  "type": "forge:add_features",
+  "biomes": "#minecraft:is_overworld",
+  "features": "echoing_void:ore_resonant_bismuth_placed",
+  "step": "underground_ores"
+}

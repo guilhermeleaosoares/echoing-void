@@ -1,0 +1,101 @@
+{
+  "carvers": [],
+  "downfall": 0.0,
+  "effects": {
+    "water_color": "#1b3b47",
+    "foliage_color": "#b14a9e",
+    "grass_color": "#5a2e6b"
+  },
+  "attributes": {
+    "minecraft:visual/fog_color": "#1b2130",
+    "minecraft:visual/water_fog_color": "#0a141a"
+  },
+  "features": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [
+      "echoing_void:ore_phonolite_resonant_bismuth_placed",
+      "echoing_void:ore_phonolite_null_iron_placed",
+      "echoing_void:ore_knell_placed",
+      "echoing_void:humming_crystal_vein_placed"
+    ],
+    [
+      "echoing_void:bismuth_cluster_dense_placed",
+      "echoing_void:cavern_debris_placed"
+    ],
+    [],
+    [
+      "echoing_void:humming_grove_placed",
+      "echoing_void:sparse_ground_cover_placed"
+    ],
+    [
+      "echoing_void:island_debris_placed"
+    ]
+  ],
+  "has_precipitation": false,
+  "spawn_costs": {
+    "echoing_void:resonance_wraith": {
+      "charge": 0.9,
+      "energy_budget": 0.14
+    },
+    "echoing_void:tuner_shade": {
+      "charge": 0.9,
+      "energy_budget": 0.12
+    },
+    "echoing_void:strata_golem": {
+      "charge": 1.0,
+      "energy_budget": 0.07
+    },
+    "echoing_void:echo_weaver": {
+      "charge": 1.0,
+      "energy_budget": 0.08
+    }
+  },
+  "spawners": {
+    "ambient": [
+      {
+        "type": "echoing_void:chime_mote",
+        "minCount": 1,
+        "maxCount": 3,
+        "weight": 10
+      }
+    ],
+    "axolotls": [],
+    "creature": [],
+    "misc": [],
+    "monster": [
+      {
+        "type": "echoing_void:resonance_wraith",
+        "minCount": 1,
+        "maxCount": 2,
+        "weight": 5
+      },
+      {
+        "type": "echoing_void:tuner_shade",
+        "minCount": 1,
+        "maxCount": 1,
+        "weight": 4
+      },
+      {
+        "type": "echoing_void:strata_golem",
+        "minCount": 1,
+        "maxCount": 1,
+        "weight": 1
+      },
+      {
+        "type": "echoing_void:echo_weaver",
+        "minCount": 1,
+        "maxCount": 1,
+        "weight": 1
+      }
+    ],
+    "underground_water_creature": [],
+    "water_ambient": [],
+    "water_creature": []
+  },
+  "temperature": 0.4
+}

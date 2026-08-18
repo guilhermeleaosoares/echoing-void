@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "echoing_void:block/raw_phonolite_slab"
+    },
+    "type=double": {
+      "model": "echoing_void:block/raw_phonolite"
+    },
+    "type=top": {
+      "model": "echoing_void:block/raw_phonolite_slab_top"
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "group": "echoing_void_wooden_stairs",
+  "key": {
+    "#": "echoing_void:petrified_tuning_planks"
+  },
+  "pattern": [
+    "#  ",
+    "## ",
+    "###"
+  ],
+  "result": {
+    "id": "echoing_void:petrified_tuning_stairs",
+    "count": 4
+  }
+}

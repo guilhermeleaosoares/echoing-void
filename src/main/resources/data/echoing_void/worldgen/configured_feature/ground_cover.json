@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:simple_block",
+  "config": {
+    "to_place": {
+      "type": "minecraft:weighted_state_provider",
+      "entries": [
+        {
+          "data": {
+            "Name": "echoing_void:chime_grass"
+          },
+          "weight": 46
+        },
+        {
+          "data": {
+            "Name": "echoing_void:echo_sprout"
+          },
+          "weight": 38
+        },
+        {
+          "data": {
+            "Name": "echoing_void:crystal_bloom"
+          },
+          "weight": 16
+        }
+      ]
+    }
+  }
+}

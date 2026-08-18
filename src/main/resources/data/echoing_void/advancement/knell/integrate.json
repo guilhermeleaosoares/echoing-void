@@ -1,0 +1,35 @@
+{
+  "criteria": {
+    "knell_gear": {
+      "conditions": {
+        "items": [
+          {
+            "items": "#echoing_void:resonant_gear"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "icon": {
+      "id": "echoing_void:knell_pickaxe"
+    },
+    "title": {
+      "translate": "advancements.echoing_void.knell.integrate.title"
+    },
+    "description": {
+      "translate": "advancements.echoing_void.knell.integrate.description"
+    },
+    "frame": "goal"
+  },
+  "requirements": [
+    [
+      "knell_gear"
+    ]
+  ],
+  "parent": "echoing_void:knell/integrator",
+  "rewards": {
+    "experience": 50
+  }
+}

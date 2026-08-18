@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_polished_phonolite": {
+      "conditions": {
+        "items": [
+          {
+            "items": "echoing_void:polished_phonolite"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "echoing_void:polished_phonolite_slab"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_polished_phonolite"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "echoing_void:polished_phonolite_slab"
+    ]
+  }
+}

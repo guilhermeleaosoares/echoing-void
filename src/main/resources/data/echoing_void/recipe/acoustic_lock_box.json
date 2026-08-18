@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "N": "echoing_void:null_iron_ingot",
+    "S": "echoing_void:resonance_shard"
+  },
+  "pattern": [
+    "NNN",
+    "NSN",
+    "NNN"
+  ],
+  "result": {
+    "id": "echoing_void:acoustic_lock_box"
+  }
+}

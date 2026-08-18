@@ -1,0 +1,30 @@
+{
+  "variants": {
+    "facing=down": {
+      "model": "echoing_void:block/bismuth_cluster",
+      "x": 180
+    },
+    "facing=east": {
+      "model": "echoing_void:block/bismuth_cluster",
+      "x": 90,
+      "y": 90
+    },
+    "facing=north": {
+      "model": "echoing_void:block/bismuth_cluster",
+      "x": 90
+    },
+    "facing=south": {
+      "model": "echoing_void:block/bismuth_cluster",
+      "x": 90,
+      "y": 180
+    },
+    "facing=up": {
+      "model": "echoing_void:block/bismuth_cluster"
+    },
+    "facing=west": {
+      "model": "echoing_void:block/bismuth_cluster",
+      "x": 90,
+      "y": 270
+    }
+  }
+}

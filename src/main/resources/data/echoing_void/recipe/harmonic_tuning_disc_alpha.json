@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "echoing_void:resonance_shard",
+    "echoing_void:resonance_shard",
+    "minecraft:amethyst_shard"
+  ],
+  "result": {
+    "id": "echoing_void:harmonic_tuning_disc_alpha"
+  }
+}

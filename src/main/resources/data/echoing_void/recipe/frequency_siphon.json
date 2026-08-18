@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "key": {
+    "C": "minecraft:copper_ingot",
+    "S": "echoing_void:resonance_shard",
+    "R": "minecraft:redstone"
+  },
+  "pattern": [
+    "CSC",
+    "SRS",
+    "CSC"
+  ],
+  "result": {
+    "id": "echoing_void:frequency_siphon"
+  }
+}

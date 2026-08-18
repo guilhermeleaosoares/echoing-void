@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_top",
+  "textures": {
+    "side": "echoing_void:block/null_iron_jukebox_side",
+    "top": "echoing_void:block/null_iron_jukebox_top"
+  }
+}

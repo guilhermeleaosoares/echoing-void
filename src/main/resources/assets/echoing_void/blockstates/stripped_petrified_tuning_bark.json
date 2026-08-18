@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "echoing_void:block/stripped_petrified_tuning_bark",
+      "x": 90,
+      "y": 90
+    },
+    "axis=y": {
+      "model": "echoing_void:block/stripped_petrified_tuning_bark"
+    },
+    "axis=z": {
+      "model": "echoing_void:block/stripped_petrified_tuning_bark",
+      "x": 90
+    }
+  }
+}

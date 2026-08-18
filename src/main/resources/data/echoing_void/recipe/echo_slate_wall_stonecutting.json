@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "echoing_void:echo_slate",
+  "result": {
+    "id": "echoing_void:echo_slate_wall"
+  }
+}

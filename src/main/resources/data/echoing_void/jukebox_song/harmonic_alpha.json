@@ -1,0 +1,8 @@
+{
+  "comparator_output": 5,
+  "description": {
+    "translate": "jukebox_song.echoing_void.harmonic_alpha"
+  },
+  "length_in_seconds": 195.0,
+  "sound_event": "echoing_void:music_disc.harmonic_alpha"
+}

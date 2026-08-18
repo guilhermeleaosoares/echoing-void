@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:blasting",
+  "category": "misc",
+  "cookingtime": 200,
+  "experience": 2.0,
+  "group": "knell_ingot",
+  "ingredient": "echoing_void:raw_knell",
+  "result": {
+    "id": "echoing_void:knell_ingot"
+  }
+}

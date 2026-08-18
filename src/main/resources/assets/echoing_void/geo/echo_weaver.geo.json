@@ -1,0 +1,1100 @@
+{
+  "format_version": "1.12.0",
+  "minecraft:geometry": [
+    {
+      "description": {
+        "identifier": "geometry.echo_weaver",
+        "texture_width": 128,
+        "texture_height": 128,
+        "visible_bounds_width": 4.5,
+        "visible_bounds_height": 2.5,
+        "visible_bounds_offset": [
+          0,
+          1.0,
+          0
+        ]
+      },
+      "bones": [
+        {
+          "name": "root",
+          "pivot": [
+            0,
+            0,
+            0
+          ],
+          "cubes": []
+        },
+        {
+          "name": "cephalothorax",
+          "pivot": [
+            0,
+            16,
+            -4
+          ],
+          "parent": "root",
+          "cubes": [
+            {
+              "origin": [
+                -7,
+                10,
+                -14
+              ],
+              "size": [
+                14,
+                11,
+                16
+              ],
+              "uv": [
+                0,
+                31
+              ]
+            },
+            {
+              "origin": [
+                -5,
+                10,
+                -21
+              ],
+              "size": [
+                10,
+                8,
+                7
+              ],
+              "uv": [
+                0,
+                58
+              ]
+            },
+            {
+              "origin": [
+                -4,
+                6,
+                -21
+              ],
+              "size": [
+                3,
+                5,
+                4
+              ],
+              "uv": [
+                114,
+                31
+              ],
+              "mirror": true
+            },
+            {
+              "origin": [
+                1,
+                6,
+                -21
+              ],
+              "size": [
+                3,
+                5,
+                4
+              ],
+              "uv": [
+                114,
+                31
+              ]
+            }
+          ]
+        },
+        {
+          "name": "thorax_segment",
+          "pivot": [
+            0,
+            16,
+            4
+          ],
+          "parent": "cephalothorax",
+          "cubes": [
+            {
+              "origin": [
+                -6,
+                11,
+                2
+              ],
+              "size": [
+                12,
+                9,
+                9
+              ],
+              "uv": [
+                86,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "name": "abdomen",
+          "pivot": [
+            0,
+            16,
+            12
+          ],
+          "parent": "thorax_segment",
+          "cubes": [
+            {
+              "origin": [
+                -9,
+                7,
+                10
+              ],
+              "size": [
+                18,
+                14,
+                17
+              ],
+              "uv": [
+                0,
+                0
+              ]
+            },
+            {
+              "origin": [
+                -7,
+                20,
+                12
+              ],
+              "size": [
+                14,
+                3,
+                13
+              ],
+              "uv": [
+                60,
+                31
+              ]
+            },
+            {
+              "origin": [
+                -3,
+                8,
+                27
+              ],
+              "size": [
+                6,
+                5,
+                4
+              ],
+              "uv": [
+                34,
+                58
+              ]
+            }
+          ]
+        },
+        {
+          "name": "crest_1",
+          "pivot": [
+            -6,
+            21,
+            -4
+          ],
+          "parent": "cephalothorax",
+          "rotation": [
+            26,
+            -24,
+            0
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -7,
+                21,
+                -6
+              ],
+              "size": [
+                2,
+                13,
+                6
+              ],
+              "uv": [
+                70,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "name": "crest_2",
+          "pivot": [
+            -2,
+            21,
+            -4
+          ],
+          "parent": "cephalothorax",
+          "rotation": [
+            26,
+            -9,
+            0
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -3,
+                21,
+                -6
+              ],
+              "size": [
+                2,
+                13,
+                6
+              ],
+              "uv": [
+                70,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "name": "crest_3",
+          "pivot": [
+            2,
+            21,
+            -4
+          ],
+          "parent": "cephalothorax",
+          "rotation": [
+            26,
+            9,
+            0
+          ],
+          "cubes": [
+            {
+              "origin": [
+                1,
+                21,
+                -6
+              ],
+              "size": [
+                2,
+                13,
+                6
+              ],
+              "uv": [
+                70,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "name": "crest_4",
+          "pivot": [
+            6,
+            21,
+            -4
+          ],
+          "parent": "cephalothorax",
+          "rotation": [
+            26,
+            24,
+            0
+          ],
+          "cubes": [
+            {
+              "origin": [
+                5,
+                21,
+                -6
+              ],
+              "size": [
+                2,
+                13,
+                6
+              ],
+              "uv": [
+                70,
+                0
+              ]
+            }
+          ]
+        },
+        {
+          "name": "leg_l1_femur",
+          "pivot": [
+            -8,
+            16,
+            -10
+          ],
+          "parent": "cephalothorax",
+          "rotation": [
+            0,
+            0,
+            -50
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -22,
+                14.0,
+                -12.0
+              ],
+              "size": [
+                14,
+                4,
+                4
+              ],
+              "uv": [
+                54,
+                58
+              ],
+              "mirror": true
+            }
+          ]
+        },
+        {
+          "name": "leg_l1_tibia",
+          "pivot": [
+            -22,
+            16,
+            -10
+          ],
+          "parent": "leg_l1_femur",
+          "rotation": [
+            0,
+            0,
+            105
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -42,
+                14.5,
+                -11.5
+              ],
+              "size": [
+                20,
+                3,
+                3
+              ],
+              "uv": [
+                0,
+                73
+              ],
+              "mirror": true
+            }
+          ]
+        },
+        {
+          "name": "leg_l1_tarsus",
+          "pivot": [
+            -42,
+            16,
+            -10
+          ],
+          "parent": "leg_l1_tibia",
+          "rotation": [
+            0,
+            0,
+            30
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -52,
+                15.0,
+                -11.0
+              ],
+              "size": [
+                10,
+                2,
+                2
+              ],
+              "uv": [
+                90,
+                58
+              ],
+              "mirror": true
+            }
+          ]
+        },
+        {
+          "name": "leg_l2_femur",
+          "pivot": [
+            -8,
+            16,
+            -3
+          ],
+          "parent": "cephalothorax",
+          "rotation": [
+            0,
+            0,
+            -50
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -22,
+                14.0,
+                -5.0
+              ],
+              "size": [
+                14,
+                4,
+                4
+              ],
+              "uv": [
+                54,
+                58
+              ],
+              "mirror": true
+            }
+          ]
+        },
+        {
+          "name": "leg_l2_tibia",
+          "pivot": [
+            -22,
+            16,
+            -3
+          ],
+          "parent": "leg_l2_femur",
+          "rotation": [
+            0,
+            0,
+            105
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -42,
+                14.5,
+                -4.5
+              ],
+              "size": [
+                20,
+                3,
+                3
+              ],
+              "uv": [
+                0,
+                73
+              ],
+              "mirror": true
+            }
+          ]
+        },
+        {
+          "name": "leg_l2_tarsus",
+          "pivot": [
+            -42,
+            16,
+            -3
+          ],
+          "parent": "leg_l2_tibia",
+          "rotation": [
+            0,
+            0,
+            30
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -52,
+                15.0,
+                -4.0
+              ],
+              "size": [
+                10,
+                2,
+                2
+              ],
+              "uv": [
+                90,
+                58
+              ],
+              "mirror": true
+            }
+          ]
+        },
+        {
+          "name": "leg_l3_femur",
+          "pivot": [
+            -8,
+            16,
+            4
+          ],
+          "parent": "cephalothorax",
+          "rotation": [
+            0,
+            0,
+            -50
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -22,
+                14.0,
+                2.0
+              ],
+              "size": [
+                14,
+                4,
+                4
+              ],
+              "uv": [
+                54,
+                58
+              ],
+              "mirror": true
+            }
+          ]
+        },
+        {
+          "name": "leg_l3_tibia",
+          "pivot": [
+            -22,
+            16,
+            4
+          ],
+          "parent": "leg_l3_femur",
+          "rotation": [
+            0,
+            0,
+            105
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -42,
+                14.5,
+                2.5
+              ],
+              "size": [
+                20,
+                3,
+                3
+              ],
+              "uv": [
+                0,
+                73
+              ],
+              "mirror": true
+            }
+          ]
+        },
+        {
+          "name": "leg_l3_tarsus",
+          "pivot": [
+            -42,
+            16,
+            4
+          ],
+          "parent": "leg_l3_tibia",
+          "rotation": [
+            0,
+            0,
+            30
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -52,
+                15.0,
+                3.0
+              ],
+              "size": [
+                10,
+                2,
+                2
+              ],
+              "uv": [
+                90,
+                58
+              ],
+              "mirror": true
+            }
+          ]
+        },
+        {
+          "name": "leg_l4_femur",
+          "pivot": [
+            -8,
+            16,
+            11
+          ],
+          "parent": "cephalothorax",
+          "rotation": [
+            0,
+            0,
+            -50
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -22,
+                14.0,
+                9.0
+              ],
+              "size": [
+                14,
+                4,
+                4
+              ],
+              "uv": [
+                54,
+                58
+              ],
+              "mirror": true
+            }
+          ]
+        },
+        {
+          "name": "leg_l4_tibia",
+          "pivot": [
+            -22,
+            16,
+            11
+          ],
+          "parent": "leg_l4_femur",
+          "rotation": [
+            0,
+            0,
+            105
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -42,
+                14.5,
+                9.5
+              ],
+              "size": [
+                20,
+                3,
+                3
+              ],
+              "uv": [
+                0,
+                73
+              ],
+              "mirror": true
+            }
+          ]
+        },
+        {
+          "name": "leg_l4_tarsus",
+          "pivot": [
+            -42,
+            16,
+            11
+          ],
+          "parent": "leg_l4_tibia",
+          "rotation": [
+            0,
+            0,
+            30
+          ],
+          "cubes": [
+            {
+              "origin": [
+                -52,
+                15.0,
+                10.0
+              ],
+              "size": [
+                10,
+                2,
+                2
+              ],
+              "uv": [
+                90,
+                58
+              ],
+              "mirror": true
+            }
+          ]
+        },
+        {
+          "name": "leg_r1_femur",
+          "pivot": [
+            8,
+            16,
+            -10
+          ],
+          "parent": "cephalothorax",
+          "rotation": [
+            0,
+            0,
+            50
+          ],
+          "cubes": [
+            {
+              "origin": [
+                8,
+                14.0,
+                -12.0
+              ],
+              "size": [
+                14,
+                4,
+                4
+              ],
+              "uv": [
+                54,
+                58
+              ]
+            }
+          ]
+        },
+        {
+          "name": "leg_r1_tibia",
+          "pivot": [
+            22,
+            16,
+            -10
+          ],
+          "parent": "leg_r1_femur",
+          "rotation": [
+            0,
+            0,
+            -105
+          ],
+          "cubes": [
+            {
+              "origin": [
+                22,
+                14.5,
+                -11.5
+              ],
+              "size": [
+                20,
+                3,
+                3
+              ],
+              "uv": [
+                0,
+                73
+              ]
+            }
+          ]
+        },
+        {
+          "name": "leg_r1_tarsus",
+          "pivot": [
+            42,
+            16,
+            -10
+          ],
+          "parent": "leg_r1_tibia",
+          "rotation": [
+            0,
+            0,
+            -30
+          ],
+          "cubes": [
+            {
+              "origin": [
+                42,
+                15.0,
+                -11.0
+              ],
+              "size": [
+                10,
+                2,
+                2
+              ],
+              "uv": [
+                90,
+                58
+              ]
+            }
+          ]
+        },
+        {
+          "name": "leg_r2_femur",
+          "pivot": [
+            8,
+            16,
+            -3
+          ],
+          "parent": "cephalothorax",
+          "rotation": [
+            0,
+            0,
+            50
+          ],
+          "cubes": [
+            {
+              "origin": [
+                8,
+                14.0,
+                -5.0
+              ],
+              "size": [
+                14,
+                4,
+                4
+              ],
+              "uv": [
+                54,
+                58
+              ]
+            }
+          ]
+        },
+        {
+          "name": "leg_r2_tibia",
+          "pivot": [
+            22,
+            16,
+            -3
+          ],
+          "parent": "leg_r2_femur",
+          "rotation": [
+            0,
+            0,
+            -105
+          ],
+          "cubes": [
+            {
+              "origin": [
+                22,
+                14.5,
+                -4.5
+              ],
+              "size": [
+                20,
+                3,
+                3
+              ],
+              "uv": [
+                0,
+                73
+              ]
+            }
+          ]
+        },
+        {
+          "name": "leg_r2_tarsus",
+          "pivot": [
+            42,
+            16,
+            -3
+          ],
+          "parent": "leg_r2_tibia",
+          "rotation": [
+            0,
+            0,
+            -30
+          ],
+          "cubes": [
+            {
+              "origin": [
+                42,
+                15.0,
+                -4.0
+              ],
+              "size": [
+                10,
+                2,
+                2
+              ],
+              "uv": [
+                90,
+                58
+              ]
+            }
+          ]
+        },
+        {
+          "name": "leg_r3_femur",
+          "pivot": [
+            8,
+            16,
+            4
+          ],
+          "parent": "cephalothorax",
+          "rotation": [
+            0,
+            0,
+            50
+          ],
+          "cubes": [
+            {
+              "origin": [
+                8,
+                14.0,
+                2.0
+              ],
+              "size": [
+                14,
+                4,
+                4
+              ],
+              "uv": [
+                54,
+                58
+              ]
+            }
+          ]
+        },
+        {
+          "name": "leg_r3_tibia",
+          "pivot": [
+            22,
+            16,
+            4
+          ],
+          "parent": "leg_r3_femur",
+          "rotation": [
+            0,
+            0,
+            -105
+          ],
+          "cubes": [
+            {
+              "origin": [
+                22,
+                14.5,
+                2.5
+              ],
+              "size": [
+                20,
+                3,
+                3
+              ],
+              "uv": [
+                0,
+                73
+              ]
+            }
+          ]
+        },
+        {
+          "name": "leg_r3_tarsus",
+          "pivot": [
+            42,
+            16,
+            4
+          ],
+          "parent": "leg_r3_tibia",
+          "rotation": [
+            0,
+            0,
+            -30
+          ],
+          "cubes": [
+            {
+              "origin": [
+                42,
+                15.0,
+                3.0
+              ],
+              "size": [
+                10,
+                2,
+                2
+              ],
+              "uv": [
+                90,
+                58
+              ]
+            }
+          ]
+        },
+        {
+          "name": "leg_r4_femur",
+          "pivot": [
+            8,
+            16,
+            11
+          ],
+          "parent": "cephalothorax",
+          "rotation": [
+            0,
+            0,
+            50
+          ],
+          "cubes": [
+            {
+              "origin": [
+                8,
+                14.0,
+                9.0
+              ],
+              "size": [
+                14,
+                4,
+                4
+              ],
+              "uv": [
+                54,
+                58
+              ]
+            }
+          ]
+        },
+        {
+          "name": "leg_r4_tibia",
+          "pivot": [
+            22,
+            16,
+            11
+          ],
+          "parent": "leg_r4_femur",
+          "rotation": [
+            0,
+            0,
+            -105
+          ],
+          "cubes": [
+            {
+              "origin": [
+                22,
+                14.5,
+                9.5
+              ],
+              "size": [
+                20,
+                3,
+                3
+              ],
+              "uv": [
+                0,
+                73
+              ]
+            }
+          ]
+        },
+        {
+          "name": "leg_r4_tarsus",
+          "pivot": [
+            42,
+            16,
+            11
+          ],
+          "parent": "leg_r4_tibia",
+          "rotation": [
+            0,
+            0,
+            -30
+          ],
+          "cubes": [
+            {
+              "origin": [
+                42,
+                15.0,
+                10.0
+              ],
+              "size": [
+                10,
+                2,
+                2
+              ],
+              "uv": [
+                90,
+                58
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

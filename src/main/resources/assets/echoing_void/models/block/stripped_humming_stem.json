@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "side": "echoing_void:block/stripped_humming_stem_side",
+    "end": "echoing_void:block/stripped_humming_stem_top"
+  }
+}

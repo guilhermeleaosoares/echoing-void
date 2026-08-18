@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "echoing_void:item/tuners_protector_spawn_egg"
+  }
+}

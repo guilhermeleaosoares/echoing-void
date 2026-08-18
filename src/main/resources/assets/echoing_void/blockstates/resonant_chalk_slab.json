@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "echoing_void:block/resonant_chalk_slab"
+    },
+    "type=double": {
+      "model": "echoing_void:block/resonant_chalk"
+    },
+    "type=top": {
+      "model": "echoing_void:block/resonant_chalk_slab_top"
+    }
+  }
+}

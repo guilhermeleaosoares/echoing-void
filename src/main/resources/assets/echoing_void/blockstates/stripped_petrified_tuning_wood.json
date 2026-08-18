@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "echoing_void:block/stripped_petrified_tuning_wood_horizontal",
+      "x": 90,
+      "y": 90
+    },
+    "axis=y": {
+      "model": "echoing_void:block/stripped_petrified_tuning_wood"
+    },
+    "axis=z": {
+      "model": "echoing_void:block/stripped_petrified_tuning_wood_horizontal",
+      "x": 90
+    }
+  }
+}

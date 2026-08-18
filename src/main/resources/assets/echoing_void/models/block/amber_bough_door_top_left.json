@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/door_top_left",
+  "textures": {
+    "bottom": "echoing_void:block/amber_bough_door_bottom",
+    "top": "echoing_void:block/amber_bough_door_top"
+  }
+}

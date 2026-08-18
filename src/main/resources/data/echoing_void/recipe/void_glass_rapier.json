@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "G": "echoing_void:void_glass_shard",
+    "S": "echoing_void:resonance_shard"
+  },
+  "pattern": [
+    "  G",
+    " G ",
+    "S  "
+  ],
+  "result": {
+    "id": "echoing_void:void_glass_rapier"
+  }
+}

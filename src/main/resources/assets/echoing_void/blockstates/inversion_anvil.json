@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "echoing_void:block/inversion_anvil",
+      "y": 180
+    },
+    "facing=south": {
+      "model": "echoing_void:block/inversion_anvil"
+    },
+    "facing=west": {
+      "model": "echoing_void:block/inversion_anvil",
+      "y": 90
+    },
+    "facing=east": {
+      "model": "echoing_void:block/inversion_anvil",
+      "y": 270
+    }
+  }
+}

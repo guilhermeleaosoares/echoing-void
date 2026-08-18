@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "echoing_void:block/acoustic_lock_box_side",
+    "north": "echoing_void:block/acoustic_lock_box_front",
+    "south": "echoing_void:block/acoustic_lock_box_side",
+    "east": "echoing_void:block/acoustic_lock_box_side",
+    "west": "echoing_void:block/acoustic_lock_box_side",
+    "up": "echoing_void:block/acoustic_lock_box_top",
+    "down": "echoing_void:block/acoustic_lock_box_top"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "replace": false,
+  "values": [
+    "echoing_void:raw_phonolite_stairs",
+    "echoing_void:polished_phonolite_stairs",
+    "echoing_void:phonolite_brick_stairs",
+    "echoing_void:resonant_chalk_stairs",
+    "echoing_void:chalk_brick_stairs",
+    "echoing_void:echo_slate_stairs",
+    "echoing_void:amber_strata_stairs"
+  ]
+}

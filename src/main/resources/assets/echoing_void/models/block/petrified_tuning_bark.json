@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/cube_column",
+  "textures": {
+    "end": "echoing_void:block/petrified_tuning_wood_side",
+    "side": "echoing_void:block/petrified_tuning_wood_side"
+  }
+}

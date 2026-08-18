@@ -1,0 +1,8 @@
+{
+  "type": "minecraft:stonecutting",
+  "ingredient": "echoing_void:phonolite_bricks",
+  "result": {
+    "id": "echoing_void:phonolite_brick_slab",
+    "count": 2
+  }
+}

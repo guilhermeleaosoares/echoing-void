@@ -1,0 +1,267 @@
+{
+  "_comment": "Art direction v2. Supersedes the 4-6 indexed colour rule from the original brief, which produced flat, un-Minecraft-like art. Vanilla 16x16 textures typically carry 8-16 colours, a dark outline on items, and a consistent top-left key light. That is the target now.",
+
+  "identity": "Sound made stone. The Hollow Horizon is a spectrogram in rock: cold dark bass at depth, warm bright treble in the highlands, with resonant cyan and magenta glows running through it like harmonics. Depth should be readable from colour alone - a player who can see the strata knows roughly how high they are.",
+
+  "palette": {
+    "_families": "Four families: a neutral slate-to-chalk spine, a warm amber band, a cold cyan glow, and an arcane magenta/violet glow. Neutrals carry the world; the two glows are the accents and must stay rare enough to read as light sources.",
+
+    "void": {
+      "black": "#0B0D12",
+      "shadow": "#14161D"
+    },
+    "phonolite": {
+      "dark": "#1C1D21",
+      "mid": "#3B4252",
+      "light": "#4C566A",
+      "pale": "#6E7B94"
+    },
+    "chalk": {
+      "shadow": "#8794AB",
+      "mid": "#A8B4C8",
+      "light": "#C9D3E2",
+      "highlight": "#DCE3EE"
+    },
+    "amber": {
+      "dark": "#6B4E2A",
+      "mid": "#8A6A3C",
+      "light": "#C89B4A",
+      "highlight": "#E8C87A"
+    },
+    "bismuth": {
+      "deep": "#0B7A8C",
+      "mid": "#3FD0E0",
+      "bright": "#00E5FF",
+      "gold": "#FFD700"
+    },
+    "arcane": {
+      "deep": "#3A1D47",
+      "mid": "#5A2E6B",
+      "light": "#B14A9E",
+      "bright": "#FF007F"
+    },
+    "null_iron": {
+      "black": "#08080A",
+      "dark": "#1A1A24",
+      "mid": "#2A2A38"
+    }
+  },
+
+  "texture_rules": {
+    "size": [16, 16],
+    "colours_per_texture": [6, 16],
+    "key_light": "top-left, consistently, on every texture",
+    "item_outline": "Every non-block item must have a dark outline (1px, darkest tone of its own family, NOT pure black) around its silhouette, exactly as vanilla items do. This is the single biggest reason the current items read as wrong.",
+    "item_silhouette": "Items must be readable as objects at 16x16 against any background: clear shape, transparent surround, no full-bleed squares.",
+    "tool_convention": "Vanilla tools run bottom-left to top-right: a stick handle from (2,13) to (10,5) area, the head occupying the top-right. Match vanilla proportions closely - a Minecraft pickaxe silhouette should be instantly recognisable.",
+    "ore_convention": "Ores are the host stone texture with 4-8 speck clusters of the resource. The specks get a bright highlight pixel on their top-left and a dark pixel bottom-right. The host stone MUST be visibly the same rock the ore is embedded in.",
+    "shading": "3-4 value steps minimum per material, plus noise/mottling. Flat single-value fills read as programmer art.",
+    "seamless": "full-cube natural blocks must still tile at the 0/15 seam"
+  },
+
+  "_block_variety_note": "The dimension reads as dead because it is built from three blocks. The Nether feels alive because it ships roughly twenty-five: several stones, two nyliums, two woods, two leaf-equivalents, vines, shroomlights, glowstone, magma, soul sand. Variety of BLOCK TYPE and HUE is what makes terrain lively - retexturing the same three blocks cannot fix it. The set below is sized accordingly. Leaves in particular must be distinguished by COLOUR, not merely by transparency: three separate leaf blocks in three different hues.",
+
+  "new_environment_blocks": [
+    {
+      "id": "resonant_chalk",
+      "name": "Resonant Chalk",
+      "family": "chalk",
+      "role": "Pale, bright highland stone. The main value contrast against phonolite - this is what stops the dimension reading as all black.",
+      "hardness": 1.5,
+      "blast": 6.0,
+      "tool": "pickaxe",
+      "light": 0
+    },
+    {
+      "id": "echo_slate",
+      "name": "Echo Slate",
+      "family": "phonolite",
+      "role": "Blue-grey mid strata, the transition band between chalk highlands and phonolite depths.",
+      "hardness": 3.0,
+      "blast": 6.0,
+      "tool": "pickaxe",
+      "light": 0
+    },
+    {
+      "id": "amber_strata",
+      "name": "Amber Strata",
+      "family": "amber",
+      "role": "Warm ochre band. The only warm colour in the terrain, so it carries a lot of the visual interest.",
+      "hardness": 2.5,
+      "blast": 6.0,
+      "tool": "pickaxe",
+      "light": 0
+    },
+    {
+      "id": "humming_crystal",
+      "name": "Humming Crystal",
+      "family": "arcane",
+      "role": "Emissive magenta/violet crystal mass, grows in clusters in deep strata and lights caves.",
+      "hardness": 1.5,
+      "blast": 1.0,
+      "tool": "pickaxe",
+      "light": 11,
+      "translucent": true
+    },
+    {
+      "id": "resonance_moss",
+      "name": "Resonance Moss",
+      "family": "bismuth",
+      "role": "Faintly glowing teal growth that carpets lit upper surfaces. Breaks up the stone and marks walkable ground.",
+      "hardness": 0.4,
+      "blast": 0.4,
+      "tool": "hoe",
+      "light": 4
+    },
+    {
+      "id": "chalk_bricks",
+      "name": "Chalk Bricks",
+      "family": "chalk",
+      "role": "Worked chalk for the Tuner outposts, so the structures read pale against dark terrain and are findable.",
+      "hardness": 2.0,
+      "blast": 6.0,
+      "tool": "pickaxe",
+      "light": 0
+    },
+    {
+      "id": "polished_phonolite",
+      "name": "Polished Phonolite",
+      "family": "phonolite",
+      "role": "Smooth dark stone for outpost floors and player building. Gives the dark family a worked variant.",
+      "hardness": 5.0,
+      "blast": 6.0,
+      "tool": "pickaxe",
+      "light": 0
+    },
+    {
+      "id": "chime_sand",
+      "name": "Chime Sand",
+      "family": "chalk",
+      "role": "Pale, faintly cyan granular material that gathers in hollows and on ledges. Falls like sand. Breaks up stone expanses with a light, soft-looking surface.",
+      "hardness": 0.5,
+      "blast": 0.5,
+      "tool": "shovel",
+      "light": 0,
+      "gravity": true
+    },
+    {
+      "id": "amber_lichen",
+      "name": "Amber Lichen",
+      "family": "amber",
+      "role": "Warm orange growth that crusts amber strata, the counterpart to Resonance Moss. Two ground covers in opposing hues is what stops the surface reading as one material.",
+      "hardness": 0.4,
+      "blast": 0.4,
+      "tool": "hoe",
+      "light": 2
+    },
+    {
+      "id": "amber_resonance_leaves",
+      "name": "Amber Resonance Leaves",
+      "family": "amber",
+      "role": "Gold/amber canopy. MUST read as foliage - clumped organic leaf shapes with alpha gaps, not noise.",
+      "hardness": 0.4,
+      "blast": 0.2,
+      "tool": "hoe",
+      "shears": true,
+      "light": 3
+    },
+    {
+      "id": "violet_resonance_leaves",
+      "name": "Violet Resonance Leaves",
+      "family": "arcane",
+      "role": "Magenta/violet canopy, the rarest of the three. Same leaf silhouette language, different hue.",
+      "hardness": 0.4,
+      "blast": 0.2,
+      "tool": "hoe",
+      "shears": true,
+      "light": 5
+    },
+    {
+      "id": "humming_stem",
+      "name": "Humming Stem",
+      "family": "arcane",
+      "role": "A second wood type in violet, so groves are not all one trunk colour. Strippable pillar.",
+      "hardness": 3.0,
+      "blast": 3.0,
+      "tool": "axe",
+      "light": 0,
+      "stripped_variant": "stripped_humming_stem"
+    },
+    {
+      "id": "stripped_humming_stem",
+      "name": "Stripped Humming Stem",
+      "family": "arcane",
+      "role": "Stripped form of Humming Stem.",
+      "hardness": 3.0,
+      "blast": 3.0,
+      "tool": "axe",
+      "light": 0
+    },
+    {
+      "id": "bismuth_cluster",
+      "name": "Bismuth Cluster",
+      "family": "bismuth",
+      "role": "Emissive cyan crystal cluster growing off surfaces, like an amethyst cluster. Directional, non-full-cube, chimes when walked into.",
+      "hardness": 1.5,
+      "blast": 1.0,
+      "tool": "pickaxe",
+      "light": 7,
+      "cutout": true,
+      "directional": true
+    },
+    {
+      "id": "harmonic_lantern",
+      "name": "Harmonic Lantern",
+      "family": "bismuth",
+      "role": "Crafted light source, bright cyan-gold. Players need a light block that fits the dimension.",
+      "hardness": 3.5,
+      "blast": 3.5,
+      "tool": "pickaxe",
+      "light": 15
+    },
+    {
+      "id": "echo_sprout",
+      "name": "Echo Sprout",
+      "family": "bismuth",
+      "role": "Small glowing plant on a cross model, scattered densely over mossy ground. Small plants are the cheapest way to make a floor look alive.",
+      "hardness": 0.0,
+      "blast": 0.0,
+      "tool": "none",
+      "light": 3,
+      "cross_model": true
+    },
+    {
+      "id": "chime_grass",
+      "name": "Chime Grass",
+      "family": "bismuth",
+      "role": "Taller wispy growth on a cross model, pale cyan. Breaks up flat ground and catches light.",
+      "hardness": 0.0,
+      "blast": 0.0,
+      "tool": "none",
+      "light": 0,
+      "cross_model": true
+    },
+    {
+      "id": "crystal_bloom",
+      "name": "Crystal Bloom",
+      "family": "arcane",
+      "role": "A magenta flower-analogue on a cross model. Rare colour punctuation on the ground plane.",
+      "hardness": 0.0,
+      "blast": 0.0,
+      "tool": "none",
+      "light": 4,
+      "cross_model": true
+    }
+  ],
+
+  "strata_bands": {
+    "_comment": "Surface rules paint by altitude so depth is legible at a glance.",
+    "above_150": "resonant_chalk with resonance_moss on exposed top faces",
+    "110_to_150": "echo_slate",
+    "70_to_110": "amber_strata",
+    "30_to_70": "raw_phonolite",
+    "below_30": "raw_phonolite with humming_crystal clusters"
+  },
+
+  "terrain_intent": "Navigable. The current build is a near-solid mass of black stone that players tunnel through for hundreds of blocks. Wanted instead: open sky, large connected landmasses with walkable surfaces, real caves and chasms, and floating islands as a feature above the main terrain rather than the entire terrain."
+}

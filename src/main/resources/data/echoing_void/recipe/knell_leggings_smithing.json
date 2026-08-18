@@ -1,0 +1,9 @@
+{
+  "type": "minecraft:smithing_transform",
+  "addition": "echoing_void:knell_ingot",
+  "base": "echoing_void:resonance_leggings",
+  "result": {
+    "id": "echoing_void:knell_leggings"
+  },
+  "template": "echoing_void:knell_template"
+}

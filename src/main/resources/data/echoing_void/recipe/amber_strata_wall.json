@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "building",
+  "group": "echoing_void_stone_wall",
+  "key": {
+    "#": "echoing_void:amber_strata"
+  },
+  "pattern": [
+    "###",
+    "###"
+  ],
+  "result": {
+    "id": "echoing_void:amber_strata_wall",
+    "count": 6
+  }
+}

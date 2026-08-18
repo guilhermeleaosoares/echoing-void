@@ -1,0 +1,12 @@
+{
+  "replace": false,
+  "values": [
+    "echoing_void:raw_phonolite_wall",
+    "echoing_void:polished_phonolite_wall",
+    "echoing_void:phonolite_brick_wall",
+    "echoing_void:resonant_chalk_wall",
+    "echoing_void:chalk_brick_wall",
+    "echoing_void:echo_slate_wall",
+    "echoing_void:amber_strata_wall"
+  ]
+}

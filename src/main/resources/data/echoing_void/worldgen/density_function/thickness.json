@@ -1,0 +1,54 @@
+{
+  "type": "minecraft:flat_cache",
+  "argument": {
+    "type": "minecraft:cache_2d",
+    "argument": {
+      "type": "minecraft:add",
+      "argument1": {
+        "type": "minecraft:add",
+        "argument1": {
+          "type": "minecraft:add",
+          "argument1": 0.13,
+          "argument2": {
+            "type": "minecraft:mul",
+            "argument1": 0.4,
+            "argument2": "echoing_void:island_mass"
+          }
+        },
+        "argument2": {
+          "type": "minecraft:mul",
+          "argument1": 0.34,
+          "argument2": {
+            "type": "minecraft:square",
+            "argument": {
+              "type": "minecraft:clamp",
+              "input": "echoing_void:island_mass",
+              "min": 0.0,
+              "max": 1.0
+            }
+          }
+        }
+      },
+      "argument2": {
+        "type": "minecraft:mul",
+        "argument1": 0.68,
+        "argument2": {
+          "type": "minecraft:square",
+          "argument": {
+            "type": "minecraft:square",
+            "argument": {
+              "type": "minecraft:clamp",
+              "input": {
+                "type": "minecraft:mul",
+                "argument1": 1.8,
+                "argument2": "echoing_void:island_mass"
+              },
+              "min": 0.0,
+              "max": 1.0
+            }
+          }
+        }
+      }
+    }
+  }
+}

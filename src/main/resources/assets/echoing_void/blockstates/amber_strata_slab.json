@@ -1,0 +1,13 @@
+{
+  "variants": {
+    "type=bottom": {
+      "model": "echoing_void:block/amber_strata_slab"
+    },
+    "type=double": {
+      "model": "echoing_void:block/amber_strata"
+    },
+    "type=top": {
+      "model": "echoing_void:block/amber_strata_slab_top"
+    }
+  }
+}

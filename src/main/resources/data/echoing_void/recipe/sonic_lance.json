@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "key": {
+    "N": "echoing_void:null_iron_ingot",
+    "#": "minecraft:stick"
+  },
+  "pattern": [
+    "  N",
+    " # ",
+    "#  "
+  ],
+  "result": {
+    "id": "echoing_void:sonic_lance"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "group": "echoing_void_wooden_fence_gate",
+  "key": {
+    "#": "minecraft:stick",
+    "W": "echoing_void:petrified_tuning_planks"
+  },
+  "pattern": [
+    "#W#",
+    "#W#"
+  ],
+  "result": {
+    "id": "echoing_void:petrified_tuning_fence_gate"
+  }
+}

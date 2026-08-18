@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "echoing_void:block/tuners_mask"
+    },
+    "facing=east": {
+      "model": "echoing_void:block/tuners_mask",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "echoing_void:block/tuners_mask",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "echoing_void:block/tuners_mask",
+      "y": 270
+    }
+  }
+}

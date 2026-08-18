@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/slab",
+  "textures": {
+    "bottom": "echoing_void:block/raw_phonolite",
+    "side": "echoing_void:block/raw_phonolite",
+    "top": "echoing_void:block/raw_phonolite"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:block/inner_stairs",
+  "textures": {
+    "bottom": "echoing_void:block/phonolite_bricks",
+    "side": "echoing_void:block/phonolite_bricks",
+    "top": "echoing_void:block/phonolite_bricks"
+  }
+}
