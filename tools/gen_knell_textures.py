@@ -546,20 +546,22 @@ def knell_pickaxe() -> Sprite:
 
 
 def knell_axe() -> Sprite:
-    """The Knell tier war-axe: solid head sitting entirely on the upper-left of
-    the null-iron haft, with a curved cutting face, poll crest, and harmonic magenta sparks."""
+    """The Knell tier war-axe: cohesive socketed head straddling the null-iron haft,
+    with a sweeping crescent cutting blade, dropped beard hook, and balanced back poll."""
     sp = Sprite()
-    haft = stroke([(2.4, 14.4), (11.4, 5.4)], 1.05)
+    haft = stroke([(2.4, 14.4), (11.4, 4.8)], 1.05)
     head_poly = poly([
-        (8.6, 1.2), (11.4, 1.2), (12.4, 4.4), (10.6, 6.2),
-        (8.4, 7.8), (6.2, 7.4), (4.4, 5.6), (4.8, 3.4), (7.0, 1.4)
+        (8.6, 1.0), (11.4, 1.0), (13.4, 4.4), (12.6, 6.6), (10.4, 6.6),
+        (8.4, 6.2), (5.8, 7.8), (4.6, 7.2),
+        (3.8, 5.0), (4.2, 2.8), (6.4, 1.0)
     ])
     sp.paint(haft, NULL_IRON, 0.58, 5813, spread=0.34, light=0.26)
     sp.paint(head_poly - haft, KNELL, 0.66, 5819, spread=0.32, light=0.30)
     sp.outline()
-    sp.stamp([(10, 5), (11, 4)], NULL_IRON, 1.0)       # socket collar at eye
-    sp.stamp([(5, 4), (5, 5), (7, 2), (8, 2)], KNELL, 1.0) # cutting edge highlights
-    sp.stamp([(9, 1), (6, 7)], HARMONIC, 1.0)          # harmonic magenta sparks (crest & beard)
+    sp.stamp([(9, 5), (10, 4)], NULL_IRON, 1.0)        # socket collar at eye
+    sp.stamp([(4, 3), (4, 4), (4, 5), (6, 1), (7, 1)], KNELL, 1.0) # cutting edge highlights
+    sp.stamp([(12, 5)], KNELL, 0.9)                     # back poll highlight
+    sp.stamp([(10, 1), (5, 7)], HARMONIC, 1.0)         # harmonic magenta sparks (crest & beard hook)
     return sp
 
 
