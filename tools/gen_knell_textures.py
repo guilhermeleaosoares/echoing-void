@@ -622,65 +622,108 @@ def resonant_layer_1() -> gi.Sheet:
     helm = gi.adult_helmet_region()
     chest = gi.adult_chest_region()
     boots = gi.adult_boot_region()
-    sh.plate(helm, KNELL, 4301, base=0.62)
-    sh.plate(chest, KNELL, 4307, base=0.66)
-    sh.plate(boots, KNELL, 4313, base=0.58)
-    sh.rivets(chest, KNELL, 4319, count=8, min_spacing=3)
-    sh.rivets(helm, KNELL, 4323, count=4, min_spacing=3)
-    # Brow guard: the OUTER edges of row 10 only, not the full width - a full
-    # bar across this row painted straight over where the eyes sit, reading as
-    # a solid blindfold rather than an armoured brow. Corners at the temples
-    # keep the open-face design (the eyes stay showing) while still marking
-    # the helmet as reinforced there.
+    sh.plate(helm, KNELL, 4301, base=0.48, spread=0.38)
+    sh.plate(chest, KNELL, 4307, base=0.50, spread=0.38)
+    sh.plate(boots, KNELL, 4313, base=0.46, spread=0.36)
+
+    # --- HELMET ---
+    # Full brow trim across row 10 of front face (above visor/eyes):
     fx0, fy0, fw, fh = gi.ADULT_HEAD["front"]
-    sh.trim({(fx0, fy0 + 2), (fx0 + 1, fy0 + 2),
-             (fx0 + fw - 2, fy0 + 2), (fx0 + fw - 1, fy0 + 2)}, HARMONIC)
-    sh.trim(gi.band(gi.ADULT_HEAD["back"], 10, 10), HARMONIC)
-    sh.trim({(x, 23) for x in range(20, 28)}, HARMONIC)
-    sh.trim({(x, 23) for x in range(32, 40)}, HARMONIC)
-    sh.trim({(x, 29) for x in range(0, 16)}, HARMONIC)
-    # Matching the icon's horns with a temple accent, for the same reason
-    # gi.resonance_layer_1 does - the worn model cannot grow a spike, but it
-    # can carry the mark of where one attaches.
-    right_x0, right_y0, _, _ = gi.ADULT_HEAD["right"]
-    left_x0, left_y0, left_w, _ = gi.ADULT_HEAD["left"]
-    # PLAYER: "you could do a bit more than two pixels from the side" - three
-    # rows now, and it wraps one texel onto the front face too so it reads as
-    # the base of something rather than an isolated dot.
-    sh.sp.stamp([(right_x0 + 6, right_y0 + 1), (right_x0 + 7, right_y0 + 1),
-                 (right_x0 + 7, right_y0 + 2), (right_x0 + 7, right_y0 + 3)], HARMONIC, 1.0)
-    sh.sp.stamp([(left_x0 + 1, left_y0 + 1), (left_x0, left_y0 + 1),
-                 (left_x0, left_y0 + 2), (left_x0, left_y0 + 3)], HARMONIC, 1.0)
+    sh.trim(gi.band(gi.ADULT_HEAD["front"], 10, 10), HARMONIC, level=1.0)
+    sh.sp.put(fx0 + 3, fy0 + 2, HARMONIC, HARMONIC.tone(0.50))
+    sh.sp.put(fx0 + 4, fy0 + 2, HARMONIC, HARMONIC.tone(0.50))
+    # Forehead curved plate band at row 9
+    sh.plates(gi.ADULT_HEAD["front"], KNELL, course=[1], lit=0.96)
+    for key in ("right", "left", "back"):
+        sh.plates(gi.ADULT_HEAD[key], KNELL, course=[2], lit=0.92)
 
-    # Knell is the tier above everything, and it should look it - louder than
-    # Resonance's own plating, not just recoloured. Banded courses rather than
-    # vertical ribbing on purpose: full-height stripes down a torso read as
-    # cloth (a player's own words: "prison outfit nightgowns"), and a plate
-    # convention has to be horizontal to read as overlapping metal.
-    for key in ("right", "front", "left", "back"):
-        sh.plates(gi.ADULT_BODY[key], KNELL, course=5, lit=1.0)
-        sh.plates(gi.ADULT_ARM[key], KNELL, course=6, lit=1.0)
+    # Horns sweeping from temples up across side faces and crown top
+    # Right side:
+    sh.sp.put(7, 11, HARMONIC, 1)
+    sh.sp.stamp([(6, 10), (7, 10), (5, 9), (6, 9), (4, 8), (5, 8)], HARMONIC, 1.0)
+    sh.sp.put(7, 9, HARMONIC, HARMONIC.tone(0.50))
+    sh.sp.put(6, 8, HARMONIC, HARMONIC.tone(0.50))
+    # Left side:
+    sh.sp.put(16, 11, HARMONIC, 1)
+    sh.sp.stamp([(16, 10), (17, 10), (17, 9), (18, 9), (18, 8), (19, 8)], HARMONIC, 1.0)
+    sh.sp.put(16, 9, HARMONIC, HARMONIC.tone(0.50))
+    sh.sp.put(17, 8, HARMONIC, HARMONIC.tone(0.50))
+    # Front corners (temple attachment):
+    sh.sp.stamp([(fx0, fy0 + 1), (fx0, fy0 + 2),
+                 (fx0 + fw - 1, fy0 + 1), (fx0 + fw - 1, fy0 + 2)], HARMONIC, 1.0)
+    # Top face crown sweep:
+    sh.sp.stamp([(8, 3), (8, 4), (9, 4), (9, 5), (10, 5)], HARMONIC, 1.0)
+    sh.sp.put(9, 3, HARMONIC, HARMONIC.tone(0.50))
+    sh.sp.stamp([(15, 3), (15, 4), (14, 4), (14, 5), (13, 5)], HARMONIC, 1.0)
+    sh.sp.put(14, 3, HARMONIC, HARMONIC.tone(0.50))
 
-    # Crest: a narrow ridge down the centre of the crown and the back of the
-    # helm - NOT the whole top face. The first version painted the entire
-    # 8x8 top solid magenta, which the 3D preview (render_player_preview.py)
-    # showed for what it was: a flat pink slab sitting on the head rather than
-    # a raised ridge on a metal dome. A ridge has to leave the dome showing
-    # either side of it to read as a ridge at all.
+    # Dome top highlight
     tx0, ty0, tw, td = gi.ADULT_HEAD["top"]
-    mid = tx0 + tw // 2
-    sh.trim({(mid - 1, y) for y in range(ty0, ty0 + td)}
-            | {(mid, y) for y in range(ty0, ty0 + td)}, HARMONIC, level=1.0)
-    sh.trim(gi.band(gi.ADULT_HEAD["back"], 8, 9)
-            & {(x, y) for x in (mid - 1, mid) for y in range(8, 10)}, HARMONIC, level=0.85)
+    sh.sp.stamp([(tx0 + 3, ty0 + 2), (tx0 + 4, ty0 + 2)], KNELL, 1.0)
 
-    # Pauldrons: a bright shoulder cap on each arm - the single clearest way to
-    # say "this is the heavy set" at a glance, and legible even at icon scale.
+    # --- CHESTPLATE ---
+    # Curved plate courses across torso with soft metallic luster & crease shading
     for key in ("right", "front", "left", "back"):
-        sh.trim(gi.band(gi.ADULT_ARM[key], 20, 22), KNELL, level=1.0)
-        sh.studs(gi.ADULT_ARM[key], HARMONIC, rows=(2,))
-    sh.studs(gi.ADULT_BODY["front"], HARMONIC, rows=(1, 6, 11))
-    sh.studs(gi.ADULT_BODY["back"], HARMONIC, rows=(1, 6, 11))
+        face = gi.ADULT_BODY[key]
+        x0, y0, w, h = face
+        face_mask = {(x, y) for x in range(x0, x0 + w) for y in range(y0, y0 + h)}
+        for r in (3, 8):
+            gi.curved_band(lambda x, y: sh.sp.put(x, y, KNELL, 5) if sh.sp.opaque(x, y) else None,
+                           face_mask, KNELL, y0 + r)
+            if w >= 8:
+                sh.sp.put(x0 + w // 2 - 1, y0 + r - 1, KNELL, 6)
+                sh.sp.put(x0 + w // 2, y0 + r - 1, KNELL, 6)
+            for x in range(x0, x0 + w):
+                if (x, y0 + r + 1) in face_mask and sh.sp.opaque(x, y0 + r + 1):
+                    sh.sp.put(x, y0 + r + 1, KNELL, 2)
+
+    # Central resonator core on chest front (rows 24..25, x=22..25)
+    bx0, by0, bw, bh = gi.ADULT_BODY["front"]
+    core_mid = [(bx0 + 3, by0 + 4), (bx0 + 4, by0 + 4),
+                (bx0 + 3, by0 + 5), (bx0 + 4, by0 + 5)]
+    core_flanks = [(bx0 + 2, by0 + 4), (bx0 + 5, by0 + 4)]
+    core_bottom = [(bx0 + 3, by0 + 6), (bx0 + 4, by0 + 6)]
+    sh.sp.stamp(core_mid, HARMONIC, 1.0)
+    sh.sp.stamp(core_flanks, HARMONIC, 0.50)
+    sh.sp.stamp(core_bottom, HARMONIC, 0.0)
+    sh.sp.put(bx0 + 2, by0 + 5, HARMONIC, 1)
+    sh.sp.put(bx0 + 5, by0 + 5, HARMONIC, 1)
+
+    # Pauldrons / arms:
+    for key in ("right", "front", "left", "back"):
+        face = gi.ADULT_ARM[key]
+        x0, y0, w, h = face
+        face_mask = {(x, y) for x in range(x0, x0 + w) for y in range(y0, y0 + h)}
+        gi.curved_band(lambda x, y: sh.sp.put(x, y, KNELL, 5) if sh.sp.opaque(x, y) else None,
+                       face_mask, KNELL, y0 + 3)
+    ax0, ay0, _, _ = gi.ADULT_ARM["front"]
+    sh.sp.stamp([(ax0 + 1, ay0 + 1), (ax0 + 2, ay0 + 1)], HARMONIC, 0.60)
+    rx0, ry0, _, _ = gi.ADULT_ARM["right"]
+    sh.sp.stamp([(rx0 + 1, ry0 + 1), (rx0 + 2, ry0 + 1)], HARMONIC, 0.60)
+    lx0, ly0, _, _ = gi.ADULT_ARM["left"]
+    sh.sp.stamp([(lx0 + 1, ly0 + 1), (lx0 + 2, ly0 + 1)], HARMONIC, 0.60)
+    kx0, ky0, _, _ = gi.ADULT_ARM["back"]
+    sh.sp.stamp([(kx0 + 1, ky0 + 1), (kx0 + 2, ky0 + 1)], HARMONIC, 0.60)
+
+    # --- BOOTS ---
+    for key in ("right", "front", "left", "back"):
+        face = gi.ADULT_LEG[key]
+        x0, y0, w, h = face
+        face_mask = {(x, y) for x in range(x0, x0 + w) for y in range(y0, y0 + h)}
+        for r in (7, 9):
+            gi.curved_band(lambda x, y: sh.sp.put(x, y, KNELL, 5) if sh.sp.opaque(x, y) else None,
+                           face_mask, KNELL, y0 + r)
+    # Boot cuff trim
+    lx0, ly0, _, _ = gi.ADULT_LEG["front"]
+    sh.sp.stamp([(lx0 + 1, ly0 + 7), (lx0 + 2, ly0 + 7)], HARMONIC, 1.0)
+    # Heel spurs
+    ox0, oy0, _, _ = gi.ADULT_LEG["right"]
+    sh.sp.stamp([(ox0, oy0 + 10)], HARMONIC, 0.45)
+    ix0, iy0, _, _ = gi.ADULT_LEG["left"]
+    sh.sp.stamp([(ix0 + 3, iy0 + 10)], HARMONIC, 0.45)
+    for (x, y) in gi.face_rect(gi.ADULT_LEG["bottom"]):
+        sh.sp.put(x, y, KNELL, 1)
+
     return sh
 
 
@@ -688,16 +731,48 @@ def resonant_layer_2() -> gi.Sheet:
     """Leggings on the adult 64x32 humanoid_leggings layout."""
     sh = gi.Sheet(64, 32)
     hips, skirt = gi.adult_leggings_regions()
-    sh.plate(hips, KNELL, 4401, base=0.58)
-    sh.plate(skirt, KNELL, 4407, base=0.64)
-    sh.rivets(hips | skirt, KNELL, 4413, count=6, min_spacing=3)
-    sh.trim({(x, 28) for x in range(16, 40)}, HARMONIC)
-    sh.trim({(x, 21) for x in range(0, 16)}, HARMONIC)
-    # Matching banded plating on the leg armour, so the set does not go flat
-    # below the waist while the chest is courses of metal.
+    sh.plate(hips, KNELL, 4401, base=0.46, spread=0.38)
+    sh.plate(skirt, KNELL, 4407, base=0.48, spread=0.38)
+
+    # Waistband / belt on ADULT_BODY rows 27..31:
+    bx0, by0, _, _ = gi.ADULT_BODY["front"]
+    sh.sp.stamp([(bx0 + 3, by0 + 7), (bx0 + 4, by0 + 7)], HARMONIC, 0.0)
+    sh.sp.stamp([(bx0 + 2, by0 + 7), (bx0 + 5, by0 + 7)], HARMONIC, 0.95)
+    sh.sp.stamp([(bx0 + 1, by0 + 7), (bx0 + 6, by0 + 7)], HARMONIC, 0.50)
+    sh.sp.put(bx0 + 3, by0 + 8, HARMONIC, 1)
+    sh.sp.put(bx0 + 4, by0 + 8, HARMONIC, 1)
+
     for key in ("right", "front", "left", "back"):
-        sh.plates(gi.ADULT_LEG[key], KNELL, course=5, lit=0.98)
-        sh.plates(gi.ADULT_BODY[key], KNELL, course=2)  # the narrow hip flare
+        face = gi.ADULT_BODY[key]
+        x0, y0, w, h = face
+        face_mask = {(x, y) for x in range(x0, x0 + w) for y in range(y0, y0 + h)}
+        gi.curved_band(lambda x, y: sh.sp.put(x, y, KNELL, 5) if sh.sp.opaque(x, y) else None,
+                       face_mask, KNELL, y0 + 9)
+        for x in range(x0, x0 + w):
+            if (x, y0 + 10) in face_mask and sh.sp.opaque(x, y0 + 10):
+                sh.sp.put(x, y0 + 10, KNELL, 2)
+
+    # Legs (ADULT_LEG rows 20..28):
+    for key in ("right", "front", "left", "back"):
+        face = gi.ADULT_LEG[key]
+        x0, y0, w, h = face
+        face_mask = {(x, y) for x in range(x0, x0 + w) for y in range(y0, y0 + h)}
+        for r in (2, 6):
+            gi.curved_band(lambda x, y: sh.sp.put(x, y, KNELL, 5) if sh.sp.opaque(x, y) else None,
+                           face_mask, KNELL, y0 + r)
+            if key == "front":
+                sh.sp.put(x0 + 1, y0 + r - 1, KNELL, 6)
+                sh.sp.put(x0 + 2, y0 + r - 1, KNELL, 6)
+            for x in range(x0, x0 + w):
+                if (x, y0 + r + 1) in face_mask and sh.sp.opaque(x, y0 + r + 1):
+                    sh.sp.put(x, y0 + r + 1, KNELL, 2)
+
+    # Knee plate accent on front face
+    lx0, ly0, _, _ = gi.ADULT_LEG["front"]
+    sh.sp.stamp([(lx0 + 1, ly0 + 6), (lx0 + 2, ly0 + 6)], HARMONIC, 0.50)
+    for (x, y) in gi.face_rect(gi.ADULT_LEG["top"]):
+        sh.sp.put(x, y, KNELL, 1)
+
     return sh
 
 
@@ -705,19 +780,22 @@ def resonant_baby() -> gi.Sheet:
     """The 64x64 baby armour layout - a different unwrap, not a scaled copy."""
     sh = gi.Sheet(64, 64)
     helm, chest, boots = gi.baby_regions()
-    # Higher spread throughout - bevel() (removed as redundant with the
-    # bands elsewhere) used to be what gave this small, ~800-texel sheet
-    # enough tonal variety to clear the colour-count gate on its own.
-    sh.plate(helm, KNELL, 4501, base=0.60, spread=0.40)
-    sh.plate(chest, KNELL, 4507, base=0.66, spread=0.40)
-    sh.plate(boots, KNELL, 4513, base=0.58, spread=0.50)
-    sh.rivets(chest, KNELL, 4519, count=6, min_spacing=3)
-    sh.trim(gi.band(gi.BABY_HEAD["front"], 10, 10)
-            | gi.band(gi.BABY_HEAD["back"], 10, 10), HARMONIC)
-    sh.trim({(x, 23) for x in range(0, 18)}, HARMONIC)
-    sh.trim({(x, 30) for x in range(18, 30)}, HARMONIC)
-    sh.trim({(x, 21) for x in range(18, 21)}, HARMONIC)
-    sh.trim({(x, 28) for x in range(18, 21)}, HARMONIC)
+    sh.plate(helm, KNELL, 4501, base=0.52, spread=0.55)
+    sh.plate(chest, KNELL, 4507, base=0.50, spread=0.55)
+    sh.plate(boots, KNELL, 4513, base=0.46, spread=0.55)
+
+    # Brow trim across baby helmet front
+    sh.trim(gi.band(gi.BABY_HEAD["front"], 10, 10), HARMONIC, level=1.0)
+    # Chest resonator core on baby body front
+    bx0, by0, bw, bh = gi.BABY_BODY["front"]
+    sh.sp.stamp([(bx0 + 2, by0 + 2), (bx0 + 3, by0 + 2)], HARMONIC, 1.0)
+    sh.sp.stamp([(bx0 + 1, by0 + 2), (bx0 + 4, by0 + 2)], HARMONIC, 0.50)
+    # Boot trim
+    sh.trim({(x, 23) for x in range(0, 18)}, HARMONIC, level=0.9)
+    sh.trim({(x, 30) for x in range(18, 30)}, HARMONIC, level=0.9)
+    sh.trim({(x, 21) for x in range(18, 21)}, HARMONIC, level=0.9)
+    sh.trim({(x, 28) for x in range(18, 21)}, HARMONIC, level=0.9)
+    sh.plates(gi.BABY_BODY["front"], KNELL, course=[2], lit=1.0)
     return sh
 
 

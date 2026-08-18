@@ -1190,24 +1190,15 @@ class Sheet:
                 self.sp.put(x, y, mat, mat.tone(level))
 
     def plates(self, face: tuple[int, int, int, int], mat: Material,
-               course: int = 6, lit: float = 0.94) -> None:
-        """Horizontal plate courses across a face, gently arced.
-
-        PLAYER: "your shading contrasts too much, and it does not match the
-        inventory items... literally match the stuff from the item to the
-        worn." This used to be its own implementation - the same curve math as
-        the icons' bands, but ALSO a separate dark shadow row one pixel above
-        every lit one, which the icons never had. That extra row is what made
-        the worn sheets read as higher-contrast and different from the icon
-        next to them. Now it calls curved_band() directly - the exact function
-        the icons use - so a course here and a band on the matching icon are
-        pixel-for-pixel the same technique, one bright row, no separate shadow.
-        """
+               course: int | list[int] | tuple[int, ...] = 6, lit: float = 0.94) -> None:
+        """Horizontal plate courses across a face, gently arced using curved_band()."""
         x0, y0, w, h = face
         face_mask = {(x, y) for x in range(x0, x0 + w) for y in range(y0, y0 + h)}
-        for i, y in enumerate(range(y0, y0 + h)):
-            if i % course:
-                continue
+        if isinstance(course, (list, tuple)):
+            target_rows = [y0 + r for r in course if 0 <= r < h]
+        else:
+            target_rows = [y0 + i for i in range(h) if i % course == 0]
+        for y in target_rows:
             curved_band(
                 lambda x, yy: self.sp.put(x, yy, mat, mat.tone(lit))
                 if self.sp.opaque(x, yy) else None,
@@ -1228,17 +1219,7 @@ class Sheet:
                 self.sp.put(x0 + w - 1, y, mat, mat.tone(shade))
 
     def wing_shape(self, face, mat, accent, mirror=False):
-        """A drawn wing silhouette, not a texture pattern.
-
-        PLAYER: "try to draw on flat wings on the flying boot things." A
-        diagonal barb fill at 4 texels wide reads as an argyle print, not a
-        wing, no matter how the shading is tuned - there just is not enough
-        room in a repeating pattern to carry a feather motif. A tapered SHAPE
-        does read, the same way winged-boot pixel art everywhere else draws it:
-        a broad base at the ankle narrowing to a point, one clean silhouette
-        rather than fill. The leading edge is picked out in the accent colour
-        so the shape stays legible once it is small and worn.
-        """
+        """A drawn wing silhouette, not a texture pattern."""
         x0, y0, w, h = face
         widths = [w, w, max(1, w - 1), max(1, w - 2), max(1, w - 2), 1]
         for i, run in enumerate(widths):
@@ -1252,7 +1233,6 @@ class Sheet:
                 leading = (j == 0)
                 self.sp.put(x, y, accent if leading else mat,
                             (accent if leading else mat).tone(0.95 if leading else 0.40 + 0.05 * i))
-        self.sp.outline()
 
     def studs(self, face: tuple[int, int, int, int], mat: Material,
               rows: tuple[int, ...], level: float = 1.0) -> None:
@@ -1274,97 +1254,227 @@ def resonance_layer_1() -> Sheet:
     """Helmet, chestplate and boots on the adult 64x32 humanoid layout."""
     sh = Sheet(64, 32)
     helm, chest, boots = adult_helmet_region(), adult_chest_region(), adult_boot_region()
-    sh.plate(helm, NULL_IRON, 3301, base=0.56)
-    sh.plate(chest, NULL_IRON, 3307, base=0.60)
-    sh.plate(boots, NULL_IRON, 3313, base=0.52)
-    sh.rivets(chest, NULL_IRON, 3319, count=8, min_spacing=3)
-    sh.rivets(helm, NULL_IRON, 3323, count=4, min_spacing=3)
-    sh.trim(band(ADULT_HEAD["front"], 10, 10) | band(ADULT_HEAD["back"], 10, 10), BISMUTH)
-    sh.trim({(x, 23) for x in range(20, 28)}, BISMUTH)
-    sh.trim({(x, 23) for x in range(32, 40)}, BISMUTH)
-    sh.trim({(x, 29) for x in range(0, 16)}, BISMUTH)
-    # The horns on the item icon have no equivalent here - the worn model is
-    # a fixed vanilla box, it cannot grow a spike - but leaving the worn
-    # helmet without ANY matching mark is what made "the player look doesn't
-    # match the inventory look" true. A bright accent at each temple, where
-    # the icon's horn actually attaches, is the closest a flat texture gets.
-    right_x0, right_y0, _, _ = ADULT_HEAD["right"]
-    left_x0, left_y0, left_w, _ = ADULT_HEAD["left"]
-    # PLAYER: "you could do a bit more than two pixels from the side" - three
-    # rows now, and it wraps one texel onto the front face too so it reads as
-    # the base of something rather than an isolated dot.
-    sh.sp.stamp([(right_x0 + 6, right_y0 + 1), (right_x0 + 7, right_y0 + 1),
-                 (right_x0 + 7, right_y0 + 2), (right_x0 + 7, right_y0 + 3)], BISMUTH, 1.0)
-    sh.sp.stamp([(left_x0 + 1, left_y0 + 1), (left_x0, left_y0 + 1),
-                 (left_x0, left_y0 + 2), (left_x0, left_y0 + 3)], BISMUTH, 1.0)
-    # Depth pass: banded plate courses down the torso and arms, plus a bevel so
-    # each panel rounds off at its edges.
-    for key in ("right", "front", "left", "back"):
-        sh.plates(ADULT_BODY[key], NULL_IRON, course=5)
-        sh.plates(ADULT_ARM[key], NULL_IRON, course=6)
+    sh.plate(helm, NULL_IRON, 3301, base=0.48, spread=0.22)
+    sh.plate(chest, NULL_IRON, 3307, base=0.46, spread=0.22)
+    sh.plate(boots, NULL_IRON, 3313, base=0.42, spread=0.20)
 
-    # Chest sigil and shoulder caps, painted directly onto this one sheet -
-    # no separate overlay layer. Deliberately sparse: a mark on the chest, a
-    # bright cap on each shoulder, not a second garment's worth of detail.
-    front = ADULT_BODY["front"]
-    fx, fy = front[0], front[1]
-    sigil = {(fx + 3, fy + 3), (fx + 4, fy + 3),
-             (fx + 2, fy + 4), (fx + 5, fy + 4),
-             (fx + 3, fy + 5), (fx + 4, fy + 5),
-             (fx + 3, fy + 4), (fx + 4, fy + 4)}
-    for (x, y) in sigil:
-        sh.sp.put(x, y, BISMUTH, BISMUTH.tone(0.95))
+def resonance_layer_1() -> Sheet:
+    """Helmet, chestplate and boots on the adult 64x32 humanoid layout."""
+    sh = Sheet(64, 32)
+    helm = adult_helmet_region()
+    chest = adult_chest_region()
+    boots = adult_boot_region()
+    sh.plate(helm, NULL_IRON, 3301, base=0.42, spread=0.40)
+    sh.plate(chest, NULL_IRON, 3307, base=0.44, spread=0.40)
+    sh.plate(boots, NULL_IRON, 3313, base=0.40, spread=0.38)
+
+    # --- HELMET ---
+    # Brow trim across row 10 of front face (above visor/eyes):
+    fx0, fy0, fw, fh = ADULT_HEAD["front"]
+    sh.trim(band(ADULT_HEAD["front"], 10, 10), BISMUTH, level=0.90)
+    sh.sp.put(fx0 + 3, fy0 + 2, BISMUTH, 1)
+    sh.sp.put(fx0 + 4, fy0 + 2, BISMUTH, 1)
+    # Forehead curved plate band at row 9
+    sh.plates(ADULT_HEAD["front"], NULL_IRON, course=[1], lit=0.92)
+    for key in ("right", "left", "back"):
+        sh.plates(ADULT_HEAD[key], NULL_IRON, course=[2], lit=0.88)
+
+    # Horns sweeping from temples up across side faces and crown top
+    # Right side:
+    sh.sp.put(7, 11, BISMUTH, 1)
+    sh.sp.stamp([(6, 10), (7, 10), (5, 9), (6, 9), (4, 8), (5, 8)], BISMUTH, 0.95)
+    sh.sp.put(7, 9, BISMUTH, 1)
+    sh.sp.put(6, 8, BISMUTH, 1)
+    # Left side:
+    sh.sp.put(16, 11, BISMUTH, 1)
+    sh.sp.stamp([(16, 10), (17, 10), (17, 9), (18, 9), (18, 8), (19, 8)], BISMUTH, 0.95)
+    sh.sp.put(16, 9, BISMUTH, 1)
+    sh.sp.put(17, 8, BISMUTH, 1)
+    # Front corners (temple attachment):
+    sh.sp.stamp([(fx0, fy0 + 1), (fx0, fy0 + 2),
+                 (fx0 + fw - 1, fy0 + 1), (fx0 + fw - 1, fy0 + 2)], BISMUTH, 0.95)
+    # Top face crown sweep:
+    sh.sp.stamp([(8, 3), (8, 4), (9, 4), (9, 5), (10, 5)], BISMUTH, 0.95)
+    sh.sp.put(9, 3, BISMUTH, 1)
+    sh.sp.stamp([(9, 3), (10, 4)], BISMUTH, 0.40)
+    sh.sp.stamp([(15, 3), (15, 4), (14, 4), (14, 5), (13, 5)], BISMUTH, 0.95)
+    sh.sp.put(14, 3, BISMUTH, 1)
+    sh.sp.stamp([(14, 3), (13, 4)], BISMUTH, 0.40)
+
+    # Dome top highlight
+    tx0, ty0, tw, td = ADULT_HEAD["top"]
+    sh.sp.stamp([(tx0 + 3, ty0 + 2), (tx0 + 4, ty0 + 2)], NULL_IRON, 0.95)
+
+    # --- CHESTPLATE ---
+    # Curved plate courses across torso with soft metallic luster & crease shading
     for key in ("right", "front", "left", "back"):
-        for (x, y) in band(ADULT_ARM[key], 20, 21):
-            sh.sp.put(x, y, BISMUTH, BISMUTH.tone(0.72 if y % 2 else 0.98))
+        face = ADULT_BODY[key]
+        x0, y0, w, h = face
+        face_mask = {(x, y) for x in range(x0, x0 + w) for y in range(y0, y0 + h)}
+        for r in (3, 8):
+            curved_band(lambda x, y: sh.sp.put(x, y, NULL_IRON, 5) if sh.sp.opaque(x, y) else None,
+                        face_mask, NULL_IRON, y0 + r)
+            if w >= 8:
+                sh.sp.put(x0 + w // 2 - 1, y0 + r - 1, NULL_IRON, 6)
+                sh.sp.put(x0 + w // 2, y0 + r - 1, NULL_IRON, 6)
+            for x in range(x0, x0 + w):
+                if (x, y0 + r + 1) in face_mask and sh.sp.opaque(x, y0 + r + 1):
+                    sh.sp.put(x, y0 + r + 1, NULL_IRON, 2)
+
+    # Central resonator core on chest front (rows 24..25, x=22..25)
+    bx0, by0, bw, bh = ADULT_BODY["front"]
+    core_mid = [(bx0 + 3, by0 + 4), (bx0 + 4, by0 + 4),
+                (bx0 + 3, by0 + 5), (bx0 + 4, by0 + 5)]
+    core_flanks = [(bx0 + 2, by0 + 4), (bx0 + 5, by0 + 4)]
+    core_bottom = [(bx0 + 3, by0 + 6), (bx0 + 4, by0 + 6)]
+    sh.sp.stamp(core_mid, BISMUTH, 1.0)
+    sh.sp.stamp(core_flanks, BISMUTH, 0.40)
+    sh.sp.stamp(core_bottom, BISMUTH, 0.15)
+
+    # Pauldrons / arms:
+    for key in ("right", "front", "left", "back"):
+        face = ADULT_ARM[key]
+        x0, y0, w, h = face
+        face_mask = {(x, y) for x in range(x0, x0 + w) for y in range(y0, y0 + h)}
+        curved_band(lambda x, y: sh.sp.put(x, y, NULL_IRON, 5) if sh.sp.opaque(x, y) else None,
+                    face_mask, NULL_IRON, y0 + 3)
+    ax0, ay0, _, _ = ADULT_ARM["front"]
+    sh.sp.stamp([(ax0 + 1, ay0 + 1), (ax0 + 2, ay0 + 1)], BISMUTH, 0.40)
+    rx0, ry0, _, _ = ADULT_ARM["right"]
+    sh.sp.stamp([(rx0 + 1, ry0 + 1), (rx0 + 2, ry0 + 1)], BISMUTH, 0.40)
+    lx0, ly0, _, _ = ADULT_ARM["left"]
+    sh.sp.stamp([(lx0 + 1, ly0 + 1), (lx0 + 2, ly0 + 1)], BISMUTH, 0.40)
+    kx0, ky0, _, _ = ADULT_ARM["back"]
+    sh.sp.stamp([(kx0 + 1, ky0 + 1), (kx0 + 2, ky0 + 1)], BISMUTH, 0.40)
+
+    # --- BOOTS ---
+    for key in ("right", "front", "left", "back"):
+        face = ADULT_LEG[key]
+        x0, y0, w, h = face
+        face_mask = {(x, y) for x in range(x0, x0 + w) for y in range(y0, y0 + h)}
+        for r in (7, 9):
+            curved_band(lambda x, y: sh.sp.put(x, y, NULL_IRON, 5) if sh.sp.opaque(x, y) else None,
+                        face_mask, NULL_IRON, y0 + r)
+    # Boot cuff trim
+    lx0, ly0, _, _ = ADULT_LEG["front"]
+    sh.sp.stamp([(lx0 + 1, ly0 + 7), (lx0 + 2, ly0 + 7)], BISMUTH, 0.95)
+    # Heel spurs
+    ox0, oy0, _, _ = ADULT_LEG["right"]
+    sh.sp.stamp([(ox0, oy0 + 10)], BISMUTH, 0.40)
+    ix0, iy0, _, _ = ADULT_LEG["left"]
+    sh.sp.stamp([(ix0 + 3, iy0 + 10)], BISMUTH, 0.40)
+    for (x, y) in face_rect(ADULT_LEG["bottom"]):
+        sh.sp.put(x, y, NULL_IRON, 1)
+
     return sh
 
 
 def resonance_layer_2() -> Sheet:
-    """Leggings on the adult 64x32 humanoid_leggings layout.
-
-    PLAYER: "the chestplate leggings need a lot of work, they look like a
-    jumbled mess." This piece never got the plates()/bevel() pass the torso
-    did - only the flat plate() fill, so once that lost its checkerboard it
-    had nothing left to read as armour at all. Same treatment as the torso now.
-    """
+    """Leggings on the adult 64x32 humanoid_leggings layout."""
     sh = Sheet(64, 32)
     hips, skirt = adult_leggings_regions()
-    sh.plate(hips, NULL_IRON, 3401, base=0.54)
-    sh.plate(skirt, NULL_IRON, 3407, base=0.58)
-    sh.rivets(hips | skirt, NULL_IRON, 3413, count=6, min_spacing=3)
-    sh.trim({(x, 28) for x in range(16, 40)}, BISMUTH)
-    sh.trim({(x, 21) for x in range(0, 16)}, BISMUTH)
+    sh.plate(hips, NULL_IRON, 3401, base=0.42, spread=0.40)
+    sh.plate(skirt, NULL_IRON, 3407, base=0.44, spread=0.40)
+
+    # Waistband / belt on ADULT_BODY rows 27..31:
+    bx0, by0, _, _ = ADULT_BODY["front"]
+    sh.sp.stamp([(bx0 + 3, by0 + 7), (bx0 + 4, by0 + 7)], BISMUTH, 0.15)
+    sh.sp.stamp([(bx0 + 2, by0 + 7), (bx0 + 5, by0 + 7)], BISMUTH, 0.95)
+    sh.sp.stamp([(bx0 + 1, by0 + 7), (bx0 + 6, by0 + 7)], BISMUTH, 0.40)
+    sh.sp.put(bx0 + 3, by0 + 8, BISMUTH, 1)
+    sh.sp.put(bx0 + 4, by0 + 8, BISMUTH, 1)
+
     for key in ("right", "front", "left", "back"):
-        sh.plates(ADULT_LEG[key], NULL_IRON, course=6)
-        sh.plates(ADULT_BODY[key], NULL_IRON, course=2)  # the narrow hip flare
+        face = ADULT_BODY[key]
+        x0, y0, w, h = face
+        face_mask = {(x, y) for x in range(x0, x0 + w) for y in range(y0, y0 + h)}
+        curved_band(lambda x, y: sh.sp.put(x, y, NULL_IRON, 5) if sh.sp.opaque(x, y) else None,
+                    face_mask, NULL_IRON, y0 + 9)
+        for x in range(x0, x0 + w):
+            if (x, y0 + 10) in face_mask and sh.sp.opaque(x, y0 + 10):
+                sh.sp.put(x, y0 + 10, NULL_IRON, 2)
+
+    # Legs (ADULT_LEG rows 20..28):
+    for key in ("right", "front", "left", "back"):
+        face = ADULT_LEG[key]
+        x0, y0, w, h = face
+        face_mask = {(x, y) for x in range(x0, x0 + w) for y in range(y0, y0 + h)}
+        for r in (2, 6):
+            curved_band(lambda x, y: sh.sp.put(x, y, NULL_IRON, 5) if sh.sp.opaque(x, y) else None,
+                        face_mask, NULL_IRON, y0 + r)
+            if key == "front":
+                sh.sp.put(x0 + 1, y0 + r - 1, NULL_IRON, 6)
+                sh.sp.put(x0 + 2, y0 + r - 1, NULL_IRON, 6)
+            for x in range(x0, x0 + w):
+                if (x, y0 + r + 1) in face_mask and sh.sp.opaque(x, y0 + r + 1):
+                    sh.sp.put(x, y0 + r + 1, NULL_IRON, 2)
+
+    # Knee plate accent on front face
+    lx0, ly0, _, _ = ADULT_LEG["front"]
+    sh.sp.stamp([(lx0 + 1, ly0 + 6), (lx0 + 2, ly0 + 6)], BISMUTH, 0.40)
+    for (x, y) in face_rect(ADULT_LEG["top"]):
+        sh.sp.put(x, y, NULL_IRON, 1)
+
     return sh
 
 
 def aero_stride_layer_1() -> Sheet:
-    """Aero-Stride Greaves on the adult humanoid layout.
-
-    Only the boot region can render for a feet-slot item, but the helmet and
-    chest regions are painted too so the sheet stays valid if the set is ever
-    extended - vanilla ships full sheets for partial sets for the same reason.
-
-    Single sheet, no separate overlay layer: the wings are drawn straight onto
-    this base texture as an actual tapered shape on each boot's outer face,
-    rows 26-31 - vanilla's own boot span, so the silhouette in-game still reads
-    as a boot and not a legging, with the wing as a decal on it rather than a
-    second garment.
-    """
+    """Aero-Stride Greaves on the adult humanoid layout."""
     sh = Sheet(64, 32)
     helm, chest, boots = adult_helmet_region(), adult_chest_region(), adult_boot_region()
-    sh.plate(helm, VOID_GLASS, 3501, base=0.58)
-    sh.plate(chest, VOID_GLASS, 3507, base=0.60)
-    sh.plate(boots, VOID_GLASS, 3511, base=0.66)
-    sh.rivets(boots, VOID_GLASS, 3517, count=8, min_spacing=3)
+    sh.plate(helm, VOID_GLASS, 3501, base=0.52, spread=0.36)
+    sh.plate(chest, VOID_GLASS, 3507, base=0.54, spread=0.36)
+    sh.plate(boots, VOID_GLASS, 3511, base=0.58, spread=0.36)
 
-    lx = ADULT_LEG["right"][0]
-    rx, _, rw, _ = ADULT_LEG["left"]
-    sh.wing_shape((lx, 26, ADULT_LEG["right"][2], 6), VOID_GLASS, BISMUTH, mirror=False)
-    sh.wing_shape((rx, 26, rw, 6), VOID_GLASS, BISMUTH, mirror=True)
+    # Front of boots:
+    lx0, ly0, _, _ = ADULT_LEG["front"]
+    sh.sp.stamp([(lx0 + 1, ly0 + 6), (lx0 + 2, ly0 + 6)], VOID_GLASS, 1.0)
+    sh.trim({(lx0 + x, ly0 + 11) for x in range(4)}, BISMUTH, level=1.0)
+    sh.trim({(lx0 + 1, ly0 + 10), (lx0 + 2, ly0 + 10)}, BISMUTH, level=0.40)
+    for key in ("right", "front", "left", "back"):
+        face = ADULT_LEG[key]
+        x0, y0, w, h = face
+        face_mask = {(x, y) for x in range(x0, x0 + w) for y in range(y0, y0 + h)}
+        curved_band(lambda x, y: sh.sp.put(x, y, VOID_GLASS, 5) if sh.sp.opaque(x, y) else None,
+                    face_mask, VOID_GLASS, y0 + 8)
+
+    # Multi-feather swept wings on outer boot faces (rows 26..31):
+    # Right boot outer face: (0, 26, 4, 6)
+    sh.sp.put(2, 26, BISMUTH, 4)
+    sh.sp.put(3, 26, BISMUTH, 2)
+    sh.sp.put(1, 27, BISMUTH, 4)
+    sh.sp.put(2, 27, BISMUTH, 3)
+    sh.sp.put(3, 27, BISMUTH, 2)
+    sh.sp.put(0, 28, BISMUTH, 4)
+    sh.sp.put(1, 28, BISMUTH, 3)
+    sh.sp.put(2, 28, BISMUTH, 2)
+    sh.sp.put(3, 28, VOID_GLASS, 4)
+    sh.sp.put(0, 29, BISMUTH, 4)
+    sh.sp.put(1, 29, BISMUTH, 2)
+    sh.sp.put(2, 29, VOID_GLASS, 4)
+    sh.sp.put(0, 30, BISMUTH, 2)
+    sh.sp.put(1, 30, VOID_GLASS, 3)
+
+    # Left boot outer face: (8, 26, 4, 6) - mirrored
+    sh.sp.put(8 + 1, 26, BISMUTH, 2)
+    sh.sp.put(8 + 0, 26, BISMUTH, 4)
+    sh.sp.put(8 + 0, 27, BISMUTH, 2)
+    sh.sp.put(8 + 1, 27, BISMUTH, 3)
+    sh.sp.put(8 + 2, 27, BISMUTH, 4)
+    sh.sp.put(8 + 0, 28, VOID_GLASS, 4)
+    sh.sp.put(8 + 1, 28, BISMUTH, 2)
+    sh.sp.put(8 + 2, 28, BISMUTH, 3)
+    sh.sp.put(8 + 3, 28, BISMUTH, 4)
+    sh.sp.put(8 + 1, 29, VOID_GLASS, 4)
+    sh.sp.put(8 + 2, 29, BISMUTH, 2)
+    sh.sp.put(8 + 3, 29, BISMUTH, 4)
+    sh.sp.put(8 + 2, 30, VOID_GLASS, 3)
+    sh.sp.put(8 + 3, 30, BISMUTH, 2)
+
+    # Dark sole
+    for (x, y) in face_rect(ADULT_LEG["bottom"]):
+        sh.sp.put(x, y, VOID_GLASS, 1)
+
     return sh
 
 
@@ -1372,27 +1482,23 @@ def baby_sheet(mat: Material, seed: int) -> Sheet:
     """The 64x64 baby armour layout - a different unwrap, not a scaled copy."""
     sh = Sheet(64, 64)
     helm, chest, boots = baby_regions()
-    # Higher spread throughout - bevel() (removed as redundant with the
-    # bands elsewhere) used to be what gave this small, ~800-texel sheet
-    # enough tonal variety on its own.
-    sh.plate(helm, mat, seed + 1, base=0.56, spread=0.40)
-    sh.plate(chest, mat, seed + 2, base=0.60, spread=0.40)
-    sh.plate(boots, mat, seed + 3, base=0.54, spread=0.50)
-    sh.rivets(chest, mat, seed + 4, count=6, min_spacing=3)
-    sh.trim(band(BABY_HEAD["front"], 10, 10) | band(BABY_HEAD["back"], 10, 10), BISMUTH)
-    sh.trim({(x, 23) for x in range(0, 18)}, BISMUTH)
-    sh.trim({(x, 30) for x in range(18, 30)}, BISMUTH)
-    # A bevelled edge on the chest and boot regions - the flattened plate()
-    # alone does not carry enough contrast to clear the colour floor once the
-    # rivet count drops, and a baby sheet has no bands()-style face table to
-    # lean on instead.
-    # bevel()'s edge highlight only touches a handful of pixels against 789
-    # total opaque texels on this sheet, which was not enough to move the
-    # dominant-colour gate off 88-89%. Explicit bright rows across each leg's
-    # front face (matching the trim() rows chest/head already use) is what
-    # the other regions rely on for contrast, and this piece had none.
-    sh.trim({(x, 21) for x in range(18, 21)}, BISMUTH)
-    sh.trim({(x, 28) for x in range(18, 21)}, BISMUTH)
+    accent = BISMUTH if mat == NULL_IRON or mat == VOID_GLASS else HARMONIC
+    sh.plate(helm, mat, seed + 1, base=0.52, spread=0.55)
+    sh.plate(chest, mat, seed + 2, base=0.50, spread=0.55)
+    sh.plate(boots, mat, seed + 3, base=0.46, spread=0.55)
+
+    # Brow trim across baby helmet front
+    sh.trim(band(BABY_HEAD["front"], 10, 10), accent, level=1.0)
+    # Chest resonator core on baby body front
+    bx0, by0, bw, bh = BABY_BODY["front"]
+    sh.sp.stamp([(bx0 + 2, by0 + 2), (bx0 + 3, by0 + 2)], accent, 1.0)
+    sh.sp.stamp([(bx0 + 1, by0 + 2), (bx0 + 4, by0 + 2)], accent, 0.50)
+    # Boot trim
+    sh.trim({(x, 23) for x in range(0, 18)}, accent, level=0.9)
+    sh.trim({(x, 30) for x in range(18, 30)}, accent, level=0.9)
+    sh.trim({(x, 21) for x in range(18, 21)}, accent, level=0.9)
+    sh.trim({(x, 28) for x in range(18, 21)}, accent, level=0.9)
+    sh.plates(BABY_BODY["front"], mat, course=[2], lit=1.0)
     return sh
 
 
