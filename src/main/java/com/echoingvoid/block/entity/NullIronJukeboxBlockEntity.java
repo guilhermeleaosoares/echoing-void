@@ -2,6 +2,7 @@ package com.echoingvoid.block.entity;
 
 import com.echoingvoid.block.NullIronJukeboxBlock;
 import com.echoingvoid.registry.ModEffects;
+import com.echoingvoid.registry.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
@@ -53,7 +54,49 @@ public class NullIronJukeboxBlockEntity extends BlockEntity implements Container
 
     /** Ticked only while the block state says a disc is in - see the block's ticker. */
     public static void tick(Level level, BlockPos pos, BlockState state, NullIronJukeboxBlockEntity jukebox) {
+        // Sampled either side of the delegate: JukeboxSongPlayer.tick calls its own stop() the
+        // moment the track's length is up, so a playing->stopped transition with the disc still
+        // in the slot is exactly "the song finished on its own". A disc yanked out early stops
+        // it too, but that also empties the slot, so it cannot be mistaken for a completion -
+        // which is what stops the reward being farmed by inserting and ejecting repeatedly.
+        boolean wasPlaying = jukebox.songPlayer.isPlaying();
         jukebox.songPlayer.tick(level, state);
+        if (wasPlaying && !jukebox.songPlayer.isPlaying() && !jukebox.getTheItem().isEmpty()) {
+            jukebox.rewardFinishedSong(level, pos);
+        }
+    }
+
+    /**
+     * PLAYER: "maybe there is a reward every time it is played like one null iron ingot or a
+     * random echoing void drop like a shard or something."
+     *
+     * <p>Paid on the song FINISHING rather than on the disc going in, so the price of the reward
+     * is sitting through the whole track - two to three minutes - rather than clicking a disc in
+     * and out. The common drop is a shard and the ingot is the rare one, so a jukebox left running
+     * is a slow trickle rather than a null-iron machine.
+     */
+    private void rewardFinishedSong(Level level, BlockPos pos) {
+        if (level.isClientSide()) {
+            return;
+        }
+        int roll = level.getRandom().nextInt(100);
+        ItemStack reward;
+        if (roll < 55) {
+            reward = new ItemStack(ModItems.RESONANCE_SHARD.get(), 1 + level.getRandom().nextInt(2));
+        } else if (roll < 80) {
+            reward = new ItemStack(ModItems.VOID_GLASS_SHARD.get(), 1);
+        } else if (roll < 95) {
+            reward = new ItemStack(ModItems.RAW_NULL_IRON.get(), 1);
+        } else {
+            reward = new ItemStack(ModItems.NULL_IRON_INGOT.get(), 1);
+        }
+
+        // Popped off the top of the cabinet with no sideways throw, the same way the disc itself
+        // is ejected, so it lands on the jukebox instead of rolling off a shelf.
+        ItemEntity drop = new ItemEntity(level, pos.getX() + 0.5, pos.getY() + 1.01, pos.getZ() + 0.5, reward);
+        drop.setDefaultPickUpDelay();
+        drop.setDeltaMovement(0.0, 0.12, 0.0);
+        level.addFreshEntity(drop);
     }
 
     /** Comparator output is a property of the song, not of the slot being occupied. */

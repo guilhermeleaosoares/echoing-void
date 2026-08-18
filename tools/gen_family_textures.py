@@ -941,10 +941,10 @@ BISMUTH_TONES = [BIS_RIM, BIS_BODY, BIS_CORE, BIS_SPARK]
 # Null iron is a hole, not a crystal, so its shells are inverted: the rim is the
 # lit lip of the pit and the core is void black.
 NULL_TONES = [
-    mix(NI_LIGHT, NI_PALE, 0.35),        # lit lip
-    NI_STEEL,                            # pit wall
-    NI_DARK,                             # the void itself
-    mix(NI_PALE, CH_MID, 0.30),          # cold glint on the rim
+    NI_DARK,                             # 0: deep shadow base
+    NI_STEEL,                            # 1: null-iron steel body
+    mix(NI_LIGHT, NI_PALE, 0.45),        # 2: bright lit metallic lip
+    mix(NI_LIGHT, BI_MID, 0.50),         # 3: cyan bismuth glint on lit lip
 ]
 
 

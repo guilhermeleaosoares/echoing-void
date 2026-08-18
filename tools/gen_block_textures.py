@@ -734,21 +734,20 @@ def t_polished_phonolite() -> Canvas:
     seed = 5408
     grid = [[3] * SIZE for _ in range(SIZE)]
 
-    # 1. Smooth gradual base field across interior (rows 1..14, cols 1..14)
-    for y in range(1, SIZE - 1):
-        for x in range(1, SIZE - 1):
+    # 1. Base field
+    for y in range(SIZE):
+        for x in range(SIZE):
             n = fbm(x * 0.7, y * 0.9, seed, octaves=2, period=SIZE)
-            lit = key_light_factor(x, y, SIZE) * 0.10
+            lit = key_light_factor(x, y, SIZE) * 0.12
             v = n + lit
-            if v < 0.42:
+            if v < 0.40:
                 grid[y][x] = 2
-            elif v > 0.62:
+            elif v > 0.60:
                 grid[y][x] = 4
             else:
                 grid[y][x] = 3
 
-    # 2. Shallow horizontal courses of lit stone (Tone 5)
-    # Staggered 2-4px horizontal streaks giving a cut-and-laid masonry read
+    # 2. Shallow horizontal streaks
     courses = [
         (2, 8, 4),
         (3, 3, 3),
@@ -762,16 +761,34 @@ def t_polished_phonolite() -> Canvas:
     ]
     for cy, cx0, clen in courses:
         for k in range(clen):
-            x = cx0 + k
-            if 1 <= x <= 14:
-                grid[cy][x] = 5
+            x = (cx0 + k) % SIZE
+            grid[cy][x] = 5
 
-    # 3. Smooth constraint pass: enforce max delta of at most 1 ramp step between neighbours
+    # 3. Soft bevel on the perimeter (matching vanilla andesite ratios)
+    # Top edge (row 0) & Left edge (col 0): Tone 5 & 6
+    for x in range(SIZE):
+        grid[0][x] = 6 if _hash2(x, 0, 5403) > 0.40 else 5
+    for y in range(SIZE):
+        grid[y][0] = 6 if _hash2(0, y, 5407) > 0.40 else 5
+    grid[0][0] = 6
+
+    # Bottom edge (row 15) & Right edge (col 15): Tone 2 (lum 49) with minor Tone 1 (lum 29) / Tone 3 (lum 66)
+    # Calibrated to land at 0.69-0.71 of the field value (matching vanilla andesite/granite)
+    for x in range(SIZE):
+        h = _hash2(x, 15, 5409)
+        grid[15][x] = 1 if h < 0.12 else (2 if h < 0.88 else 3)
+    for y in range(SIZE):
+        h = _hash2(15, y, 5411)
+        grid[y][15] = 1 if h < 0.12 else (2 if h < 0.88 else 3)
+    grid[15][15] = 2
+
+    # 4. Relaxation pass to enforce max step delta of 1 across the whole tile including edges
     for _ in range(4):
-        for y in range(1, SIZE - 1):
-            for x in range(1, SIZE - 1):
-                nbrs = [grid[ny][nx] for nx, ny in ((x+1, y), (x-1, y), (x, y+1), (x, y-1))
-                        if 1 <= nx <= 14 and 1 <= ny <= 14]
+        for y in range(SIZE):
+            for x in range(SIZE):
+                if (x == 0 and y == 0) or (x == 15 and y == 15):
+                    continue
+                nbrs = [grid[ny][nx] for nx, ny in (((x+1)%SIZE, y), ((x-1)%SIZE, y), (x, (y+1)%SIZE), (x, (y-1)%SIZE))]
                 min_n = min(nbrs)
                 max_n = max(nbrs)
                 if grid[y][x] > max_n + 1:
@@ -779,28 +796,9 @@ def t_polished_phonolite() -> Canvas:
                 elif grid[y][x] < min_n - 1:
                     grid[y][x] = min_n - 1
 
-    for y in range(1, SIZE - 1):
-        for x in range(1, SIZE - 1):
+    for y in range(SIZE):
+        for x in range(SIZE):
             c.set(x, y, grid[y][x])
-
-    # 4. Outer 1px bevel frame (measured off vanilla polished andesite)
-    # Top edge (y=0) & Left edge (x=0): lit highlight (tones 6 and 5)
-    for x in range(SIZE):
-        c.set(x, 0, 6 if _hash2(x, 0, 5403) > 0.35 else 5)
-    for y in range(SIZE):
-        c.set(0, y, 6 if _hash2(0, y, 5407) > 0.35 else 5)
-    c.set(0, 0, 6)
-
-    # Bottom edge (y=15) & Right edge (x=15): shadow bevel (tones 0 and 1)
-    for x in range(SIZE):
-        c.set(x, 15, 0 if _hash2(x, 15, 5409) > 0.35 else 1)
-    for y in range(SIZE):
-        c.set(15, y, 0 if _hash2(15, y, 5411) > 0.35 else 1)
-    c.set(15, 15, 0)
-
-    # Mitred transition corners
-    c.set(15, 0, 2 if _hash2(15, 0, 5413) > 0.5 else 1)
-    c.set(0, 15, 5 if _hash2(0, 15, 5417) > 0.5 else 4)
 
     return c
 
@@ -2073,6 +2071,124 @@ def t_acoustic_lock_box_top() -> Canvas:
 
 
 # ==========================================================================
+# Null-Iron Jukebox - phonolite cabinet with null-iron hardware and speaker
+# ==========================================================================
+
+JUKEBOX_RAMP = R("null_iron_jukebox", [
+    mix(PH_DARK, VOID_BLACK, 0.40),         # 0: deep shadow / grille slit
+    PH_DARK,                                # 1: dark phonolite
+    mix(PH_DARK, PH_MID, 0.50),             # 2: mid-dark phonolite
+    PH_MID,                                 # 3: phonolite body
+    PH_LIGHT,                               # 4: lit phonolite
+    NI_DARK,                                # 5: null-iron shadow
+    NI_STEEL,                               # 6: null-iron steel body
+    NI_LIGHT,                               # 7: null-iron lit bevel / bracket
+    NI_PALE,                                # 8: rivet / specular highlight
+    mix(BI_MID, CH_LIGHT, 0.30),            # 9: cyan acoustic pickup / indicator
+])
+
+
+def t_null_iron_jukebox_top() -> Canvas:
+    """Phonolite deck with forged null-iron corner brackets, circular turntable well,
+    and a tone arm with glowing cyan acoustic needle."""
+    c = Canvas(JUKEBOX_RAMP)
+    seed = 8819
+
+    # 1. Phonolite body with subtle stone texture
+    for y in range(SIZE):
+        for x in range(SIZE):
+            n = fbm(x * 0.8, y * 0.8, seed, octaves=2, period=SIZE)
+            c.set(x, y, 2 if n < 0.35 else (4 if n > 0.65 else 3))
+
+    # 2. Outer 1px frame bevel
+    for x in range(SIZE):
+        c.set(x, 0, 7 if _hash2(x, 0, seed + 1) > 0.35 else 6)
+        c.set(x, 15, 0 if _hash2(x, 15, seed + 3) > 0.35 else 1)
+    for y in range(SIZE):
+        c.set(0, y, 7 if _hash2(0, y, seed + 5) > 0.35 else 6)
+        c.set(15, y, 0 if _hash2(15, y, seed + 7) > 0.35 else 1)
+    c.set(0, 0, 8)
+    c.set(15, 15, 0)
+
+    # 3. Corner null-iron reinforcement brackets
+    for bx, by in ((1, 1), (13, 1), (1, 13), (13, 13)):
+        c.set(bx, by, 8)       # rivet glint
+        c.set(bx + 1, by, 7)
+        c.set(bx, by + 1, 7)
+        c.set(bx + 1, by + 1, 5)
+
+    # 4. Circular record well / turntable platter (radius 4.5 around (7.5, 7.5))
+    cx, cy = 7.5, 7.5
+    for y in range(2, 14):
+        for x in range(2, 14):
+            d = math.hypot(x + 0.5 - cx, y + 0.5 - cy)
+            if d <= 4.8:
+                if d <= 1.2:
+                    c.set(x, y, 0) # central spindle hole
+                elif d <= 2.2:
+                    c.set(x, y, 7) # central spindle hub
+                elif d <= 3.8:
+                    diag = (x + y) % 2
+                    c.set(x, y, 5 if diag == 0 else 6) # grooved platter mat
+                else:
+                    c.set(x, y, 7 if (x < cx or y < cy) else 5) # platter bevel rim
+
+    # 5. Tone arm / needle pickup head resting near the platter edge
+    c.set(11, 4, 7)
+    c.set(11, 5, 8)
+    c.set(10, 6, 9) # glowing cyan needle tip
+    return c
+
+
+def t_null_iron_jukebox_side() -> Canvas:
+    """Phonolite housing with forged null-iron corner brackets and central acoustic
+    speaker grille with horizontal louvers and cyan tuning indicator."""
+    c = Canvas(JUKEBOX_RAMP)
+    seed = 8821
+
+    # 1. Phonolite stone body
+    for y in range(SIZE):
+        for x in range(SIZE):
+            n = fbm(x * 0.8, y * 0.8, seed, octaves=2, period=SIZE)
+            c.set(x, y, 2 if n < 0.35 else (4 if n > 0.65 else 3))
+
+    # 2. Outer 1px frame bevel
+    for x in range(SIZE):
+        c.set(x, 0, 7 if _hash2(x, 0, seed + 1) > 0.35 else 6)
+        c.set(x, 15, 0 if _hash2(x, 15, seed + 3) > 0.35 else 1)
+    for y in range(SIZE):
+        c.set(0, y, 7 if _hash2(0, y, seed + 5) > 0.35 else 6)
+        c.set(15, y, 0 if _hash2(15, y, seed + 7) > 0.35 else 1)
+    c.set(0, 0, 8)
+    c.set(15, 15, 0)
+
+    # 3. Corner null-iron brackets with rivets
+    for bx, by in ((1, 1), (13, 1), (1, 13), (13, 13)):
+        c.set(bx, by, 8)       # rivet glint
+        c.set(bx + 1, by, 7)
+        c.set(bx, by + 1, 7)
+        c.set(bx + 1, by + 1, 5)
+
+    # 4. Central Acoustic Speaker Grille / Resonator (cols 3..12, rows 4..11)
+    for i in range(3, 13):
+        c.set(i, 4, 5) # top recess shadow
+        c.set(3, i, 5) # left recess shadow
+        c.set(i, 12, 7) # bottom lip highlight
+        c.set(12, i, 7) # right lip highlight
+
+    # Horizontal grille acoustic louvers
+    for gy in (6, 8, 10):
+        for gx in range(4, 12):
+            c.set(gx, gy - 1, 0) # dark sound slot
+            c.set(gx, gy, 7 if gx in (4, 5, 10, 11) else 6) # metallic louver blade
+
+    # Central cyan acoustic node indicator
+    c.set(7, 7, 9)
+    c.set(8, 7, 9)
+    return c
+
+
+# ==========================================================================
 # Registry
 # ==========================================================================
 
@@ -2135,6 +2251,8 @@ TEXTURES = [
     ("acoustic_lock_box_front", t_acoustic_lock_box_front, True),
     ("acoustic_lock_box_side", t_acoustic_lock_box_side, True),
     ("acoustic_lock_box_top", t_acoustic_lock_box_top, True),
+    ("null_iron_jukebox_top", t_null_iron_jukebox_top, False),
+    ("null_iron_jukebox_side", t_null_iron_jukebox_side, True),
 ]
 
 CUTOUT = {"bismuth_cluster", "echo_sprout", "chime_grass", "crystal_bloom",
