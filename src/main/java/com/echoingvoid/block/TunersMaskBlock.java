@@ -31,21 +31,26 @@ import org.jspecify.annotations.Nullable;
  * different but similar to that of an iron golem."
  *
  * <p>Mirrors {@link net.minecraft.world.level.block.CarvedPumpkinBlock} exactly - a
- * {@link BlockPattern} checked in {@link #onPlace} the instant the mask goes down - with a
- * deliberately different body shape rather than reusing the golem's own T-shaped cross:
+ * {@link BlockPattern} checked in {@link #onPlace} the instant the mask goes down - but the
+ * body is shaped to this creature rather than to the iron golem's:
  *
  * <pre>
- *   ~^~   mask (this block, any facing)
- *   ~#~   neck
- *   ###   torso
+ *   ~^~   mask (this block, any facing)   -&gt; the head
+ *   ###   torso, with an arm hanging either side of it
  *   #~#   two separate legs, a gap of air between them
  * </pre>
  *
- * where {@code #} is {@link net.minecraft.world.level.block.Block Block of Null-Iron} and
- * {@code ~} must be air. Iron golems fuse into one wide-armed block at the middle row; this
- * guardian's arms hang from the shoulders instead (see {@code build_tuners_protector} in
- * {@code tools/gen_new_creature_geo.py}), so the body it is built from splits at the legs
- * instead of spreading at the arms - different silhouette, same ritual.
+ * where {@code #} is a Block of Null-Iron and {@code ~} must be air.
+ *
+ * <p>Each row is a part the creature actually has, which is the point: the model's arms hang at
+ * the sides of a narrower torso (so the middle row is three wide), and its legs are two separate
+ * columns with a gap between them (so the bottom row is split). The iron golem is the mirror
+ * image of that - it spreads at the arms and joins at the legs, {@code ~^~ / ### / ~#~} - so the
+ * two rituals stay one block apart and still read as the same kind of act.
+ *
+ * <p>An earlier version of this pattern was four rows tall and carried a separate neck row. It
+ * was dropped because it built a 4-block-high figure that produced a 2.4-block-high creature,
+ * and because the neck is a 4px joint on the model rather than a whole body segment.
  */
 public class TunersMaskBlock extends HorizontalDirectionalBlock {
     public static final MapCodec<TunersMaskBlock> CODEC = simpleCodec(TunersMaskBlock::new);
@@ -85,7 +90,11 @@ public class TunersMaskBlock extends HorizontalDirectionalBlock {
         if (protector == null) {
             return;
         }
-        spawnProtectorInWorld(level, match, protector, match.getBlock(1, 3, 0).getPos());
+        // (1, 2, 0) is the centre of the bottom row - the gap between the two
+        // legs, so the creature stands where its own feet were built. y indexes
+        // the aisles in the order they were declared, top first, exactly as
+        // CarvedPumpkinBlock's own (1, 2, 0) does for the iron golem.
+        spawnProtectorInWorld(level, match, protector, match.getBlock(1, 2, 0).getPos());
     }
 
     private static void spawnProtectorInWorld(Level level, BlockPattern.BlockPatternMatch match, Entity protector,
@@ -132,8 +141,10 @@ public class TunersMaskBlock extends HorizontalDirectionalBlock {
 
     private BlockPattern getOrCreateProtectorBase() {
         if (this.protectorBase == null) {
+            // The body with the mask not yet placed: a space is BlockPattern's
+            // wildcard, so the head slot is left unconstrained here.
             this.protectorBase = BlockPatternBuilder.start()
-                    .aisle("~#~", "###", "#~#")
+                    .aisle("~ ~", "###", "#~#")
                     .where('#', BlockInWorld.hasState(BlockStatePredicate.forBlock(ModBlocks.NULL_IRON_BLOCK.get())))
                     .where('~', BlockInWorld.hasState(BlockBehaviour.BlockStateBase::isAir))
                     .build();
@@ -144,7 +155,7 @@ public class TunersMaskBlock extends HorizontalDirectionalBlock {
     private BlockPattern getOrCreateProtectorFull() {
         if (this.protectorFull == null) {
             this.protectorFull = BlockPatternBuilder.start()
-                    .aisle("~^~", "~#~", "###", "#~#")
+                    .aisle("~^~", "###", "#~#")
                     .where('^', BlockInWorld.hasState(state -> state.getBlock() instanceof TunersMaskBlock))
                     .where('#', BlockInWorld.hasState(BlockStatePredicate.forBlock(ModBlocks.NULL_IRON_BLOCK.get())))
                     .where('~', BlockInWorld.hasState(BlockBehaviour.BlockStateBase::isAir))

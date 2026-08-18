@@ -1438,38 +1438,47 @@ def aero_stride_layer_1() -> Sheet:
         curved_band(lambda x, y: sh.sp.put(x, y, VOID_GLASS, 5) if sh.sp.opaque(x, y) else None,
                     face_mask, VOID_GLASS, y0 + 8)
 
-    # Multi-feather swept wings on outer boot faces (rows 26..31):
+    # Bold, unmistakable winged drift vanes on outer boot faces (rows 26..31):
     # Right boot outer face: (0, 26, 4, 6)
-    sh.sp.put(2, 26, BISMUTH, 4)
-    sh.sp.put(3, 26, BISMUTH, 2)
-    sh.sp.put(1, 27, BISMUTH, 4)
-    sh.sp.put(2, 27, BISMUTH, 3)
-    sh.sp.put(3, 27, BISMUTH, 2)
-    sh.sp.put(0, 28, BISMUTH, 4)
-    sh.sp.put(1, 28, BISMUTH, 3)
-    sh.sp.put(2, 28, BISMUTH, 2)
-    sh.sp.put(3, 28, VOID_GLASS, 4)
-    sh.sp.put(0, 29, BISMUTH, 4)
-    sh.sp.put(1, 29, BISMUTH, 2)
-    sh.sp.put(2, 29, VOID_GLASS, 4)
-    sh.sp.put(0, 30, BISMUTH, 2)
-    sh.sp.put(1, 30, VOID_GLASS, 3)
+    # Row 26: Top primary feather tip swept up/back
+    sh.sp.put(1, 26, BISMUTH, 1)  # dark spine
+    sh.sp.put(2, 26, BISMUTH, 5)  # bright electric cyan vane tip
+    sh.sp.put(3, 26, BISMUTH, 4)  # cyan feather body
+    # Row 27: Primary & secondary feather span
+    sh.sp.put(0, 27, BISMUTH, 1)  # dark feather joint
+    sh.sp.put(1, 27, BISMUTH, 5)  # bright electric cyan feather
+    sh.sp.put(2, 27, BISMUTH, 4)  # cyan feather
+    sh.sp.put(3, 27, BISMUTH, 2)  # mid teal trailing edge
+    # Row 28: Main wing body
+    sh.sp.put(0, 28, BISMUTH, 5)  # bright leading edge
+    sh.sp.put(1, 28, BISMUTH, 4)  # cyan feather
+    sh.sp.put(2, 28, BISMUTH, 2)  # mid teal
+    sh.sp.put(3, 28, VOID_GLASS, 2)  # shadowed boot plate
+    # Row 29: Lower secondary feather & ankle root
+    sh.sp.put(0, 29, BISMUTH, 4)  # cyan feather
+    sh.sp.put(1, 29, BISMUTH, 2)  # mid teal
+    sh.sp.put(2, 29, VOID_GLASS, 4)  # boot plate
+    # Row 30: Wing root base above heel
+    sh.sp.put(0, 30, BISMUTH, 2)  # teal root
+    sh.sp.put(1, 30, VOID_GLASS, 3)  # boot plate
 
     # Left boot outer face: (8, 26, 4, 6) - mirrored
-    sh.sp.put(8 + 1, 26, BISMUTH, 2)
+    sh.sp.put(8 + 2, 26, BISMUTH, 1)
+    sh.sp.put(8 + 1, 26, BISMUTH, 5)
     sh.sp.put(8 + 0, 26, BISMUTH, 4)
+    sh.sp.put(8 + 3, 27, BISMUTH, 1)
+    sh.sp.put(8 + 2, 27, BISMUTH, 5)
+    sh.sp.put(8 + 1, 27, BISMUTH, 4)
     sh.sp.put(8 + 0, 27, BISMUTH, 2)
-    sh.sp.put(8 + 1, 27, BISMUTH, 3)
-    sh.sp.put(8 + 2, 27, BISMUTH, 4)
-    sh.sp.put(8 + 0, 28, VOID_GLASS, 4)
+    sh.sp.put(8 + 3, 28, BISMUTH, 5)
+    sh.sp.put(8 + 2, 28, BISMUTH, 4)
     sh.sp.put(8 + 1, 28, BISMUTH, 2)
-    sh.sp.put(8 + 2, 28, BISMUTH, 3)
-    sh.sp.put(8 + 3, 28, BISMUTH, 4)
-    sh.sp.put(8 + 1, 29, VOID_GLASS, 4)
-    sh.sp.put(8 + 2, 29, BISMUTH, 2)
+    sh.sp.put(8 + 0, 28, VOID_GLASS, 2)
     sh.sp.put(8 + 3, 29, BISMUTH, 4)
-    sh.sp.put(8 + 2, 30, VOID_GLASS, 3)
+    sh.sp.put(8 + 2, 29, BISMUTH, 2)
+    sh.sp.put(8 + 1, 29, VOID_GLASS, 4)
     sh.sp.put(8 + 3, 30, BISMUTH, 2)
+    sh.sp.put(8 + 2, 30, VOID_GLASS, 3)
 
     # Dark sole
     for (x, y) in face_rect(ADULT_LEG["bottom"]):

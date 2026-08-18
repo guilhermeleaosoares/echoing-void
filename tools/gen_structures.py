@@ -171,6 +171,7 @@ class Template:
         self._index: dict[tuple[str, tuple[tuple[str, str], ...]], int] = {}
         self._blocks: dict[tuple[int, int, int], tuple[int, dict | None]] = {}
         self._deferred: dict[tuple[int, int, int], tuple[str, str]] = {}
+        self._entities: list[tuple[tuple[int, int, int], str, dict]] = []
         bg = self.state(background)
         for x in range(sx):
             for y in range(sy):
@@ -444,6 +445,28 @@ class Template:
             self._blocks[(x, y, z)] = (self.state(name, props), None)
         self._deferred.clear()
 
+    def entity(self, x: int, y: int, z: int, entity_id: str, **data) -> None:
+        """Place a live entity in this piece, the way vanilla village templates
+        carry their villagers and their cats.
+
+        This exists because spawn_overrides alone is not enough for a
+        settlement. MobCategory.CREATURE is only offered a spawn when
+        gameTime % 400 == 0 (ServerChunkCache.tickChunks), only in chunks near
+        a player, and only while the global creature cap has room - so a player
+        walking into a freshly generated outpost would routinely find it
+        deserted, and might never see it fill. Writing the inhabitants into the
+        template makes the settlement populated the moment it generates, and
+        leaves spawn_overrides to do what it is actually good at: replacing
+        them over time.
+
+        PersistenceRequired is set for the same reason vanilla sets it on its
+        template cats - a villager that despawns is a settlement that empties.
+        No UUID is written: vanilla templates carry one only because they were
+        saved from a live world, and copying a fixed UUID into every generated
+        copy would mean every outpost's trader shared an identity.
+        """
+        self._entities.append(((x, y, z), entity_id, data))
+
     # -- serialisation -----------------------------------------------------
 
     def to_nbt(self) -> nbt.Compound:
@@ -466,12 +489,26 @@ class Template:
                 entry["nbt"] = nbt.Compound(block_nbt)
             blocks.append(nbt.Compound(entry))
 
+        entities = []
+        for (ex, ey, ez), entity_id, data in self._entities:
+            body: dict = {"id": nbt.String(entity_id), "PersistenceRequired": nbt.Byte(1)}
+            body.update(data)
+            entities.append(nbt.Compound({
+                # Centred in the block, and standing on its floor, so the mob
+                # does not spawn clipped into the wall behind it.
+                "pos": nbt.List([nbt.Double(ex + 0.5), nbt.Double(ey), nbt.Double(ez + 0.5)],
+                                element_id=nbt.TAG_DOUBLE),
+                "blockPos": nbt.List([nbt.Int(ex), nbt.Int(ey), nbt.Int(ez)],
+                                     element_id=nbt.TAG_INT),
+                "nbt": nbt.Compound(body),
+            }))
+
         return nbt.Compound({
             "DataVersion": nbt.Int(DATA_VERSION),
             "size": nbt.List([nbt.Int(v) for v in self.size], element_id=nbt.TAG_INT),
             "palette": palette,
             "blocks": nbt.List(blocks, element_id=nbt.TAG_COMPOUND),
-            "entities": nbt.List([], element_id=nbt.TAG_COMPOUND),
+            "entities": nbt.List(entities, element_id=nbt.TAG_COMPOUND),
         })
 
 
@@ -620,6 +657,25 @@ def forge_hall() -> Template:
     t.archway(16, 3, 8, "east", POLISHED, CHALK_BRICK, GATE, BRIDGE_IN, P_BRIDGES)
     for (px, pz) in ((4, 4), (12, 4), (4, 12), (12, 12)):
         t.jigsaw(px, 1, pz, "up_north", PROP_ON, PROP_ON, P_PROPS, POLISHED, "rollable")
+
+    # ---- the people who live here
+    #
+    # Written into the template rather than left to spawn_overrides alone.
+    # MobCategory.CREATURE is offered a spawn only when gameTime % 400 == 0,
+    # only near a player, and only under the global creature cap, so relying on
+    # it meant a freshly generated outpost was usually deserted when the player
+    # first walked in. Vanilla has the same problem and solves it the same way -
+    # its village templates carry their villagers. spawn_overrides stays, and
+    # now does the job it is good at: replacing losses over time.
+    #
+    # Every coordinate here was checked against the finished piece for solid
+    # ground below and clear headroom above, rather than eyeballed off the
+    # layout: (5,3,6) and (11,3,6) are the hall floor, (8,2,12) the south deck.
+    t.entity(5, 3, 6, f"{NS}:tuner_trader")
+    t.entity(11, 3, 6, f"{NS}:tuner_trader")
+    # The guardian stands out on the deck where it can see the gates - and it
+    # is the reason the outpost gets one and the encampment does not.
+    t.entity(8, 2, 12, f"{NS}:tuners_protector")
     return t
 
 
@@ -1085,6 +1141,12 @@ def camp_center() -> Template:
     _camp_path(t, 6, 0, "north", 3, CAMP_LINK, CAMP_TENT, CAMP_POOL)
     _camp_path(t, 0, 6, "west", 3, CAMP_LINK, CAMP_TENT, CAMP_POOL)
     _camp_path(t, 12, 6, "east", 3, CAMP_LINK, CAMP_TENT, CAMP_POOL)
+
+    # Two traders round the fire, for the same reason forge_hall carries its
+    # own - see the note there. No protector: PLAYER, "it only exists in
+    # outposts, not the camps", so the camp is the settlement you can rob.
+    t.entity(4, 2, 6, f"{NS}:tuner_trader", Variety=nbt.String("CAMP"))
+    t.entity(8, 2, 6, f"{NS}:tuner_trader", Variety=nbt.String("CAMP"))
     return t
 
 

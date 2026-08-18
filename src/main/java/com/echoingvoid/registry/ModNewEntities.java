@@ -96,14 +96,20 @@ public final class ModNewEntities {
                     .build(ENTITIES.key("tuner_trader")));
 
     /**
-     * Iron-golem-sized - the silhouette the player is meant to recognise as "the thing that
+     * Iron-golem-shaped - the silhouette the player is meant to recognise as "the thing that
      * keeps this place safe" from across the outpost.
+     *
+     * <p>Measured off the mesh rather than guessed: {@code build_tuners_protector} spans 38
+     * model units tall and 22 wide, which is 2.38 x 1.38 blocks. The first pass registered
+     * 2.9 tall, leaving half a block of invisible hitbox standing above the creature's head -
+     * arrows would stop in mid-air over it. Vanilla's own iron golem matches its mesh the same
+     * way (1.4 x 2.7), so the box is rounded to the mesh, not the other way round.
      */
     public static final RegistryObject<EntityType<ProtectorMob>> TUNERS_PROTECTOR =
             ENTITIES.register("tuners_protector", () -> EntityType.Builder
                     .of(ProtectorMob::new, MobCategory.CREATURE)
-                    .sized(1.4F, 2.9F)
-                    .eyeHeight(2.5F)
+                    .sized(1.4F, 2.4F)
+                    .eyeHeight(2.1F)
                     .clientTrackingRange(10)
                     .build(ENTITIES.key("tuners_protector")));
 

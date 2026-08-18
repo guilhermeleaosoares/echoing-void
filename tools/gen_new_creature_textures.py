@@ -413,61 +413,158 @@ def trader_hand(base: Sheet, glow: Sheet, u, v, size, seed):
 
 # ---------------------------------------------------------------------------
 # tuners_protector
+#
+# PLAYER: "the protector actually looks like its built out of that stuff. it
+# looks dull and like it was mixed and matched from blocks and mobs."
+#
+# That was exactly right, and the cause was material: this creature was painted
+# in STONE - the burrower's and the strata golem's rock - while the thing a
+# player actually stacks to build one is Blocks of Null-Iron under a Tuner's
+# Mask. The two shared no colour and no motif, so the built object and the
+# creature it produced looked unrelated.
+#
+# Everything below is the null_iron_block texture's own vocabulary
+# (tools/gen_block_textures.py, t_null_iron_block) reproduced at limb scale:
+# a near-black plate ground, a bevelled frame set one pixel in from the edge,
+# a recessed centre panel, and a rivet in each corner. Paint that on every
+# cube and the creature reads as an assembly of the blocks it was built from,
+# which is exactly what it is.
 # ---------------------------------------------------------------------------
 
+# The block's own three anchors (#08080A / #1A1A24 / #2A2A38, the "null_iron"
+# entry in docs/spec/art_direction.json), carried up into a cool phonolite
+# highlight so a bevel and a rivet can still catch light on a body this dark.
+# Without that top end the creature is a featureless silhouette at any range.
+# 9 steps rather than 7: at 7 the finished sheet only carried 9 distinct
+# colours and tripped the gate's 10-colour floor for entities, and the bevel
+# highlights had visible jumps between them.
+NULL_IRON = ramp("#060608", "#08080A", "#1A1A24", "#2A2A38", "#3B4252", "#6E7B94",
+                 steps=9)
+
+# The block's own cool catch-light - mix(NI_MID, BI_MID, 0.35), the top entry
+# of NULL_BLOCK_RAMP in the block generator. Spent only on rivets. A body this
+# near-black needs something that catches the eye at range, and taking it from
+# the block's own ramp means the creature gets that without drifting off the
+# material the way a grey or a gold would.
+RIVET = parse_hex("#316473")
+
+
+def _plate_panel(base: Sheet, rect, face: str, seed: int, level: float,
+                 rivets: bool = True) -> None:
+    """Paint one cube face as a face of a Block of Null-Iron.
+
+    Detail is added only where it fits - the frame needs 6px, the recessed
+    panel 8px - so a 4px-wide arm keeps its ground and its lit top edge alone
+    rather than collapsing into noise. That size ladder is what lets the torso
+    read as a full block face while the limbs still read as the same material.
+    """
+    x0, y0, fw, fh = rect
+    fill_face(base, rect, NULL_IRON, level, face, seed,
+              grain_amount=0.5, scale=2.2)
+
+    # A lit top edge on every face whatever its size: this is what stops one
+    # limb from merging into whatever is stacked directly above it.
+    for i in range(fw):
+        base.set(x0 + i, y0, pick(NULL_IRON, level + 1.7))
+
+    if fw >= 6 and fh >= 6:
+        # Bevelled frame one pixel in, lit top/left and shadowed bottom/right -
+        # frame_inset() from the block generator, at whatever size we have.
+        for i in range(1, fw - 1):
+            base.set(x0 + i, y0 + 1, pick(NULL_IRON, level + 2.0))
+            base.set(x0 + i, y0 + fh - 2, pick(NULL_IRON, level - 1.6))
+        for j in range(1, fh - 1):
+            base.set(x0 + 1, y0 + j, pick(NULL_IRON, level + 1.6))
+            base.set(x0 + fw - 2, y0 + j, pick(NULL_IRON, level - 1.3))
+
+    if fw >= 8 and fh >= 8:
+        # The recessed centre panel, a step below the ground and carrying its
+        # own lit top-left lip so the recess reads as depth, not as a stain.
+        for j in range(3, fh - 3):
+            for i in range(3, fw - 3):
+                n = grain(x0 + i, y0 + j, seed + 7, scale=2.0) * 0.45
+                base.set(x0 + i, y0 + j, pick(NULL_IRON, level - 1.2 + n))
+        for i in range(3, fw - 3):
+            base.set(x0 + i, y0 + 3, pick(NULL_IRON, level + 0.9))
+        for j in range(3, fh - 3):
+            base.set(x0 + 3, y0 + j, pick(NULL_IRON, level + 0.5))
+
+    if rivets and fw >= 6 and fh >= 6:
+        # Rivets sit in the gap between frame and panel - where the block puts
+        # them, at (2,2) / (12,2) / (2,12) / (12,12) on its own 16px face.
+        for rx, ry in ((2, 2), (fw - 3, 2), (2, fh - 3), (fw - 3, fh - 3)):
+            base.set(x0 + rx, y0 + ry, RIVET)
+
+
 def protector_plate(base: Sheet, glow: Sheet, u, v, size, seed):
-    """The bulk of the guardian: stone plate, banded like the phonolite it is
-    quarried from - the same rock the outpost it guards is built of."""
+    """Torso, legs and upper arms - plain Block of Null-Iron, six faces of it."""
     w, h, d = size
     faces = box_faces(u, v, w, h, d)
-    profile = strata_profile(seed)
     for face, rect in faces.items():
-        if face in ("up", "down"):
-            fill_face(base, rect, STONE, 4.0, face, seed, grain_amount=1.1, scale=2.4)
-        else:
-            band_face(base, rect, STONE, CHALK, 3.8, face, seed, profile)
-        crackle(base, rect, parse_hex("#0A0B0F"), seed + 5, density=0.03)
-    for face in SIDE_FACES:
-        x0, y0, fw, fh = faces[face]
-        for j in range(0, fh, 4):
-            for i in range(fw):
-                base.blend(x0 + i, y0 + j, GOLD[1], 0.25)
+        _plate_panel(base, rect, face, seed, 4.1)
 
 
 def protector_head(base: Sheet, glow: Sheet, u, v, size, seed):
-    """A block of plate, not a face - two lit slits are the only feature."""
+    """The Tuner's Mask, worn as a face.
+
+    The slits cant outward at the top and land on the NORTH face, which is -Z,
+    the direction a Minecraft entity looks. They are the only lit thing on the
+    creature, and they are the same mark carved into the mask block, so a
+    player who placed that mask recognises what walked away wearing it.
+    """
     w, h, d = size
     faces = box_faces(u, v, w, h, d)
     for face, rect in faces.items():
-        fill_face(base, rect, STONE, 4.2, face, seed, grain_amount=0.6)
-    x0, y0, fw, fh = faces.get("north", next(iter(faces.values())))
-    slit_y = y0 + fh // 2
-    for k, dx in enumerate((1, fw - 2)):
-        base.set(x0 + dx, slit_y, GOLD[4])
-        glow.set(x0 + dx, slit_y, (*GOLD[5][:3], 235 - k * 45))
-        base.blend(x0 + dx, slit_y + 1, GOLD[2], 0.5)
-        glow.set(x0 + dx, slit_y + 1, (*GOLD[3][:3], 130))
+        # Rivets on the carved face ONLY, exactly as the mask block has them.
+        # Rivetting every face instead ringed the crown with bright dots and
+        # turned the head into something that read as a lantern cage.
+        _plate_panel(base, rect, face, seed, 4.3, rivets=(face == "north"))
+
+    x0, y0, fw, fh = faces["north"]
+    # Two 3-pixel diagonals mirroring the block's carved slits: widest at the
+    # top and canting inward as they descend, so they read as a scowl.
+    #
+    # The outer edge is pinned one pixel in from the face rather than placed by
+    # a fraction of the width. The fractional version put the inner pixels at
+    # x=2 and x=5 of an 8px face, and with each slit also occupying the pixel
+    # beside it the two runs met in the middle and painted one contiguous 4px
+    # bar - one mark, not two eyes. Pinning outward guarantees the gap.
+    ey = max(1, fh // 3)
+    left = ((1, ey), (1, ey + 1), (2, ey + 1))
+    right = ((fw - 2, ey), (fw - 2, ey + 1), (fw - 3, ey + 1))
+    for k, (dx, dy) in enumerate(left + right):
+        # Distinct ramp steps AND distinct alphas: the glow gate counts unique
+        # RGB, so varying only the alpha would still score as a single colour.
+        step = 5 if k % 3 == 0 else 4
+        base.set(x0 + dx, y0 + dy, GOLD[step])
+        glow.set(x0 + dx, y0 + dy, (*GOLD[step][:3], 250 - (k % 3) * 40))
 
 
 def protector_neck(base: Sheet, glow: Sheet, u, v, size, seed):
-    """A dark stone collar joint between the plated head and the torso."""
+    """The joint the mask sits on - the same plate sunk a step into shadow, so
+    the head reads as a separate block resting on the shoulders."""
     w, h, d = size
     faces = box_faces(u, v, w, h, d)
     for face, rect in faces.items():
-        fill_face(base, rect, STONE, 1.4, face, seed, grain_amount=0.5)
+        _plate_panel(base, rect, face, seed, 2.4, rivets=False)
 
 
 def protector_fist(base: Sheet, glow: Sheet, u, v, size, seed):
-    """The forearms: dark reinforced stone, the part of the body that actually
-    lands the hit - this is the single strongest material read on it."""
+    """The forearms.
+
+    A step brighter than the torso, and cuffed at the top. Both of those are
+    readability rather than decoration: at 4px wide against a 14px torso of
+    the same near-black plate, the arms vanished completely in the first pass -
+    the creature's silhouette had no arms in it at all.
+    """
     w, h, d = size
     faces = box_faces(u, v, w, h, d)
     for face, rect in faces.items():
-        fill_face(base, rect, STONE, 1.6, face, seed, grain_amount=0.7, scale=2.0)
+        _plate_panel(base, rect, face, seed, 5.0)
     for face in SIDE_FACES:
         x0, y0, fw, fh = faces[face]
         for i in range(fw):
-            base.blend(x0 + i, y0, STONE[6], 0.35)
+            base.set(x0 + i, y0 + 1, pick(NULL_IRON, 6.6))
 
 
 # ---------------------------------------------------------------------------
@@ -492,8 +589,11 @@ PALETTES: dict[str, tuple[list[RGBA], tuple[int, ...]]] = {
         AMBER + GOLD + CHALK + CYAN[2:4] + STONE[:3] + [OUTLINE],
         (255,),
     ),
+    # Null-iron and gold only. STONE and CHALK are deliberately gone: allowing
+    # them is what let this creature drift into looking like the strata golem
+    # instead of like the blocks it is built from.
     "tuners_protector": (
-        STONE + CHALK + GOLD + [OUTLINE],
+        NULL_IRON + GOLD + STONE[:2] + [RIVET, OUTLINE],
         (255,),
     ),
 }
@@ -582,7 +682,14 @@ def main() -> int:
 
         flat.append((name, base_img))
         flat.append((f"{name}_glow", glow_img))
-        for yaw, view in ((0, "front"), (110, "side"), (200, "back")):
+        # THESE YAWS WERE INVERTED. Probed with a cube painted a flat colour
+        # per face: at yaw=0 the camera sees the SOUTH face, and NORTH - which
+        # is -Z, the direction a Minecraft entity faces, and where every
+        # painter puts its eyes - only comes round at yaw=180. So every panel
+        # previously labelled "front" was showing the creature's back, which is
+        # why the mobs all looked eyeless from the front and had faces on the
+        # back. The art was right the whole time; the preview was lying.
+        for yaw, view in ((180, "front"), (290, "side"), (0, "back")):
             renders.append((f"{name} / {view}", render_model(model, base_img, yaw=yaw)))
 
     contact = sheet_contact(flat, zoom=4)
