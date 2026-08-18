@@ -303,10 +303,10 @@ def build_tuners_protector() -> Model:
 
     legs = m.bone("legs", (0, 10, 0), parent="root")
     for side, sign in (("l", -1), ("r", 1)):
-        m.cube(legs, (4 * sign - 2, 0, -3), (5, 10, 6), "plate", mirror=(sign < 0))
+        m.cube(legs, (4 * sign - 2, 0, -3), (5, 10, 6), "leg", mirror=(sign < 0))
 
     torso = m.bone("torso", (0, 10, 0), parent="legs")
-    m.cube(torso, (-7, 10, -4), (14, 16, 8), "plate")
+    m.cube(torso, (-7, 10, -4), (14, 16, 8), "torso")
 
     # The neck is deliberately tall - this is what clears the head off the
     # shoulder line instead of sinking it into a collar the way the first
@@ -322,7 +322,7 @@ def build_tuners_protector() -> Model:
         shoulder_x = 10 * sign
         upper = m.bone(f"arm_{side}_upper", (shoulder_x, 25, 0), parent="torso")
         x0 = 7 * sign if sign > 0 else 7 * sign - 4
-        m.cube(upper, (x0, 15, -3), (4, 11, 6), "plate", mirror=(sign < 0))
+        m.cube(upper, (x0, 15, -3), (4, 11, 6), "arm", mirror=(sign < 0))
         lower = m.bone(f"arm_{side}_lower", (shoulder_x, 15, 0), parent=f"arm_{side}_upper")
         m.cube(lower, (x0, 1, -3), (4, 15, 6), "fist", mirror=(sign < 0))
 

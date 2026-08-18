@@ -671,8 +671,16 @@ def forge_hall() -> Template:
     # Every coordinate here was checked against the finished piece for solid
     # ground below and clear headroom above, rather than eyeballed off the
     # layout: (5,3,6) and (11,3,6) are the hall floor, (8,2,12) the south deck.
-    t.entity(5, 3, 6, f"{NS}:tuner_trader")
-    t.entity(11, 3, 6, f"{NS}:tuner_trader")
+    # Variety is written here rather than worked out at spawn time. TraderMob
+    # used to derive it by asking the StructureManager which structure it was
+    # standing in - which is fine on the NaturalSpawner path it was written for,
+    # but SinglePoolElement sets finalizeEntities(true), so finalizeSpawn now
+    # also runs inside chunk generation on the worldgen thread, where that
+    # lookup becomes a synchronous cross-thread chunk request from inside
+    # ChunkStatus.FEATURES. Stating the variety in the template removes the
+    # need for the lookup entirely on this path.
+    t.entity(5, 3, 6, f"{NS}:tuner_trader", Variety=nbt.String("OUTPOST"))
+    t.entity(11, 3, 6, f"{NS}:tuner_trader", Variety=nbt.String("OUTPOST"))
     # The guardian stands out on the deck where it can see the gates - and it
     # is the reason the outpost gets one and the encampment does not.
     t.entity(8, 2, 12, f"{NS}:tuners_protector")

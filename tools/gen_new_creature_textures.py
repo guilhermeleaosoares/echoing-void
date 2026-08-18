@@ -52,7 +52,7 @@ from gen_geo_models import Model                                # noqa: E402
 from ev_palette import parse_hex, mix                            # noqa: E402
 from gen_entity_textures import (                                # noqa: E402
     AMBER, ARCANE, CHALK, CHITIN, CHITIN_PALE, CYAN, GOLD, MAGENTA, STONE,
-    GLOW_ALPHAS, OUTLINE, SIDE_FACES,
+    GLOW_ALPHAS, OUTLINE, SIDE_FACES, FACE_STEP, face_shade,
     Sheet, _hash, band_face, box_faces, crackle, fill_face, grain, label,
     outline_bottom, pick, ramp, render_model, sheet_contact, strata_profile,
 )
@@ -438,133 +438,228 @@ def trader_hand(base: Sheet, glow: Sheet, u, v, size, seed):
 # 9 steps rather than 7: at 7 the finished sheet only carried 9 distinct
 # colours and tripped the gate's 10-colour floor for entities, and the bevel
 # highlights had visible jumps between them.
-NULL_IRON = ramp("#060608", "#08080A", "#1A1A24", "#2A2A38", "#3B4252", "#6E7B94",
-                 steps=9)
+NULL_IRON = [
+    parse_hex("#060608"),   # 0 deepest shadow / crevice / underside (lum 6)
+    parse_hex("#08080A"),   # 1 void black ground (lum 8)
+    parse_hex("#13131A"),   # 2 dark null iron (lum 15)
+    parse_hex("#1A1A24"),   # 3 shadow plate (lum 27)
+    parse_hex("#23232F"),   # 4 mid plate (lum 35)
+    parse_hex("#2A2A38"),   # 5 lit plate (lum 43)
+    parse_hex("#333748"),   # 6 mid-light steel (lum 52)
+    parse_hex("#3C4253"),   # 7 bevel highlight (lum 62)
+    parse_hex("#4C566A"),   # 8 bright bevel edge (lum 85)
+    parse_hex("#5B677D"),   # 9 specular rivet glint (lum 95)
+    parse_hex("#6E7B94"),   # 10 sky-lit crown / catchlight (lum 122)
+    parse_hex("#8794AB"),   # 11 maximum specular glint (lum 145)
+]
 
-# The block's own cool catch-light - mix(NI_MID, BI_MID, 0.35), the top entry
-# of NULL_BLOCK_RAMP in the block generator. Spent only on rivets. A body this
-# near-black needs something that catches the eye at range, and taking it from
-# the block's own ramp means the creature gets that without drifting off the
-# material the way a grey or a gold would.
-RIVET = parse_hex("#316473")
+RIVET = parse_hex("#5B677D")
 
 
-def _plate_panel(base: Sheet, rect, face: str, seed: int, level: float,
-                 rivets: bool = True) -> None:
-    """Paint one cube face as a face of a Block of Null-Iron.
+def _pick_ni(level: float) -> RGBA:
+    idx = max(0, min(len(NULL_IRON) - 1, int(round(level))))
+    return NULL_IRON[idx]
 
-    Detail is added only where it fits - the frame needs 6px, the recessed
-    panel 8px - so a 4px-wide arm keeps its ground and its lit top edge alone
-    rather than collapsing into noise. That size ladder is what lets the torso
-    read as a full block face while the limbs still read as the same material.
+
+def _plate_panel(base: Sheet, rect, face: str, seed: int, base_level: float = 4.5,
+                 bevel_scale: float = 1.0,
+                 rivets: tuple[tuple[int, int], ...] = ()) -> None:
+    """Paint one cube face as an authentic face of a Block of Null-Iron.
+
+    Applies directional lighting, 1px bevel frame highlights, recessed panel
+    inner plate depth, and specular corner rivets.
     """
     x0, y0, fw, fh = rect
-    fill_face(base, rect, NULL_IRON, level, face, seed,
-              grain_amount=0.5, scale=2.2)
+    fstep = FACE_STEP.get(face, 0.0)
 
-    # A lit top edge on every face whatever its size: this is what stops one
-    # limb from merging into whatever is stacked directly above it.
+    # 1. Base directional metallic flow and aperiodic noise
+    for j in range(fh):
+        for i in range(fw):
+            diag = (fw + fh - (i + j)) / max(1.0, float(fw + fh))
+            n = grain(x0 + i, y0 + j, seed, scale=2.5) * 0.35
+            fshade = face_shade(i, j, fw, fh, face) * 0.5
+            lvl = base_level + fstep + (diag - 0.5) * 1.2 + n + fshade
+            base.set(x0 + i, y0 + j, _pick_ni(lvl))
+
+    # 2. 1px Outer Bevel Frame (lit top/left, shadow bottom/right)
     for i in range(fw):
-        base.set(x0 + i, y0, pick(NULL_IRON, level + 1.7))
+        base.set(x0 + i, y0, _pick_ni(base_level + fstep + 2.2 * bevel_scale))
+    for j in range(fh):
+        base.set(x0, y0 + j, _pick_ni(base_level + fstep + 1.8 * bevel_scale))
 
+    for i in range(fw):
+        base.set(x0 + i, y0 + fh - 1, _pick_ni(base_level + fstep - 2.0 * bevel_scale))
+    for j in range(fh):
+        base.set(x0 + fw - 1, y0 + j, _pick_ni(base_level + fstep - 1.6 * bevel_scale))
+
+    # 3. Inset Frame & Recessed Panel if face is large enough
     if fw >= 6 and fh >= 6:
-        # Bevelled frame one pixel in, lit top/left and shadowed bottom/right -
-        # frame_inset() from the block generator, at whatever size we have.
+        # Inset bevel frame at 1px in
         for i in range(1, fw - 1):
-            base.set(x0 + i, y0 + 1, pick(NULL_IRON, level + 2.0))
-            base.set(x0 + i, y0 + fh - 2, pick(NULL_IRON, level - 1.6))
+            base.set(x0 + i, y0 + 1, _pick_ni(base_level + fstep + 1.8))
+            base.set(x0 + i, y0 + fh - 2, _pick_ni(base_level + fstep - 1.5))
         for j in range(1, fh - 1):
-            base.set(x0 + 1, y0 + j, pick(NULL_IRON, level + 1.6))
-            base.set(x0 + fw - 2, y0 + j, pick(NULL_IRON, level - 1.3))
+            base.set(x0 + 1, y0 + j, _pick_ni(base_level + fstep + 1.4))
+            base.set(x0 + fw - 2, y0 + j, _pick_ni(base_level + fstep - 1.2))
 
     if fw >= 8 and fh >= 8:
-        # The recessed centre panel, a step below the ground and carrying its
-        # own lit top-left lip so the recess reads as depth, not as a stain.
+        # Recessed panel (step down inside)
         for j in range(3, fh - 3):
             for i in range(3, fw - 3):
-                n = grain(x0 + i, y0 + j, seed + 7, scale=2.0) * 0.45
-                base.set(x0 + i, y0 + j, pick(NULL_IRON, level - 1.2 + n))
+                diag = (fw + fh - (i + j)) / max(1.0, float(fw + fh))
+                n = grain(x0 + i, y0 + j, seed + 101, scale=2.0) * 0.3
+                lvl = base_level + fstep - 0.8 + (diag - 0.5) * 0.9 + n
+                base.set(x0 + i, y0 + j, _pick_ni(lvl))
         for i in range(3, fw - 3):
-            base.set(x0 + i, y0 + 3, pick(NULL_IRON, level + 0.9))
+            base.set(x0 + i, y0 + 3, _pick_ni(base_level + fstep - 1.6))
+            base.set(x0 + i, y0 + fh - 4, _pick_ni(base_level + fstep + 0.9))
         for j in range(3, fh - 3):
-            base.set(x0 + 3, y0 + j, pick(NULL_IRON, level + 0.5))
+            base.set(x0 + 3, y0 + j, _pick_ni(base_level + fstep - 1.4))
+            base.set(x0 + fw - 4, y0 + j, _pick_ni(base_level + fstep + 0.7))
 
-    if rivets and fw >= 6 and fh >= 6:
-        # Rivets sit in the gap between frame and panel - where the block puts
-        # them, at (2,2) / (12,2) / (2,12) / (12,12) on its own 16px face.
-        for rx, ry in ((2, 2), (fw - 3, 2), (2, fh - 3), (fw - 3, fh - 3)):
-            base.set(x0 + rx, y0 + ry, RIVET)
+    # 4. Corner Rivets
+    for rx, ry in rivets:
+        if 0 <= rx < fw and 0 <= ry < fh:
+            base.set(x0 + rx, y0 + ry, NULL_IRON[10])             # Specular catch
+            if rx + 1 < fw and ry + 1 < fh:
+                base.set(x0 + rx + 1, y0 + ry + 1, NULL_IRON[1]) # Shadow drop
+            if rx + 1 < fw:
+                base.set(x0 + rx + 1, y0 + ry, NULL_IRON[6])
+            if ry + 1 < fh:
+                base.set(x0 + rx, y0 + ry + 1, NULL_IRON[6])
 
 
-def protector_plate(base: Sheet, glow: Sheet, u, v, size, seed):
-    """Torso, legs and upper arms - plain Block of Null-Iron, six faces of it."""
+def protector_torso(base: Sheet, glow: Sheet, u, v, size, seed):
+    """The main forged null-iron chest block: wide inset frame, recessed center,
+    specular corner rivets, and directional metallic sheen."""
     w, h, d = size
     faces = box_faces(u, v, w, h, d)
     for face, rect in faces.items():
-        _plate_panel(base, rect, face, seed, 4.1)
+        if face == "north":
+            _plate_panel(base, rect, face, seed, base_level=4.6,
+                         rivets=((2, 2), (w - 3, 2), (2, h - 3), (w - 3, h - 3)))
+        elif face == "south":
+            _plate_panel(base, rect, face, seed, base_level=4.2,
+                         rivets=((2, 2), (w - 3, 2), (2, h - 3), (w - 3, h - 3)))
+        elif face == "up":
+            _plate_panel(base, rect, face, seed, base_level=5.4, bevel_scale=1.2)
+        elif face == "down":
+            _plate_panel(base, rect, face, seed, base_level=1.8)
+        else:  # east / west (armpit flank)
+            _plate_panel(base, rect, face, seed, base_level=3.2)
 
 
 def protector_head(base: Sheet, glow: Sheet, u, v, size, seed):
     """The Tuner's Mask, worn as a face.
-
-    The slits cant outward at the top and land on the NORTH face, which is -Z,
-    the direction a Minecraft entity looks. They are the only lit thing on the
-    creature, and they are the same mark carved into the mask block, so a
-    player who placed that mask recognises what walked away wearing it.
-    """
+    Carries the glowing gold eye slits, carved bridge, mouth groove, and rivets."""
     w, h, d = size
     faces = box_faces(u, v, w, h, d)
     for face, rect in faces.items():
-        # Rivets on the carved face ONLY, exactly as the mask block has them.
-        # Rivetting every face instead ringed the crown with bright dots and
-        # turned the head into something that read as a lantern cage.
-        _plate_panel(base, rect, face, seed, 4.3, rivets=(face == "north"))
-
-    x0, y0, fw, fh = faces["north"]
-    # Two 3-pixel diagonals mirroring the block's carved slits: widest at the
-    # top and canting inward as they descend, so they read as a scowl.
-    #
-    # The outer edge is pinned one pixel in from the face rather than placed by
-    # a fraction of the width. The fractional version put the inner pixels at
-    # x=2 and x=5 of an 8px face, and with each slit also occupying the pixel
-    # beside it the two runs met in the middle and painted one contiguous 4px
-    # bar - one mark, not two eyes. Pinning outward guarantees the gap.
-    ey = max(1, fh // 3)
-    left = ((1, ey), (1, ey + 1), (2, ey + 1))
-    right = ((fw - 2, ey), (fw - 2, ey + 1), (fw - 3, ey + 1))
-    for k, (dx, dy) in enumerate(left + right):
-        # Distinct ramp steps AND distinct alphas: the glow gate counts unique
-        # RGB, so varying only the alpha would still score as a single colour.
-        step = 5 if k % 3 == 0 else 4
-        base.set(x0 + dx, y0 + dy, GOLD[step])
-        glow.set(x0 + dx, y0 + dy, (*GOLD[step][:3], 250 - (k % 3) * 40))
+        if face == "north":
+            x0, y0, fw, fh = rect
+            _plate_panel(base, rect, face, seed, base_level=4.8, rivets=((1, 1), (6, 1), (1, 6), (6, 6)))
+            # Glowing gold eye slits (scowl) with core highlights and softer tips
+            # Outer edge pinned one pixel in from the face, NOT placed by a
+            # fraction of the width. At (2,2)/(3,3) and (5,2)/(4,3) the two
+            # slits' inner pixels land on x=3 and x=4 of an 8px face and the
+            # runs meet, painting one contiguous 4px bar across row 3 - which
+            # renders as a single mark, not a pair of eyes. Pinning outward
+            # guarantees the gap at x=3,4 that makes them read as two.
+            for (ex, ey), step in [((1, 2), 4), ((1, 3), 5), ((2, 3), 4),
+                                   ((6, 2), 4), ((6, 3), 5), ((5, 3), 4)]:
+                base.set(x0 + ex, y0 + ey, GOLD[step])
+                glow.set(x0 + ex, y0 + ey, (*GOLD[step][:3], 240 if step == 5 else 200))
+            # Nose bridge & mouth groove
+            for my in (4, 5):
+                base.set(x0 + 3, y0 + my, NULL_IRON[2])
+                base.set(x0 + 4, y0 + my, NULL_IRON[3])
+            for mx in range(2, 6):
+                base.set(x0 + mx, y0 + 6, NULL_IRON[1])
+        elif face == "up":
+            _plate_panel(base, rect, face, seed, base_level=5.2, rivets=((1, 1), (6, 1), (1, 6), (6, 6)))
+        else:
+            rivs = ((1, 1), (6, 1), (1, 6), (6, 6)) if face == "south" else ()
+            _plate_panel(base, rect, face, seed, base_level=4.4, rivets=rivs)
 
 
 def protector_neck(base: Sheet, glow: Sheet, u, v, size, seed):
-    """The joint the mask sits on - the same plate sunk a step into shadow, so
-    the head reads as a separate block resting on the shoulders."""
+    """The collar joint: sunk into shadow with a top collar highlight."""
     w, h, d = size
     faces = box_faces(u, v, w, h, d)
     for face, rect in faces.items():
-        _plate_panel(base, rect, face, seed, 2.4, rivets=False)
+        x0, y0, fw, fh = rect
+        _plate_panel(base, rect, face, seed, base_level=2.0, rivets=())
+        for i in range(fw):
+            base.set(x0 + i, y0, NULL_IRON[6])
+
+
+def protector_arm(base: Sheet, glow: Sheet, u, v, size, seed):
+    """Upper arms: lit shoulder caps, outer bevels, and shoulder rivets."""
+    w, h, d = size
+    faces = box_faces(u, v, w, h, d)
+    for face, rect in faces.items():
+        x0, y0, fw, fh = rect
+        if face == "up":
+            _plate_panel(base, rect, face, seed, base_level=5.6, bevel_scale=1.2)
+        elif face in ("north", "south"):
+            _plate_panel(base, rect, face, seed, base_level=4.8, rivets=((1, 2), (w - 2, 2)))
+        elif face == "west":  # Outer left flank / inner right flank
+            _plate_panel(base, rect, face, seed, base_level=4.6)
+        else:  # east
+            _plate_panel(base, rect, face, seed, base_level=3.6)
 
 
 def protector_fist(base: Sheet, glow: Sheet, u, v, size, seed):
-    """The forearms.
-
-    A step brighter than the torso, and cuffed at the top. Both of those are
-    readability rather than decoration: at 4px wide against a 14px torso of
-    the same near-black plate, the arms vanished completely in the first pass -
-    the creature's silhouette had no arms in it at all.
-    """
+    """Lower arms and fists: articulated forearm, reinforced wrist cuff, and heavy fist."""
     w, h, d = size
     faces = box_faces(u, v, w, h, d)
     for face, rect in faces.items():
-        _plate_panel(base, rect, face, seed, 5.0)
-    for face in SIDE_FACES:
-        x0, y0, fw, fh = faces[face]
-        for i in range(fw):
-            base.set(x0 + i, y0 + 1, pick(NULL_IRON, 6.6))
+        x0, y0, fw, fh = rect
+        if face == "up":
+            _plate_panel(base, rect, face, seed, base_level=4.8)
+        elif face == "down":
+            _plate_panel(base, rect, face, seed, base_level=2.2)
+        else:
+            rivs = ((1, 10), (w - 2, 10)) if face in ("north", "south") else ()
+            lvl = 5.0 if face in ("north", "west") else 4.2
+            _plate_panel(base, rect, face, seed, base_level=lvl, rivets=rivs)
+            # Reinforced wrist cuff at y=9..10
+            for i in range(fw):
+                base.set(x0 + i, y0 + 9, NULL_IRON[8])
+                base.set(x0 + i, y0 + 10, NULL_IRON[2])
+            # Knuckle highlight at y=13
+            if face == "north":
+                for i in range(1, fw - 1):
+                    base.set(x0 + i, y0 + 13, NULL_IRON[7])
+
+
+def protector_leg(base: Sheet, glow: Sheet, u, v, size, seed):
+    """Legs: sturdy planted pillars with lit knee bevels, boot rims, and inner shadows."""
+    w, h, d = size
+    faces = box_faces(u, v, w, h, d)
+    for face, rect in faces.items():
+        x0, y0, fw, fh = rect
+        if face == "up":
+            _plate_panel(base, rect, face, seed, base_level=2.2)
+        elif face == "down":
+            _plate_panel(base, rect, face, seed, base_level=1.5)
+        else:
+            rivs = ((1, 2), (w - 2, 2)) if face in ("north", "south") else ()
+            lvl = 4.4 if face in ("north", "west") else 3.4
+            _plate_panel(base, rect, face, seed, base_level=lvl, rivets=rivs)
+            # Knee plate line at y=3
+            if face in ("north", "south"):
+                for i in range(1, fw - 1):
+                    base.set(x0 + i, y0 + 3, NULL_IRON[6])
+            # Reinforced boot rim at y=8..9
+            for i in range(fw):
+                base.set(x0 + i, y0 + 8, NULL_IRON[7])
+                base.set(x0 + i, y0 + 9, NULL_IRON[1])
+
+
+def protector_plate(base: Sheet, glow: Sheet, u, v, size, seed):
+    """Generic fallback plate painter."""
+    protector_torso(base, glow, u, v, size, seed)
 
 
 # ---------------------------------------------------------------------------
@@ -589,11 +684,9 @@ PALETTES: dict[str, tuple[list[RGBA], tuple[int, ...]]] = {
         AMBER + GOLD + CHALK + CYAN[2:4] + STONE[:3] + [OUTLINE],
         (255,),
     ),
-    # Null-iron and gold only. STONE and CHALK are deliberately gone: allowing
-    # them is what let this creature drift into looking like the strata golem
-    # instead of like the blocks it is built from.
+    # Authentic Null-Iron palette with rich cold-steel specular highlights and gold eye slits
     "tuners_protector": (
-        NULL_IRON + GOLD + STONE[:2] + [RIVET, OUTLINE],
+        NULL_IRON + GOLD + [OUTLINE],
         (255,),
     ),
 }
@@ -632,10 +725,13 @@ PAINTERS = {
         "hand": trader_hand,
     },
     "tuners_protector": {
-        "plate": protector_plate,
+        "torso": protector_torso,
         "head": protector_head,
         "neck": protector_neck,
+        "arm": protector_arm,
         "fist": protector_fist,
+        "leg": protector_leg,
+        "plate": protector_plate,
     },
 }
 

@@ -2,12 +2,8 @@
   "feature": "echoing_void:ore_null_iron_overworld",
   "placement": [
     {
-      "type": "minecraft:rarity_filter",
-      "chance": 4
-    },
-    {
       "type": "minecraft:count",
-      "count": 2
+      "count": 3
     },
     {
       "type": "minecraft:in_square"
@@ -15,12 +11,12 @@
     {
       "type": "minecraft:height_range",
       "height": {
-        "type": "minecraft:uniform",
+        "type": "minecraft:trapezoid",
         "min_inclusive": {
           "absolute": -64
         },
         "max_inclusive": {
-          "absolute": -8
+          "absolute": 32
         }
       }
     },

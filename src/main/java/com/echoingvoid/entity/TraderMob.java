@@ -97,6 +97,23 @@ public class TraderMob extends AbstractVillager {
     @Override
     public @Nullable SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty,
             EntitySpawnReason spawnReason, @Nullable SpawnGroupData groupData) {
+        // A trader placed as part of a structure already knows what it is: the
+        // template states its Variety. Bail out before the lookup below.
+        //
+        // This is not just an optimisation. SinglePoolElement.getSettings calls
+        // setFinalizeEntities(true), so once the settlements carried their own
+        // inhabitants this method started running inside ChunkStatus.FEATURES on
+        // the worldgen thread, with `level` a WorldGenRegion. The lookup goes
+        // through ServerLevel.structureManager(), whose getStructureAt does
+        // getChunk(..., STRUCTURE_REFERENCES) - and off the main thread
+        // ServerChunkCache turns that into a supplyAsync(...).join() back onto
+        // the main thread, i.e. a synchronous cross-thread chunk request issued
+        // from within chunk generation. Vanilla never does this: every
+        // generation step passes structureManager().forWorldGenRegion(region)
+        // instead, and WorldGenRegion exposes no structure manager of its own.
+        if (spawnReason == EntitySpawnReason.STRUCTURE) {
+            return super.finalizeSpawn(level, difficulty, spawnReason, groupData);
+        }
         Structure encampment = level.getLevel().structureManager().registryAccess()
                 .lookupOrThrow(Registries.STRUCTURE)
                 .getValue(ResourceKey.create(Registries.STRUCTURE, EchoingVoid.id("tuner_encampment")));

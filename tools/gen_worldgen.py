@@ -1552,11 +1552,16 @@ def gen_features() -> None:
     # below it. Both targets are listed on one ore feature, exactly as vanilla
     # does for every overworld ore, so a single vein that straddles the boundary
     # comes out in the right rock on both sides of it.
+    # PLAYER: "bismuth 25% rarer than diamond" / "i cannot find deepslate or
+    # regular bismuth". It was at roughly 39% of diamond's ore volume - about
+    # 2.6x rarer, not 1.33x - with a band whose top sat 24 blocks above
+    # diamond's. Vanilla diamond is size 8 at ~4.7 veins/chunk = ~75 units;
+    # size 8 x count 7 = 56 units is 25% under that.
     write(cf / "ore_resonant_bismuth.json", {
         "type": "minecraft:ore",
         "config": {
             "discard_chance_on_air_exposure": 0.0,
-            "size": 6,
+            "size": 8,
             "targets": [
                 {"state": B("resonant_bismuth_ore"),
                  "target": {"predicate_type": "minecraft:tag_match",
@@ -1570,24 +1575,29 @@ def gen_features() -> None:
     write(pf / "ore_resonant_bismuth_placed.json", {
         "feature": ev("ore_resonant_bismuth"),
         "placement": [
-            {"type": "minecraft:count", "count": 5},
+            {"type": "minecraft:count", "count": 7},
             {"type": "minecraft:in_square"},
+            # Diamond's own band, so bismuth is found where a player already
+            # digs for diamond rather than 24 blocks above it.
             {"type": "minecraft:height_range",
              "height": {"type": "minecraft:trapezoid",
-                        "min_inclusive": {"absolute": -56},
-                        "max_inclusive": {"absolute": 40}}},
+                        "min_inclusive": {"above_bottom": -80},
+                        "max_inclusive": {"above_bottom": 80}}},
             {"type": "minecraft:biome"},
         ],
     })
 
-    # Null-Iron is Overworld-rare and deep only (expansion.json placement note),
-    # so it gets a rarity filter on top of a small count and never rises above
-    # the deepslate band.
+    # PLAYER: "null iron should be 25% rarer than gold". It was a 3-block
+    # SCATTERED ore at 0.5 veins/chunk confined to y-64..-8: about 27x less ore
+    # per chunk than gold (96% rarer), never forming a recognisable vein, and
+    # with its whole band below y-8 so the stone-host null_iron_ore variant was
+    # effectively unreachable. Now gold's own vein shape and air-exposure
+    # discard, at 3 veins/chunk against gold's 4 - 25% rarer.
     write(cf / "ore_null_iron_overworld.json", {
-        "type": "minecraft:scattered_ore",
+        "type": "minecraft:ore",
         "config": {
             "discard_chance_on_air_exposure": 0.5,
-            "size": 3,
+            "size": 9,
             "targets": [
                 {"state": B("deepslate_null_iron_ore"),
                  "target": {"predicate_type": "minecraft:tag_match",
@@ -1601,10 +1611,51 @@ def gen_features() -> None:
     write(pf / "ore_null_iron_overworld_placed.json", {
         "feature": ev("ore_null_iron_overworld"),
         "placement": [
-            {"type": "minecraft:rarity_filter", "chance": 4},
+            {"type": "minecraft:count", "count": 3},
+            {"type": "minecraft:in_square"},
+            # Reaches up into stone now, so the stone-host variant can appear.
+            {"type": "minecraft:height_range",
+             "height": {"type": "minecraft:trapezoid",
+                        "min_inclusive": {"absolute": -64},
+                        "max_inclusive": {"absolute": 32}}},
+            {"type": "minecraft:biome"},
+        ],
+    })
+
+    # PLAYER: "phonolite should generate in large patches like tuff, i havent
+    # seen any at all yet" / "i havent been able to find a single drop of
+    # phonolite yet."
+    #
+    # It had NO Overworld generation of any kind, and no crafting or loot route
+    # outside the Hollow Horizon - which made the mod a hard progression
+    # deadlock in survival, because the portal frame is phonolite_bricks and
+    # those are craftable only from raw_phonolite. You needed phonolite to
+    # reach the only place that had phonolite.
+    #
+    # Shaped like vanilla ore_tuff rather than like an ore: size 64 blobs
+    # against base_stone_overworld, low in the column, so it reads as a rock
+    # formation a player stumbles into rather than something to prospect for.
+    write(cf / "ore_raw_phonolite.json", {
+        "type": "minecraft:ore",
+        "config": {
+            "discard_chance_on_air_exposure": 0.0,
+            "size": 64,
+            "targets": [
+                {"state": B("raw_phonolite"),
+                 "target": {"predicate_type": "minecraft:tag_match",
+                            "tag": "minecraft:base_stone_overworld"}},
+            ],
+        },
+    })
+    write(pf / "ore_raw_phonolite_placed.json", {
+        "feature": ev("ore_raw_phonolite"),
+        "placement": [
             {"type": "minecraft:count", "count": 2},
             {"type": "minecraft:in_square"},
-            {"type": "minecraft:height_range", "height": _uniform(-64, -8)},
+            {"type": "minecraft:height_range",
+             "height": {"type": "minecraft:uniform",
+                        "min_inclusive": {"above_bottom": 0},
+                        "max_inclusive": {"absolute": 0}}},
             {"type": "minecraft:biome"},
         ],
     })
@@ -2122,6 +2173,13 @@ def gen_tags_and_modifiers() -> None:
         "type": "forge:add_features",
         "biomes": "#minecraft:is_overworld",
         "features": ev("ore_null_iron_overworld_placed"),
+        "step": "underground_ores",
+    })
+    # Without this the portal is unreachable in survival - see ore_raw_phonolite.
+    write(MOD / "forge" / "biome_modifier" / "add_raw_phonolite.json", {
+        "type": "forge:add_features",
+        "biomes": "#minecraft:is_overworld",
+        "features": ev("ore_raw_phonolite_placed"),
         "step": "underground_ores",
     })
 

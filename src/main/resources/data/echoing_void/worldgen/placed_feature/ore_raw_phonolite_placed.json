@@ -1,9 +1,9 @@
 {
-  "feature": "echoing_void:ore_resonant_bismuth",
+  "feature": "echoing_void:ore_raw_phonolite",
   "placement": [
     {
       "type": "minecraft:count",
-      "count": 7
+      "count": 2
     },
     {
       "type": "minecraft:in_square"
@@ -11,12 +11,12 @@
     {
       "type": "minecraft:height_range",
       "height": {
-        "type": "minecraft:trapezoid",
+        "type": "minecraft:uniform",
         "min_inclusive": {
-          "above_bottom": -80
+          "above_bottom": 0
         },
         "max_inclusive": {
-          "above_bottom": 80
+          "absolute": 0
         }
       }
     },

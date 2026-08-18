@@ -2071,9 +2071,16 @@ TEXTURES = [
     ("chalk_bricks", t_chalk_bricks, True),
     ("chime_sand", t_chime_sand, True),
     # ores
-    ("resonant_bismuth_ore", t_resonant_bismuth_ore, True),
-    ("deepslate_resonant_bismuth_ore", t_deepslate_resonant_bismuth_ore, True),
-    ("null_iron_ore", t_null_iron_ore, True),
+    # The three ores that used to be drawn here are gone on purpose.
+    #
+    # PLAYER: "the deepslate bismuth has the phonolite ore texture."
+    # They were double-owned: gen_family_textures.py draws them on the vanilla
+    # stone and deepslate hosts they are actually placed in, and this file drew
+    # the same three filenames on the phonolite host. Two generators writing one
+    # PNG is decided by stage order rather than intent, and this one ran last -
+    # so an ore that generates in deepslate shipped wearing phonolite.
+    # gen_family_textures.py is now the single owner, which is the precedent
+    # that file already sets for knell_ore.
     ("null_iron_block", t_null_iron_block, True),
     ("tuners_mask_front", t_tuners_mask_front, True),
     # ground cover
@@ -2335,8 +2342,18 @@ def main() -> int:
     print(f"{len(table)} textures -> {OUT_BLOCK}")
 
     produced = {name for name, _fn, _cube in TEXTURES}
+    # Textures the spec calls for that a DIFFERENT generator owns. The three
+    # ores moved to gen_family_textures.py, which paints them on the vanilla
+    # stone and deepslate hosts they actually generate in; this file drawing
+    # them too was what put a phonolite host on the deepslate bismuth ore.
+    # They are still required to exist - they are just not this stage's job.
+    OWNED_ELSEWHERE = {
+        "resonant_bismuth_ore",
+        "deepslate_resonant_bismuth_ore",
+        "null_iron_ore",
+    }
     wanted = spec_block_textures()
-    missing = [t for t in wanted if t not in produced]
+    missing = [t for t in wanted if t not in produced and t not in OWNED_ELSEWHERE]
     if missing:
         failures.append("missing from mod_spec output: " + ", ".join(missing))
     print(f"spec coverage: {len(wanted) - len(missing)}/{len(wanted)} "

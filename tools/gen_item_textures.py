@@ -728,53 +728,82 @@ def _harmonic_tool(form, seed: int, sparks: list) -> Sprite:
 
 
 def harmonic_sword() -> Sprite:
-    """Vanilla's sword form: blade on the diagonal, guard, grip off the corner."""
+    """A resonant tuning blade: null-iron handle, swept tuning-fork quillons,
+    and a crystalline bismuth blade with an acoustic fuller and harmonic sparks."""
     sp = Sprite()
-    head, haft = vf.tool_levels(vf.SWORD)
-    for (x, y), level in haft.items():
-        level += 0.08 * (fbm(x * 2.1, y * 2.1, 7301, octaves=2) - 0.5)
-        sp.put(x, y, NULL_IRON, NULL_IRON.tone(level))
-    for (x, y), level in head.items():
-        level += 0.08 * (fbm(x * 2.1, y * 2.1, 7307, octaves=2) - 0.5)
-        sp.put(x, y, BISMUTH, BISMUTH.tone(level))
+    handle = stroke([(2.2, 13.8), (5.0, 11.0)], 1.05)
+    pommel = spans({14: [(1, 2)], 15: [(1, 2)]})
+    guard = spans({
+        9: [(2, 4)],
+        10: [(2, 5)],
+        11: [(3, 6)],
+        12: [(5, 8)],
+        13: [(7, 8)],
+    })
+    blade = poly([
+        (5.2, 10.4), (4.2, 9.4), (12.2, 1.4), (14.6, 0.4),
+        (13.6, 2.8), (6.2, 10.2)
+    ])
+    sp.paint(handle | pommel, NULL_IRON, 0.55, 7301, spread=0.30, light=0.26)
+    sp.paint(guard, NULL_IRON, 0.60, 7303, spread=0.28, light=0.28)
+    sp.paint(blade, BISMUTH, 0.65, 7307, spread=0.32, light=0.32)
+
+    # Hollow acoustic slot / fuller along blade spine
+    for p in ((7, 7), (8, 6)):
+        sp.put(p[0], p[1], BISMUTH, BISMUTH.dark)
+
     sp.outline()
-    sp.stamp([(4, 11), (5, 10)], NULL_IRON, 1.0)        # guard collar
-    sp.stamp([(13, 2), (10, 5), (7, 8)], BISMUTH, 1.0)  # blade spine catch-lights
-    sp.stamp([(4, 11)], GOLD, 1.0)                       # gold specular spark at guard
+    sp.stamp([(5, 10), (6, 11)], NULL_IRON, 1.0)        # guard collar
+    sp.stamp([(13, 1), (11, 3), (9, 5)], BISMUTH, 1.0)  # blade spine highlights
+    sp.stamp([(3, 9), (7, 13)], BISMUTH, 0.8)           # quillon tips
+    sp.stamp([(10, 4), (4, 10)], GOLD, 1.0)             # harmonic sparks
     return sp
 
 
 def harmonic_axe() -> Sprite:
-    """Vanilla's axe form - the bit shape is what makes an axe read as an axe."""
+    """A crystalline bearded war-axe: sweeping crescent bit, acoustic eye,
+    and a counter-weighted poll in bismuth on a null-iron haft."""
     sp = Sprite()
-    head, haft = vf.tool_levels(vf.AXE)
-    for (x, y), level in haft.items():
-        level += 0.08 * (fbm(x * 2.1, y * 2.1, 7401, octaves=2) - 0.5)
-        sp.put(x, y, NULL_IRON, NULL_IRON.tone(level))
-    for (x, y), level in head.items():
-        level += 0.08 * (fbm(x * 2.1, y * 2.1, 7407, octaves=2) - 0.5)
-        sp.put(x, y, BISMUTH, BISMUTH.tone(level))
+    haft = stroke([(2.4, 14.4), (10.4, 5.6)], 1.05)
+    head = poly([
+        (8.8, 1.2), (10.8, 1.2), (13.6, 4.8), (12.4, 6.6),
+        (10.2, 5.8), (8.6, 7.8), (5.2, 8.4),
+        (4.4, 6.4), (4.8, 3.6), (7.0, 1.6)
+    ])
+    sp.paint(haft, NULL_IRON, 0.58, 7401, spread=0.34, light=0.26)
+    sp.paint(head - haft, BISMUTH, 0.64, 7407, spread=0.32, light=0.30)
+
+    # Resonator slot / acoustic cutout in the blade cheek
+    for p in ((7, 5), (8, 4)):
+        sp.clear(*p)
+
     sp.outline()
     sp.stamp([(9, 5), (10, 6)], NULL_IRON, 1.0)        # lashing at eye
-    sp.stamp([(6, 4), (6, 5), (9, 2)], BISMUTH, 1.0)   # lit cutting edge & poll
-    sp.stamp([(8, 2)], GOLD, 1.0)                       # gold specular spark
+    sp.stamp([(5, 4), (5, 6), (8, 1)], BISMUTH, 1.0)   # cutting edge & crest highlights
+    sp.stamp([(7, 2), (5, 7)], GOLD, 1.0)              # harmonic sparks
     return sp
 
 
 def harmonic_shovel() -> Sprite:
-    """Vanilla's shovel form: a spade blade square on the end of the haft."""
+    """A resonant pointed spade: diamond trenching scoop with fluted wings,
+    reinforced spine, and chisel tip in bismuth on a null-iron haft."""
     sp = Sprite()
-    head, haft = vf.tool_levels(vf.SHOVEL)
-    for (x, y), level in haft.items():
-        level += 0.08 * (fbm(x * 2.1, y * 2.1, 7501, octaves=2) - 0.5)
-        sp.put(x, y, NULL_IRON, NULL_IRON.tone(level))
-    for (x, y), level in head.items():
-        level += 0.08 * (fbm(x * 2.1, y * 2.1, 7507, octaves=2) - 0.5)
-        sp.put(x, y, BISMUTH, BISMUTH.tone(level))
+    haft = stroke([(2.4, 14.4), (8.4, 7.6)], 1.05)
+    scoop = poly([
+        (8.2, 7.4), (6.4, 5.6), (7.4, 3.8), (10.6, 1.2), (14.4, 1.4),
+        (13.4, 4.4), (11.4, 7.6), (9.6, 8.4)
+    ])
+    sp.paint(haft, NULL_IRON, 0.58, 7501, spread=0.34, light=0.26)
+    sp.paint(scoop - haft, BISMUTH, 0.62, 7507, spread=0.32, light=0.30)
+
+    # Fluted acoustic cutouts on the wings
+    for p in ((8, 6), (10, 8)):
+        sp.clear(*p)
+
     sp.outline()
-    sp.stamp([(8, 7), (9, 6)], NULL_IRON, 1.0)         # ferrule/socket
-    sp.stamp([(10, 3), (12, 3), (9, 4)], BISMUTH, 1.0)  # spade lit ridge
-    sp.stamp([(11, 3)], GOLD, 1.0)                      # gold specular spark
+    sp.stamp([(8, 7), (9, 6)], NULL_IRON, 1.0)         # socket ferrule
+    sp.stamp([(13, 2), (11, 2), (9, 3)], BISMUTH, 1.0) # spine & chisel tip
+    sp.stamp([(12, 3), (8, 4)], GOLD, 1.0)             # harmonic sparks
     return sp
 
 
