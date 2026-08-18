@@ -42,6 +42,12 @@
       "base_height": 2,
       "height_rand_a": 1,
       "height_rand_b": 4,
+      "can_grow_through": [
+        "echoing_void:calcified_resonance_leaves",
+        "echoing_void:amber_resonance_leaves",
+        "echoing_void:violet_resonance_leaves",
+        "echoing_void:ashen_resonance_leaves"
+      ],
       "place_branch_per_log_probability": 0.5,
       "extra_branch_steps": {
         "type": "minecraft:uniform",

@@ -4,13 +4,22 @@
     "features": [
       {
         "chance": 0.08,
-        "feature": "echoing_void:petrified_giant"
+        "feature": {
+          "feature": "echoing_void:petrified_giant",
+          "placement": []
+        }
       },
       {
         "chance": 0.3478,
-        "feature": "echoing_void:petrified_branched"
+        "feature": {
+          "feature": "echoing_void:petrified_branched",
+          "placement": []
+        }
       }
     ],
-    "default": "echoing_void:petrified_slim"
+    "default": {
+      "feature": "echoing_void:petrified_slim",
+      "placement": []
+    }
   }
 }

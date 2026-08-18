@@ -1464,7 +1464,9 @@ def _tree(trunk: str, leaves: str, below: str, base: int, rand_a: int,
         r = {"type": "minecraft:uniform",
              "min_inclusive": radius_range[0], "max_inclusive": radius_range[1]}
     foliage_placer: dict = {"type": f"minecraft:{foliage}", "radius": r, "offset": 0}
-    if foliage in ("blob_foliage_placer", "bush_foliage_placer"):
+    # fancy takes the same three fields as blob and the codec requires all of
+    # them; omitting height failed registry load with "No key height".
+    if foliage in ("blob_foliage_placer", "bush_foliage_placer", "fancy_foliage_placer"):
         foliage_placer["height"] = height
     elif foliage == "spruce_foliage_placer":
         foliage_placer["trunk_height"] = {"type": "minecraft:uniform",
@@ -1538,10 +1540,17 @@ def _tree_mix(variants):
     for name, pct in rolled:
         chance = (pct / 100.0) / max(1e-6, 1.0 - running)
         running += pct / 100.0
-        entries.append({"chance": round(min(chance, 1.0), 4), "feature": ev(name)})
+        entries.append({"chance": round(min(chance, 1.0), 4),
+                        "feature": {"feature": ev(name), "placement": []}})
     return {
         "type": "minecraft:random_selector",
-        "config": {"features": entries, "default": ev(fallback[0])},
+        # RandomFeatureConfiguration holds PlacedFeature, not ConfiguredFeature -
+        # pointing it at the configured ids left twelve unbound values in the
+        # placed_feature registry. Each variant is inlined as a placed feature
+        # with an empty placement chain, because the grove's own placed_feature
+        # already did the placing before the selector is reached.
+        "config": {"features": entries,
+                   "default": {"feature": ev(fallback[0]), "placement": []}},
     }
 
 
@@ -2025,7 +2034,7 @@ def gen_features() -> None:
     # branching one, and a 2-thick giant - and a random_selector rolls between
     # them. Parameters are lifted from the vanilla feature that ships each
     # placer: cherry.json, mangrove.json, dark_oak.json, mega_jungle_tree.json.
-    BRANCH = {'place_branch_per_log_probability': 0.5, 'extra_branch_steps': {'type': 'minecraft:uniform', 'min_inclusive': 1, 'max_inclusive': 4}, 'extra_branch_length': {'type': 'minecraft:uniform', 'min_inclusive': 0, 'max_inclusive': 1}}
+    BRANCH = {'can_grow_through': [f'{NS}:calcified_resonance_leaves', f'{NS}:amber_resonance_leaves', f'{NS}:violet_resonance_leaves', f'{NS}:ashen_resonance_leaves'], 'place_branch_per_log_probability': 0.5, 'extra_branch_steps': {'type': 'minecraft:uniform', 'min_inclusive': 1, 'max_inclusive': 4}, 'extra_branch_length': {'type': 'minecraft:uniform', 'min_inclusive': 0, 'max_inclusive': 1}}
 
     # Amber Bough - the plains canopy. Cherry's branching trunk plus its holed
     # foliage give the broadest, most broken silhouette of the four.

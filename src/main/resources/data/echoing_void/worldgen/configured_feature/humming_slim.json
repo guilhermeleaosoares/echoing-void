@@ -50,7 +50,8 @@
         "min_inclusive": 2,
         "max_inclusive": 3
       },
-      "offset": 0
+      "offset": 0,
+      "height": 4
     },
     "minimum_size": {
       "type": "minecraft:two_layers_feature_size",

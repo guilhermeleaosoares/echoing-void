@@ -4,13 +4,22 @@
     "features": [
       {
         "chance": 0.12,
-        "feature": "echoing_void:humming_giant"
+        "feature": {
+          "feature": "echoing_void:humming_giant",
+          "placement": []
+        }
       },
       {
         "chance": 0.3182,
-        "feature": "echoing_void:humming_branched"
+        "feature": {
+          "feature": "echoing_void:humming_branched",
+          "placement": []
+        }
       }
     ],
-    "default": "echoing_void:humming_slim"
+    "default": {
+      "feature": "echoing_void:humming_slim",
+      "placement": []
+    }
   }
 }
