@@ -1435,20 +1435,54 @@ def _weighted_count(*pairs: tuple[int, int]) -> dict:
 
 def _tree(trunk: str, leaves: str, below: str, base: int, rand_a: int,
           radius: int, height: int, *, placer: str = "straight_trunk_placer",
-          foliage: str = "blob_foliage_placer") -> dict:
+          foliage: str = "blob_foliage_placer", rand_b: int = 2,
+          extra_trunk: dict | None = None, extra_foliage: dict | None = None,
+          radius_range: tuple[int, int] | None = None) -> dict:
+    """One tree variant.
+
+    PLAYER: "the trees look too blocky and unnatural. allow them to have more
+    than one block thick trunk, like the way the trees in the nether are
+    generated... make the leaves spawn in more varied formations, some holes
+    some imperfections less blocky."
+
+    No vanilla trunk placer varies its own width, so a single configured feature
+    cannot give 1 / 2 / 4-thick trunks the way HugeFungusFeature does. What the
+    data layer CAN do is emit several variants per species and let a
+    random_selector choose - see _tree_mix below - which is how the variety is
+    actually produced here. Every parameter set used is copied from the vanilla
+    configured_feature that ships it rather than invented.
+    """
     trunk_placer = {"type": f"minecraft:{placer}", "base_height": base,
-                    "height_rand_a": rand_a, "height_rand_b": 2}
-    if placer == "forking_trunk_placer":
-        # ForkingTrunkPlacer takes the same three fields; kept explicit so the
-        # difference between species is visible here rather than implied.
-        pass
-    foliage_placer: dict = {"type": f"minecraft:{foliage}",
-                            "radius": radius, "offset": 0}
+                    "height_rand_a": rand_a, "height_rand_b": rand_b}
+    if extra_trunk:
+        trunk_placer.update(extra_trunk)
+
+    # radius is an IntProvider in the codec, so a range is legal and stops every
+    # tree in a grove being the same size.
+    r: dict | int = radius
+    if radius_range:
+        r = {"type": "minecraft:uniform",
+             "min_inclusive": radius_range[0], "max_inclusive": radius_range[1]}
+    foliage_placer: dict = {"type": f"minecraft:{foliage}", "radius": r, "offset": 0}
     if foliage in ("blob_foliage_placer", "bush_foliage_placer"):
         foliage_placer["height"] = height
     elif foliage == "spruce_foliage_placer":
         foliage_placer["trunk_height"] = {"type": "minecraft:uniform",
                                           "min_inclusive": 1, "max_inclusive": 2}
+    elif foliage == "random_spread_foliage_placer":
+        # Throws N leaves at random offsets and never fills a row, so the canopy
+        # is inherently gappy - the strongest "less blocky" option vanilla has.
+        foliage_placer["foliage_height"] = height
+        foliage_placer["leaf_placement_attempts"] = 70
+    elif foliage == "cherry_foliage_placer":
+        # The only placer with explicit hole probabilities.
+        foliage_placer["height"] = height
+        foliage_placer["wide_bottom_layer_hole_chance"] = 0.25
+        foliage_placer["corner_hole_chance"] = 0.25
+        foliage_placer["hanging_leaves_chance"] = 0.16666667
+        foliage_placer["hanging_leaves_extension_chance"] = 0.33333334
+    if extra_foliage:
+        foliage_placer.update(extra_foliage)
     return {
         "type": "minecraft:tree",
         "config": {
@@ -1481,6 +1515,33 @@ def _tree(trunk: str, leaves: str, below: str, base: int, rand_a: int,
                              "limit": 1, "lower_size": 0, "upper_size": 2},
             "decorators": [],
         },
+    }
+
+
+def _tree_mix(variants):
+    """Pick one of several tree variants per placement.
+
+    This is what delivers "sometimes one or two thick, but can go above four
+    thick near the ground": each variant is its own tree with its own trunk
+    placer, and random_selector rolls between them. No single vanilla trunk
+    placer varies its own width, so the variety has to come from the selector.
+    The thick ones stay a minority, mirroring how rarely vanilla's own 2x2
+    trees turn up.
+
+    `variants` is (feature_id, percent) with the LAST entry the default.
+    random_selector takes `default` only when no earlier chance fires, so each
+    stated share is converted into that conditional probability.
+    """
+    rolled, fallback = variants[:-1], variants[-1]
+    running = 0.0
+    entries = []
+    for name, pct in rolled:
+        chance = (pct / 100.0) / max(1e-6, 1.0 - running)
+        running += pct / 100.0
+        entries.append({"chance": round(min(chance, 1.0), 4), "feature": ev(name)})
+    return {
+        "type": "minecraft:random_selector",
+        "config": {"features": entries, "default": ev(fallback[0])},
     }
 
 
@@ -1960,18 +2021,88 @@ def gen_features() -> None:
     # plains, Echo Ash in the chalk reaches, Humming in the octaves. Silhouettes
     # differ as well as hues, so a grove tells a player where they are from a
     # long way off.
-    write(cf / "amber_bough_grove.json",
+    # Each species is emitted as three variants - a slim 1-thick trunk, a
+    # branching one, and a 2-thick giant - and a random_selector rolls between
+    # them. Parameters are lifted from the vanilla feature that ships each
+    # placer: cherry.json, mangrove.json, dark_oak.json, mega_jungle_tree.json.
+    BRANCH = {'place_branch_per_log_probability': 0.5, 'extra_branch_steps': {'type': 'minecraft:uniform', 'min_inclusive': 1, 'max_inclusive': 4}, 'extra_branch_length': {'type': 'minecraft:uniform', 'min_inclusive': 0, 'max_inclusive': 1}}
+
+    # Amber Bough - the plains canopy. Cherry's branching trunk plus its holed
+    # foliage give the broadest, most broken silhouette of the four.
+    write(cf / "amber_bough_slim.json",
           _tree("amber_bough_log", "amber_resonance_leaves", "amber_strata",
-                6, 4, 3, 3))
-    write(cf / "echo_ash_grove.json",
+                6, 4, 3, 3, foliage="fancy_foliage_placer", radius_range=(2, 4)))
+    write(cf / "amber_bough_branched.json",
+          _tree("amber_bough_log", "amber_resonance_leaves", "amber_strata",
+                7, 1, 4, 5, placer="cherry_trunk_placer",
+                foliage="cherry_foliage_placer", rand_b=0,
+                extra_trunk={
+                    "branch_count": {"type": "minecraft:weighted_list",
+                                     "distribution": [{"data": 1, "weight": 1},
+                                                      {"data": 2, "weight": 1},
+                                                      {"data": 3, "weight": 1}]},
+                    "branch_horizontal_length": {"type": "minecraft:uniform",
+                                                 "min_inclusive": 2, "max_inclusive": 4},
+                    "branch_start_offset_from_top": {"min_inclusive": -4,
+                                                     "max_inclusive": -3},
+                    "branch_end_offset_from_top": {"type": "minecraft:uniform",
+                                                   "min_inclusive": -1, "max_inclusive": 0},
+                }))
+    write(cf / "amber_bough_giant.json",
+          _tree("amber_bough_log", "amber_resonance_leaves", "amber_strata",
+                6, 2, 3, 3, placer="dark_oak_trunk_placer", rand_b=1,
+                foliage="random_spread_foliage_placer"))
+    write(cf / "amber_bough_grove.json", _tree_mix([
+        ("amber_bough_giant", 10), ("amber_bough_branched", 30),
+        ("amber_bough_slim", 60)]))
+
+    # Echo Ash - pale and sparse. Keeps its fork, gains a gappy canopy.
+    write(cf / "echo_ash_slim.json",
           _tree("echo_ash_log", "ashen_resonance_leaves", "resonant_chalk",
-                7, 3, 2, 3, placer="forking_trunk_placer"))
-    write(cf / "humming_grove.json",
+                7, 3, 2, 3, placer="forking_trunk_placer",
+                foliage="fancy_foliage_placer", radius_range=(2, 3)))
+    write(cf / "echo_ash_branched.json",
+          _tree("echo_ash_log", "ashen_resonance_leaves", "resonant_chalk",
+                2, 1, 3, 2, placer="upwards_branching_trunk_placer", rand_b=4,
+                foliage="random_spread_foliage_placer", extra_trunk=BRANCH))
+    write(cf / "echo_ash_giant.json",
+          _tree("echo_ash_log", "ashen_resonance_leaves", "resonant_chalk",
+                6, 2, 2, 3, placer="dark_oak_trunk_placer", rand_b=1,
+                foliage="random_spread_foliage_placer"))
+    write(cf / "echo_ash_grove.json", _tree_mix([
+        ("echo_ash_giant", 8), ("echo_ash_branched", 32), ("echo_ash_slim", 60)]))
+
+    # Humming - the tallest, and the only one that gets mega_jungle's 2x2.
+    write(cf / "humming_slim.json",
           _tree("humming_stem", "violet_resonance_leaves", "echo_slate",
-                8, 4, 2, 4))
-    write(cf / "petrified_grove.json",
+                8, 4, 2, 4, foliage="fancy_foliage_placer", radius_range=(2, 3)))
+    write(cf / "humming_branched.json",
+          _tree("humming_stem", "violet_resonance_leaves", "echo_slate",
+                2, 1, 3, 2, placer="upwards_branching_trunk_placer", rand_b=4,
+                foliage="random_spread_foliage_placer", extra_trunk=BRANCH))
+    write(cf / "humming_giant.json",
+          _tree("humming_stem", "violet_resonance_leaves", "echo_slate",
+                10, 2, 2, 3, placer="mega_jungle_trunk_placer", rand_b=19,
+                foliage="random_spread_foliage_placer"))
+    write(cf / "humming_grove.json", _tree_mix([
+        ("humming_giant", 12), ("humming_branched", 28), ("humming_slim", 60)]))
+
+    # Petrified - stone-dead and stunted; the least foliage of the four.
+    write(cf / "petrified_slim.json",
           _tree("petrified_tuning_wood", "calcified_resonance_leaves",
-                "raw_phonolite", 5, 3, 2, 3))
+                "raw_phonolite", 5, 3, 2, 3,
+                foliage="fancy_foliage_placer", radius_range=(2, 3)))
+    write(cf / "petrified_branched.json",
+          _tree("petrified_tuning_wood", "calcified_resonance_leaves",
+                "raw_phonolite", 5, 2, 2, 2, placer="forking_trunk_placer",
+                foliage="random_spread_foliage_placer"))
+    write(cf / "petrified_giant.json",
+          _tree("petrified_tuning_wood", "calcified_resonance_leaves",
+                "raw_phonolite", 6, 2, 2, 3, placer="dark_oak_trunk_placer",
+                rand_b=1, foliage="random_spread_foliage_placer"))
+    write(cf / "petrified_grove.json", _tree_mix([
+        ("petrified_giant", 8), ("petrified_branched", 32),
+        ("petrified_slim", 60)]))
 
     # Counts are weighted lists whose mean is around one tree per chunk, and
     # every one of them is subject to the ground/column/spacing guard.

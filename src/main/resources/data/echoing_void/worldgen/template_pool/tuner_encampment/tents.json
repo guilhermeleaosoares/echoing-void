@@ -5,7 +5,13 @@
         "element_type": "minecraft:single_pool_element",
         "location": "echoing_void:tuner_encampment/camp_tent_large",
         "processors": {
-          "processors": []
+          "processors": [
+            {
+              "processor_type": "echoing_void:ground_support",
+              "max_depth": 24,
+              "edges_only": true
+            }
+          ]
         },
         "projection": "rigid"
       },
@@ -16,7 +22,13 @@
         "element_type": "minecraft:single_pool_element",
         "location": "echoing_void:tuner_encampment/camp_tent_small",
         "processors": {
-          "processors": []
+          "processors": [
+            {
+              "processor_type": "echoing_void:ground_support",
+              "max_depth": 24,
+              "edges_only": true
+            }
+          ]
         },
         "projection": "rigid"
       },
@@ -27,7 +39,13 @@
         "element_type": "minecraft:single_pool_element",
         "location": "echoing_void:tuner_encampment/camp_lean_to",
         "processors": {
-          "processors": []
+          "processors": [
+            {
+              "processor_type": "echoing_void:ground_support",
+              "max_depth": 24,
+              "edges_only": true
+            }
+          ]
         },
         "projection": "rigid"
       },
@@ -38,7 +56,13 @@
         "element_type": "minecraft:single_pool_element",
         "location": "echoing_void:tuner_encampment/camp_signal_post",
         "processors": {
-          "processors": []
+          "processors": [
+            {
+              "processor_type": "echoing_void:ground_support",
+              "max_depth": 24,
+              "edges_only": true
+            }
+          ]
         },
         "projection": "rigid"
       },

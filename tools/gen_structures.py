@@ -479,8 +479,26 @@ class Template:
             for name, props in self._palette
         ], element_id=nbt.TAG_COMPOUND)
 
+        # PLAYER: "make sure that the structure void blocks do not remain after
+        # generation, as they currently generate."
+        #
+        # They were being written into the NBT on the belief that the placer
+        # skips them. It does not: BlockIgnoreProcessor ships presets for
+        # STRUCTURE_BLOCK, AIR and STRUCTURE_AND_AIR and none for STRUCTURE_VOID,
+        # and StructureTemplate never names it - so a structure_void in the block
+        # list is placed as a real, solid, invisible block.
+        #
+        # Vanilla's answer is not a processor, it is to never store them: 60 of
+        # 60 village templates checked have no structure_void in their palette,
+        # because fillFromWorld drops the ignored block at save time. A position
+        # absent from the list is simply left alone by the placer, which is
+        # exactly the "don't touch this cell" semantics we wanted. So drop them
+        # here, at the one place that writes the file.
+        void_index = self._index.get((VOID, ()))
         blocks = []
         for (x, y, z), (state, block_nbt) in sorted(self._blocks.items()):
+            if void_index is not None and state == void_index:
+                continue
             entry: dict = {
                 "pos": nbt.List([nbt.Int(x), nbt.Int(y), nbt.Int(z)], element_id=nbt.TAG_INT),
                 "state": nbt.Int(state),
@@ -1025,6 +1043,14 @@ def tuner_lodge() -> Template:
     t.stairs(6, 2, 4, BOUGH, "east")
     t.stairs(8, 2, 4, BOUGH, "west")
     for (lx, lz) in ((3, 3), (11, 7)):
+        # PLAYER: "the soul lanterns... are floating, they need chain to connect
+        # them." An audit of all 79 lanterns in the mod found these two were the
+        # only ones with nothing above AND nothing below - the other 77 either
+        # stand on something or already chain up to an anchor. The slate ceiling
+        # is at y=8, so two links close the gap. harmonic_lantern is a plain
+        # Block with no `hanging` property, so the chain is the whole fix.
+        for cy in (7, 6):
+            t.chain(lx, cy, lz)
         t.set(lx, 5, lz, LANTERN)
 
     t.archway(7, 3, 0, "north", POLISHED, CHALK_BRICK, DOOR_IN, BRIDGE_OUT, POOL_EMPTY)
@@ -1484,12 +1510,29 @@ OUTPOST_PIECES = {
 }
 
 
+# PLAYER: "structures are still floating. To fix this we can use the Ohana way
+# which is extend the bottom most blocks of floating structures until they meet
+# the ground."
+#
+# echoing_void:ground_support is that, implemented as a StructureProcessor -
+# see GroundSupportProcessor.java. It runs on every piece of both settlements,
+# grows a leg down from each edge column of the piece's own lowest blocks, and
+# stops at the first solid block or after max_depth. Props are excluded: a
+# brazier does not need legs, and giving it any would leave a stone stalk under
+# every torch on the deck.
+GROUND_SUPPORT = {"processor_type": f"{NS}:ground_support",
+                  "max_depth": 24, "edges_only": True}
+
+NO_SUPPORT = ("prop_brazier", "prop_crates", "prop_mast")
+
+
 def element(structure: str, piece: str, weight: int) -> dict:
+    processors = [] if piece in NO_SUPPORT else [GROUND_SUPPORT]
     return {
         "element": {
             "element_type": "minecraft:single_pool_element",
             "location": f"{NS}:{structure}/{piece}",
-            "processors": {"processors": []},
+            "processors": {"processors": processors},
             "projection": "rigid",
         },
         "weight": weight,

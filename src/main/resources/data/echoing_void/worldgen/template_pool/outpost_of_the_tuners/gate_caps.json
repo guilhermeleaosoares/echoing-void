@@ -5,7 +5,13 @@
         "element_type": "minecraft:single_pool_element",
         "location": "echoing_void:outpost_of_the_tuners/gate_cap",
         "processors": {
-          "processors": []
+          "processors": [
+            {
+              "processor_type": "echoing_void:ground_support",
+              "max_depth": 24,
+              "edges_only": true
+            }
+          ]
         },
         "projection": "rigid"
       },

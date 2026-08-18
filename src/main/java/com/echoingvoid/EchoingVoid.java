@@ -47,6 +47,8 @@ public final class EchoingVoid {
         ModBlockFamilies.register(modBus);
         ModKnell.register(modBus);
         ModNewEntities.register(modBus);
+        // Structure processors - the ground-support legs that stop pieces floating.
+        com.echoingvoid.worldgen.ModProcessors.register(modBus);
         ModItems.register(modBus);
         ModBlockEntities.register(modBus);
         ModComponents.register(modBus);

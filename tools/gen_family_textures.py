@@ -118,6 +118,7 @@ from gen_block_textures import (  # noqa: E402
     AR_DEEP,
     AR_LIGHT,
     AR_MID,
+    BI_BRIGHT,
     BI_MID,
     BIS_BODY,
     BIS_CORE,
@@ -947,6 +948,16 @@ NULL_TONES = [
     mix(NI_LIGHT, BI_MID, 0.50),         # 3: cyan bismuth glint on lit lip
 ]
 
+# Phonolite is the darkest host (lum ~54.5), so its specks use a lifted steel body,
+# a crisp specular metallic crest, and sharp cyan bismuth glints so the ore is
+# immediately recognizable without being confused with resonant_bismuth_ore.
+PHONOLITE_NULL_TONES = [
+    mix(NI_BLACK, NI_DARK, 0.50),          # 0: deep shadow pit
+    mix(NI_LIGHT, NI_PALE, 0.40),          # 1: bright null-iron steel body
+    mix(NI_PALE, CH_MID, 0.35),            # 2: bright metallic crest
+    mix(NI_LIGHT, BI_BRIGHT, 0.60),        # 3: cyan bismuth catch-light
+]
+
 
 def host_stone(c: Canvas, seed: int) -> None:
     """Reproduce vanilla stone: blobby 1-3px granules, no grain direction.
@@ -1053,7 +1064,7 @@ ORES = [
     # deepest core pixel, which is where a light would actually catch a lip.
     ("null_iron_ore", "stone", NULL_TONES, 6197, 6198, (1,)),
     ("deepslate_null_iron_ore", "deepslate", NULL_TONES, 6229, 6230, (0, 2)),
-    ("phonolite_null_iron_ore", "phonolite", NULL_TONES, 6263, 6264, (0, 2, 4)),
+    ("phonolite_null_iron_ore", "phonolite", PHONOLITE_NULL_TONES, 6263, 6264, (0, 1, 2, 3, 4)),
     # knell_ore is deliberately NOT drawn here. It was on this file's list as
     # resonite_ore before the tier was renamed, but tools/gen_knell_textures.py
     # owns the whole Knell family - ore, storage block, integrator, items - and
