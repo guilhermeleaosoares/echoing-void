@@ -138,13 +138,24 @@ Check the visible result, not just the code.
 > position floating, instead of in the lower position as intended"
 
 There are still **18** `slab(..., "top")` calls in `tools/gen_structures.py`.
-Some are deliberate — a chimney cap, a workbench surface, a table top and the
-bridge kerbs are meant to sit flush with the course above. The interior floor
-and shelf slabs are not; they should be `"bottom"`.
 
-Go through all 18, decide each on its merits, and record why any that stay as
-`"top"` are correct. The observatory dome was already corrected this way for
-exactly this reason.
+**The player has ruled on these directly, so do not re-litigate them:**
+
+- **`gen_structures.py:664` — the chimney cap — must become `"bottom"`.** I had
+  listed it as deliberately top-half and the player corrected me: it caps the
+  flue and belongs in the lower position. Change it.
+- The **workbench surface**, the **table tops** and the **bridge kerbs** stay
+  `"top"` — the player agrees those are meant to sit flush with the course
+  above. Leave them.
+
+Everything else in the list is yours to judge, and the default is `"bottom"`:
+interior floors, shelves (`942`/`943` are marked "lower shelf"/"upper shelf")
+and anything a player walks on or puts something on. The eaves at `1594`,
+`1595` and `1782` are roof overhangs — think about which half actually reads
+right there rather than assuming.
+
+Record a one-line reason for any that stay `"top"`. The observatory dome was
+already corrected this way, for exactly this reason.
 
 ## 7. Soul lanterns still floating — chain them to the archways
 
