@@ -3,8 +3,10 @@
 ## Installing the mod
 
 1. **Download the jar** from the
-   [latest release](https://github.com/guilhermeleaosoares/echoing-void/releases/latest) —
-   `echoing-void-1.0.0.jar`, under **Assets**.
+   [v1.1.0 release](https://github.com/guilhermeleaosoares/echoing-void/releases/tag/v1.1.0) —
+   `echoing-void-1.0.0.jar`, under **Assets**. (Linked directly rather than to "latest": every
+   release here is marked pre-release, which GitHub's `/releases/latest` excludes entirely — that
+   link redirects to the plain release list instead of a download, so it isn't used here.)
 2. **Install Forge 26.2-65.1.1** for Minecraft 26.2 if you haven't already — get the installer from
    [files.minecraftforge.net](https://files.minecraftforge.net/) and run it in *Install client*
    mode. This creates the `forge-26.2-65.1.1` profile in your launcher and the `mods` folder it
