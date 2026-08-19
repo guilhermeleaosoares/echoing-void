@@ -3,7 +3,7 @@
 ## Installing the mod
 
 1. **Download the jar** from the
-   [v1.1.0 release](https://github.com/guilhermeleaosoares/echoing-void/releases/tag/v1.1.0) —
+   [v1.2.0 release](https://github.com/guilhermeleaosoares/echoing-void/releases/tag/v1.2.0) —
    `echoing-void-1.0.0.jar`, under **Assets**. (Linked directly rather than to "latest": every
    release here is marked pre-release, which GitHub's `/releases/latest` excludes entirely — that
    link redirects to the plain release list instead of a download, so it isn't used here.)
