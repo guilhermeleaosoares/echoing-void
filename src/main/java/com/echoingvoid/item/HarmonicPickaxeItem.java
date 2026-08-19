@@ -99,17 +99,31 @@ public class HarmonicPickaxeItem extends Item {
     }
 
     /**
-     * The plane extends {@code loOffset..hiOffset} (inclusive) along both axes of the fault
-     * plane, centred on the struck block. 3x3 (the base tool) is {@code -1..1}; the Knell
-     * pickaxe overrides this to {@code -1..2} for a 4x4 plane, which has no exact centre, so it
-     * is biased one step towards positive rather than symmetric - the simplest choice that still
-     * reads as "wider" rather than "shifted" once the eight-to-fifteen blocks are gone.
+     * The fault-plane rectangle extends {@code widthLo..widthHi} (inclusive) along the plane's
+     * horizontal axis and {@code heightLo..heightHi} along its vertical axis, centred on the
+     * struck block. The base tool is a symmetric 3x3, {@code -1..1} on both. PLAYER, on the
+     * Knell upgrade: "the area break of the knell pickaxe is amplified... 4x5, 5 wide 4 tall" -
+     * see {@link KnellPickaxeItem}, which widens only the horizontal pair.
+     *
+     * <p>These two pairs only both have a real meaning when the fault plane is vertical - i.e.
+     * the miner struck a wall. Striking a floor or ceiling makes the fault plane horizontal,
+     * which has no vertical axis in it at all, so {@link #shatter} applies the width pair to
+     * both plane axes in that case rather than leaving "height" undefined; a floor/ceiling
+     * shatter is square at the wide dimension instead of a true rectangle.
      */
-    protected int loOffset() {
+    protected int widthLo() {
         return -1;
     }
 
-    protected int hiOffset() {
+    protected int widthHi() {
+        return 1;
+    }
+
+    protected int heightLo() {
+        return -1;
+    }
+
+    protected int heightHi() {
         return 1;
     }
 
@@ -128,13 +142,25 @@ public class HarmonicPickaxeItem extends Item {
         // axes the look direction is weakest on.
         Direction face = Direction.getApproximateNearest(player.getLookAngle());
         int broken = 0;
-        int lo = loOffset();
-        int hi = hiOffset();
+        int wLo = widthLo();
+        int wHi = widthHi();
+        int hLo = heightLo();
+        int hHi = heightHi();
+
+        // Which offset pair drives `a` and which drives `b` depends on which way the miner is
+        // facing - see the width/height javadoc above for why the Y case uses the width pair
+        // twice instead of an undefined height.
+        int aLo, aHi, bLo, bHi;
+        switch (face.getAxis()) {
+            case X -> { aLo = hLo; aHi = hHi; bLo = wLo; bHi = wHi; } // a=Y(height), b=Z(width)
+            case Z -> { aLo = wLo; aHi = wHi; bLo = hLo; bHi = hHi; } // a=X(width), b=Y(height)
+            default -> { aLo = wLo; aHi = wHi; bLo = wLo; bHi = wHi; } // Y: floor/ceiling
+        }
 
         shattering = true;
         try {
-            for (int a = lo; a <= hi; a++) {
-                for (int b = lo; b <= hi; b++) {
+            for (int a = aLo; a <= aHi; a++) {
+                for (int b = bLo; b <= bHi; b++) {
                     if (a == 0 && b == 0) {
                         continue;
                     }

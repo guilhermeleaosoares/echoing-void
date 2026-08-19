@@ -183,6 +183,18 @@ def main() -> int:
     ow(server, "gamerule spawn_mobs false", 0.5)
     ow(server, "gamerule mob_griefing false", 0.5)
 
+    # Kill any wet/dry-tagged zombie left over from a run that never reached its
+    # own cleanup at the bottom of this function (crashed, was killed, timed out).
+    # health_of()'s @e[...,limit=1] selector cannot tell a stray from a fresh one,
+    # and if the stray sits somewhere the current forceload box does not reach,
+    # the selector can pick it anyway and `data get entity` on it fails - which
+    # reads exactly like "could not read the test zombies' health" and is not a
+    # healing bug at all. Confirmed live: two earlier interrupted diagnostic runs
+    # left exactly this contamination (4 stray zombies, `kill` found all four)
+    # and reproduced the same failure this comment describes.
+    ow(server, "kill @e[type=minecraft:zombie,tag=wet]", 1.0)
+    ow(server, "kill @e[type=minecraft:zombie,tag=dry]", 1.0)
+
     # ---- 1 & 2: falls, and matches vanilla water sideways ----------------
     #
     # These are stated as a COMPARISON against vanilla water rather than as

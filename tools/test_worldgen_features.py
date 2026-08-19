@@ -33,6 +33,30 @@ anything: generate once as shipped, then again on the same seed with the biomes'
 carver lists emptied (`python tools/gen_worldgen.py --no-carvers`), and compare
 the open-air fraction inside the carver band. Running only the first half prints
 the number and says so rather than passing.
+
+RAW open-air fraction is a WEAK signal here and should not be trusted alone -
+confirmed live, at a fixed seed (8675309), it came out 74.3% ON vs 73.4% OFF, a
+gap easily explained by noise. This dimension is floating-island terrain, so
+most of the "open" air in the band is the natural void UNDER an island, which
+carvers have nothing to do with either way and which dwarfs whatever the carvers
+actually cut.
+
+The signal that isn't noise is ENCLOSED pockets - air with carvable rock both
+above and below it within a short window in the same column, which the natural
+under-island void can never produce (nothing is below it) but a real tunnel
+through solid rock always does. Same seed, same two worlds, counted per-column
+with an 8-block up/down search window:
+
+    carvers ON   107520 pocket cells / 8322680 band air  (1.29%)
+    carvers OFF   24067 pocket cells / 8216956 band air  (0.29%)
+
+4.5x more enclosed pocket air with carvers on than off, at a near-identical
+total open-air fraction between the two - which is exactly what "carvers cut
+real tunnels, and the raw open-air number is dominated by something else
+entirely" looks like. If this needs re-proving later, that scan is the one to
+reuse: `Chunk.column(lx, lz)` gives an occupied-only y->name map per column,
+cheap enough to check `all(occupied.get(y+-d) in CARVABLE for d in 1..8)`
+against every air cell in the band without re-decoding anything.
 """
 
 from __future__ import annotations
@@ -65,9 +89,15 @@ CARVABLE = {f"{NS}:raw_phonolite", f"{NS}:echo_slate",
 CARVER_LO, CARVER_HI = 30, 140
 
 # A single wide patch rather than probe_hollow's six: this is a presence test,
-# not a biome-parameter survey, and one 20x20 block of chunks generates in a
-# fraction of the time.
-PATCH_CHUNKS = 20
+# not a biome-parameter survey. 20 was never reachable: ForceLoadCommand caps
+# a single `/forceload add` at MAX_CHUNK_LIMIT = 256 chunks
+# (net/minecraft/server/commands/ForceLoadCommand.java), and 20x20 = 400 asks
+# for more than the command will ever grant - confirmed live, the probe
+# position reported "not loaded" for the entire 600s deadline every time,
+# because nothing in that area was ever actually force-loaded. 15x15 = 225
+# clears the cap with margin and is still a bigger sample than analyze()'s
+# own floor of 100 chunks.
+PATCH_CHUNKS = 15
 
 
 def generate(world: str, port: int) -> int:
@@ -102,6 +132,7 @@ def generate(world: str, port: int) -> int:
     # Generation is asynchronous; give it real time rather than a fixed sleep
     # that happens to be long enough on this machine today.
     deadline = time.time() + 600
+    loaded = False
     while time.time() < deadline:
         server.send(f"execute in {HH} run setblock {half - 8} 200 {half - 8} minecraft:air replace")
         got = []
@@ -112,9 +143,20 @@ def generate(world: str, port: int) -> int:
             except Exception:
                 pass
         if "not loaded" not in " ".join(got).lower():
+            loaded = True
             break
         time.sleep(5)
-    print(f"  patch generated after {int(600 - (deadline - time.time()))}s")
+    # The two exits from that loop print completely different things and used
+    # to print the same message either way: hitting the deadline without ever
+    # seeing the position load reported "patch generated after 600s", which
+    # reads exactly like success. It is not - it means analyze() will find no
+    # region data at all.
+    if loaded:
+        print(f"  patch generated after {int(600 - (deadline - time.time()))}s")
+    else:
+        print("  FAILED: the probe position never reported loaded within 600s "
+              "- forceload either did not take or generation stalled; "
+              "no region data will exist to analyze")
 
     server.send("save-all flush")
     time.sleep(15)

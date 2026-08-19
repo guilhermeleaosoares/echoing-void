@@ -1712,10 +1712,15 @@ def gen_features() -> None:
             ],
         },
     })
+    # PLAYER: "resonant bismuth should be 1.3x rarer than it is now" (paired
+    # with the null-iron change below). 7/1.3 = 5.38; 5 is the nearest integer
+    # vein count, a 1.4x reduction rather than exactly 1.3x - `count` has to
+    # be a whole number of attempts per chunk. Size (vein richness once found)
+    # is untouched; only how often a vein turns up at all changes.
     write(pf / "ore_resonant_bismuth_placed.json", {
         "feature": ev("ore_resonant_bismuth"),
         "placement": [
-            {"type": "minecraft:count", "count": 7},
+            {"type": "minecraft:count", "count": 5},
             {"type": "minecraft:in_square"},
             # Diamond's own band, so bismuth is found where a player already
             # digs for diamond rather than 24 blocks above it.
@@ -1727,17 +1732,26 @@ def gen_features() -> None:
         ],
     })
 
-    # PLAYER: "null iron should be 25% rarer than gold". It was a 3-block
-    # SCATTERED ore at 0.5 veins/chunk confined to y-64..-8: about 27x less ore
-    # per chunk than gold (96% rarer), never forming a recognisable vein, and
-    # with its whole band below y-8 so the stone-host null_iron_ore variant was
-    # effectively unreachable. Now gold's own vein shape and air-exposure
-    # discard, at 3 veins/chunk against gold's 4 - 25% rarer.
+    # PLAYER (superseding the "25% rarer than gold" tuning below): "null iron
+    # should be as rare as the current resonant bismuth in both dimensions...
+    # null iron should be more common than resonant bismuth". Matched to
+    # bismuth's PRE-1.3x numbers - size 8, count 7 - exactly, not just a
+    # similar count with a different vein size, since "as rare as" means the
+    # whole vein, not one dial of it. Against bismuth's now-rarer 5, this
+    # keeps the player's explicit invariant true: null-iron (7) stays more
+    # common than bismuth (5).
+    #
+    # Superseded design note, kept for history: this used to be tuned to "25%
+    # rarer than gold" (size 9, count 3 against gold's own size-9/count-4
+    # shape) after an earlier complaint that null-iron was unfindable at a
+    # 3-block scattered ore, 0.5 veins/chunk, confined to y-64..-8. That ratio
+    # is deliberately abandoned here, not an oversight - null iron now sits
+    # close to resonant bismuth's commonality rather than gold's.
     write(cf / "ore_null_iron_overworld.json", {
         "type": "minecraft:ore",
         "config": {
             "discard_chance_on_air_exposure": 0.5,
-            "size": 9,
+            "size": 8,
             "targets": [
                 {"state": B("deepslate_null_iron_ore"),
                  "target": {"predicate_type": "minecraft:tag_match",
@@ -1751,7 +1765,7 @@ def gen_features() -> None:
     write(pf / "ore_null_iron_overworld_placed.json", {
         "feature": ev("ore_null_iron_overworld"),
         "placement": [
-            {"type": "minecraft:count", "count": 3},
+            {"type": "minecraft:count", "count": 7},
             {"type": "minecraft:in_square"},
             # Reaches up into stone now, so the stone-host variant can appear.
             {"type": "minecraft:height_range",
@@ -1801,12 +1815,15 @@ def gen_features() -> None:
     })
 
     # ---- Hollow Horizon ores ---------------------------------------------
+    # PLAYER: "resonant bismuth should be 1.3x rarer than it is now" - same
+    # rule as the Overworld vein above. 14/1.3 = 10.77, rounds to 11 (1.27x,
+    # the nearest a whole vein count can land on 1.3x).
     write(cf / "ore_phonolite_resonant_bismuth.json",
           _ore(B("phonolite_resonant_bismuth_ore"), 9))
     write(pf / "ore_phonolite_resonant_bismuth_placed.json", {
         "feature": ev("ore_phonolite_resonant_bismuth"),
         "placement": [
-            {"type": "minecraft:count", "count": 14},
+            {"type": "minecraft:count", "count": 11},
             {"type": "minecraft:in_square"},
             # Ceiling pulled from 200 to 150. Above that is sky-island rock,
             # which the carvers deliberately do not touch, so those veins could
@@ -1817,33 +1834,32 @@ def gen_features() -> None:
         ],
     })
 
-    # discard_chance_on_air_exposure was 0.6, which threw away 60% of exactly
-    # the blocks a player walking a tunnel would SEE - vanilla only uses a
-    # nonzero discard where it deliberately wants an ore hidden from cave walls.
-    # With carvers now cutting real tunnels through this rock, that setting was
-    # working directly against "null iron should be easier to find in caves".
-    write(cf / "ore_phonolite_null_iron.json", {
-        "type": "minecraft:scattered_ore",
-        "config": {
-            "discard_chance_on_air_exposure": 0.0,
-            "size": 3,
-            "targets": [{
-                "state": B("phonolite_null_iron_ore"),
-                "target": {"predicate_type": "minecraft:tag_match",
-                           "tag": f"{NS}:hollow_horizon_carvable"},
-            }],
-        },
-    })
+    # PLAYER: "null iron should be as rare as the current resonant bismuth in
+    # both dimensions... null iron should be more common than resonant
+    # bismuth". Matched to bismuth's PRE-1.3x Hollow Horizon numbers exactly -
+    # size 9, count 14 - which also means switching off `scattered_ore`
+    # entirely: bismuth here is a plain `ore` vein, and matching bismuth's
+    # numbers onto scattered_ore's looser, spread-out placement would not
+    # actually feel as common as bismuth does, even with identical size/count.
+    # Against bismuth's now-rarer 11, null-iron's 14 keeps the player's
+    # invariant true.
+    #
+    # discard_chance_on_air_exposure stays 0: it was 0.6 before an earlier
+    # pass, which threw away 60% of exactly the blocks a player walking a
+    # tunnel would see - vanilla only uses a nonzero discard where it
+    # deliberately wants an ore hidden from cave walls, and that fights
+    # "null iron should be easier to find in caves".
+    write(cf / "ore_phonolite_null_iron.json",
+          _ore(B("phonolite_null_iron_ore"), 9,
+               tag=f"{NS}:hollow_horizon_carvable"))
     write(pf / "ore_phonolite_null_iron_placed.json", {
         "feature": ev("ore_phonolite_null_iron"),
         "placement": [
-            # 4 -> 6, and the band narrowed from 4..90 onto the 10..100 the
-            # carvers cut. Both moves are aimed at the same thing: a vein the
-            # player meets in a tunnel wall rather than one they only ever find
-            # by strip-mining. The band still bottoms out below the cave floor
-            # so the ore is not purely a cave reward.
-            {"type": "minecraft:count", "count": 6},
+            {"type": "minecraft:count", "count": 14},
             {"type": "minecraft:in_square"},
+            # Still the carved 6..100 band, so this is a vein a player meets
+            # in a tunnel wall, not one only found by strip-mining - unrelated
+            # to the count/size change and left as it was.
             {"type": "minecraft:height_range", "height": _uniform(6, 100)},
             {"type": "minecraft:biome"},
         ],
@@ -1865,10 +1881,20 @@ def gen_features() -> None:
     write(cf / "ore_knell.json",
           _ore(B("knell_ore"), 3, discard=0.0,
                tag=f"{NS}:phonolite_ore_replaceables"))
+    # PLAYER: "knell should be 1.1x more common than what it currently is."
+    # 2 * 1.1 = 2.2, which is not an integer and `count` normally is one - a
+    # flat 2 rounds straight back to 2 and delivers no change at all. Instead
+    # this is a weighted_list IntProvider (Registry.register(..., "weighted_list",
+    # WeightedListInt.MAP_CODEC) in IntProviders.java) averaging to exactly
+    # 2.2: four chunks in five roll 2 attempts, one in five rolls 3 -
+    # (4*2 + 1*3) / 5 = 2.2.
     write(pf / "ore_knell_placed.json", {
         "feature": ev("ore_knell"),
         "placement": [
-            {"type": "minecraft:count", "count": 2},
+            {"type": "minecraft:count",
+             "count": {"type": "minecraft:weighted_list",
+                       "distribution": [{"data": 2, "weight": 4},
+                                        {"data": 3, "weight": 1}]}},
             {"type": "minecraft:in_square"},
             # Any depth of the Hollow Horizon, overwhelmingly the deepest. The
             # player was explicit twice over that Knell belongs to this
