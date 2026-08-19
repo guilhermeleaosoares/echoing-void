@@ -2,38 +2,21 @@
 
 ## Installing the mod
 
-There's no prebuilt download yet — the jar has to be built from source. Five steps:
-
-1. **Get the files.** Either:
-   - `git clone https://github.com/guilhermeleaosoares/echoing-void.git`, or
-   - on the repo's GitHub page, click the green **Code** button → **Download ZIP**, then extract it.
+1. **Download the jar** from the
+   [latest release](https://github.com/guilhermeleaosoares/echoing-void/releases/latest) —
+   `echoing-void-1.0.0.jar`, under **Assets**.
 2. **Install Forge 26.2-65.1.1** for Minecraft 26.2 if you haven't already — get the installer from
    [files.minecraftforge.net](https://files.minecraftforge.net/) and run it in *Install client*
    mode. This creates the `forge-26.2-65.1.1` profile in your launcher and the `mods` folder it
    loads from.
-3. **Build the jar.** Open a terminal in the folder you downloaded. The build needs *some* JDK
-   already installed to bootstrap Gradle itself — if `java -version` fails in your terminal, install
-   one first (e.g. [Temurin](https://adoptium.net/)). You do **not** need JDK 25 specifically: this
-   project downloads its own JDK 25 automatically the first time you build, regardless of what's on
-   your system — do not manually set `JAVA_HOME` to a specific JDK path, since a wrapper build fails
-   immediately if that path doesn't exist on your machine.
-
-   In **PowerShell** (the default on Windows 11):
-   ```powershell
-   .\gradlew.bat build
-   ```
-   In **Command Prompt**:
-   ```cmd
-   gradlew build
-   ```
-   The first run downloads Gradle and the JDK 25 toolchain, so it's slow (several minutes); later
-   builds are fast. This produces `build/libs/echoing-void-1.0.0.jar`.
-4. **Copy that jar into your mods folder.** From a Run dialog or File Explorer's address bar, go to:
+3. **Copy the jar into your mods folder.** From a Run dialog or File Explorer's address bar, go to:
    ```
    %appdata%\.minecraft\mods
    ```
-   (create the `mods` folder if it doesn't exist yet), and copy `echoing-void-1.0.0.jar` there.
-5. **Launch Minecraft** through your launcher, select the `forge-26.2-65.1.1` profile, and play.
+   (create the `mods` folder if it doesn't exist yet), and drop `echoing-void-1.0.0.jar` in there.
+4. **Launch Minecraft** through your launcher, select the `forge-26.2-65.1.1` profile, and play.
+
+Building from source is only needed if you're modifying the mod yourself — see **Building** below.
 
 ---
 
