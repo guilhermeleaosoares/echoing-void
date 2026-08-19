@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/stem_fruit",
+  "textures": {
+    "stem": "echoing_void:block/echo_gourd_stem",
+    "upperstem": "echoing_void:block/attached_echo_gourd_stem"
+  }
+}

@@ -16,16 +16,21 @@ import com.echoingvoid.client.renderer.StrataBurrowerRenderer;
 import com.echoingvoid.client.renderer.StrataGolemRenderer;
 import com.echoingvoid.client.renderer.TraderMobRenderer;
 import com.echoingvoid.client.renderer.TunerShadeRenderer;
+import com.echoingvoid.EchoingVoid;
 import com.echoingvoid.registry.ModEntities;
+import com.echoingvoid.registry.ModFluids;
 import com.echoingvoid.registry.ModNewEntities;
+import net.minecraft.client.renderer.block.FluidModel;
+import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
+import net.minecraftforge.client.event.ModelEvent;
 import net.minecraftforge.eventbus.api.bus.BusGroup;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 
 /**
- * Client-side wiring for the five creatures: which mesh belongs to which model layer, and which
- * renderer draws which entity type.
+ * Client-side wiring: which mesh belongs to which model layer, which renderer draws which entity
+ * type, and what hushwater is painted with.
  *
  * <p>Call {@link #register(BusGroup)} unconditionally from the mod constructor. It is a no-op on a
  * dedicated server. The client-only work lives in the nested {@link Wiring} class purely so that
@@ -66,6 +71,52 @@ public final class EchoingVoidClient {
             // constructor has run.
             EntityRenderersEvent.RegisterLayerDefinitions.BUS.addListener(Wiring::onRegisterLayers);
             EntityRenderersEvent.RegisterRenderers.BUS.addListener(Wiring::onRegisterRenderers);
+            // Not SelfDestructing, unlike the two above: this one is re-posted on every model
+            // bake, so the listener has to survive the first one.
+            ModelEvent.BakeFluidModels.BUS.addListener(Wiring::onBakeFluidModels);
+        }
+
+        /**
+         * PLAYER: "fix the hushwawter as none of the textures load, its just black and purple".
+         *
+         * <p>This is the whole fix, and the handed-down diagnosis it replaces was wrong, so both
+         * halves are worth writing down.
+         *
+         * <p>The lead said the three sprites were never stitched into the block atlas, and that the
+         * mod needed an {@code assets/echoing_void/atlases/blocks.json} to put them there. It does
+         * not. Vanilla's own {@code minecraft:blocks} atlas opens with a {@code minecraft:directory}
+         * source over {@code textures/block}, and {@code DirectoryLister} runs that through
+         * {@code ResourceManager#listResources}, which enumerates EVERY namespace - so
+         * {@code echoing_void:block/hushwater_still} was already on the atlas. The proof is that
+         * every other block this mod adds has a texture: if that lister were namespace-limited, the
+         * whole mod would be chequerboard rather than one fluid.
+         *
+         * <p>What actually changed in 26.2 is that fluids stopped being drawn from
+         * {@code IClientFluidTypeExtensions} at all. {@code FluidRenderer} asks
+         * {@code FluidStateModelSet}, which {@code ModelManager} bakes from
+         * {@code FluidStateModelSet.bake} - and that method returns a hard-coded four-entry map of
+         * water and lava. Every other fluid in the game falls through to
+         * {@code missingModels().fluid()}, which IS the black and purple. Forge's one seam is
+         * {@code ModelEvent.BakeFluidModels}, posted immediately after that bake, and a fluid that
+         * does not register there cannot be drawn. Grepping the 26.2 sources for
+         * {@code getStillTexture} finds it in exactly two places, neither of them a renderer:
+         * {@code DynamicFluidContainerModel}, for bucket items, and {@code ForgeMod}'s defaults.
+         *
+         * <p>Both the source and the flowing fluid are registered, to the same baked model -
+         * {@code FluidStateModelSet#get} keys on the exact {@code Fluid} instance and a flowing
+         * fluid is a different instance, which is why vanilla's map lists water twice too. The tint
+         * source is left null rather than white: {@code BlockTintSource} is the per-position biome
+         * tint, hushwater has none, and its sprites are already painted on the bismuth ramp.
+         */
+        private static void onBakeFluidModels(ModelEvent.BakeFluidModels event) {
+            FluidModel model = new FluidModel.Unbaked(
+                    new Material(EchoingVoid.id("block/hushwater_still")),
+                    new Material(EchoingVoid.id("block/hushwater_flow")),
+                    new Material(EchoingVoid.id("block/hushwater_overlay")),
+                    null
+            ).bake(event.materials(), () -> "Hushwater");
+            event.register(ModFluids.HUSHWATER.get(), model);
+            event.register(ModFluids.FLOWING_HUSHWATER.get(), model);
         }
 
         private static void onRegisterLayers(EntityRenderersEvent.RegisterLayerDefinitions event) {

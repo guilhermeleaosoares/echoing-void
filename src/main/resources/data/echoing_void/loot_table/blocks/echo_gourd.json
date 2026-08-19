@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1.0,
+      "functions": [
+        {
+          "function": "minecraft:explosion_decay"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "echoing_void:echo_gourd"
+        }
+      ]
+    }
+  ],
+  "random_sequence": "echoing_void:blocks/echo_gourd"
+}

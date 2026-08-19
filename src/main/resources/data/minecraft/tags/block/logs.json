@@ -2,6 +2,20 @@
   "replace": false,
   "values": [
     "echoing_void:petrified_tuning_wood",
-    "echoing_void:stripped_petrified_tuning_wood"
+    "echoing_void:stripped_petrified_tuning_wood",
+    "echoing_void:petrified_tuning_bark",
+    "echoing_void:stripped_petrified_tuning_bark",
+    "echoing_void:humming_hyphae",
+    "echoing_void:stripped_humming_hyphae",
+    "echoing_void:echo_ash_log",
+    "echoing_void:stripped_echo_ash_log",
+    "echoing_void:echo_ash_wood",
+    "echoing_void:stripped_echo_ash_wood",
+    "echoing_void:amber_bough_log",
+    "echoing_void:stripped_amber_bough_log",
+    "echoing_void:amber_bough_wood",
+    "echoing_void:stripped_amber_bough_wood",
+    "echoing_void:humming_stem",
+    "echoing_void:stripped_humming_stem"
   ]
 }

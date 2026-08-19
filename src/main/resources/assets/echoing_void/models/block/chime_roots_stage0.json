@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/crop",
+  "textures": {
+    "crop": "echoing_void:block/chime_roots_stage0"
+  }
+}

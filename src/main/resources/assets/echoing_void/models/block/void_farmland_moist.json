@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:block/template_farmland",
+  "textures": {
+    "dirt": "echoing_void:block/resonance_moss",
+    "top": "echoing_void:block/void_farmland_moist"
+  }
+}

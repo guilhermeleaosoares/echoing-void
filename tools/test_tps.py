@@ -51,12 +51,19 @@ DONE_RE = re.compile(r'Done \(([0-9.]+)s\)!|For help, type "help"')
 # Load is applied in phases, because chunk forceloading is asynchronous: issuing a setblock
 # into a chunk that has not finished generating just prints "That position is not loaded" and
 # the intended load never materialises, which would make this gate pass vacuously.
+# GAMERULE NAMES ARE snake_case IN 26.2. `gamerule randomTickSpeed 90` is not a
+# deprecated spelling, it is a Brigadier PARSE ERROR - the server answers with a
+# "<--[HERE]" marker and the rule keeps its default. Every gamerule in this repo
+# was written in the old camelCase and had been silently doing nothing, which is
+# why a farming test at "randomTickSpeed 100" was really running at the default
+# of 3 and saw no crop grow in 1200 ticks. The current names are in
+# net/minecraft/world/level/gamerules/GameRules.java.
 STRESS_PHASES: list[tuple[str, list[str], int]] = [
     # forceload refuses anything over 256 chunks, so this is exactly 16x16.
     ("forceloading 256 chunks", [
-        "gamerule randomTickSpeed 90",
-        "gamerule doMobSpawning true",
-        "gamerule doDaylightCycle true",
+        "gamerule random_tick_speed 90",
+        "gamerule spawn_mobs true",
+        "gamerule advance_time true",
         "time set midnight",
         "weather thunder",
         "forceload add -128 -128 127 127",
@@ -188,6 +195,19 @@ def ensure_server_properties() -> None:
         "max-tick-time": "-1",       # never watchdog-kill the benchmark
         "sync-chunk-writes": "false",
         "spawn-protection": "0",
+        # A dedicated server with nobody on it STOPS TICKING THE WORLD after
+        # pause-when-empty-seconds (DedicatedServerProperties.java, default 60).
+        # It keeps answering commands, so from the outside it looks alive: a
+        # /setblock lands, an /execute if block answers, /data get reports. But
+        # game time is frozen, so nothing scheduled ever runs - no fluid spread,
+        # no crop growth, no mob ticks, no random ticks.
+        #
+        # Every headless test here runs without a player, and any of them that
+        # waits for the world to DO something was, past the first minute,
+        # measuring a paused server. This is what made hushwater and vanilla
+        # water both read as "does not flow" in tools/test_hushwater.py.
+        # 0 disables the pause entirely.
+        "pause-when-empty-seconds": "0",
     }
     existing: dict[str, str] = {}
     if props.exists():

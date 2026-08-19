@@ -3,6 +3,10 @@
   "values": [
     "echoing_void:null_iron_ore",
     "echoing_void:null_iron_block",
-    "echoing_void:tuners_mask"
+    "echoing_void:tuners_mask",
+    "echoing_void:deepslate_null_iron_ore",
+    "echoing_void:phonolite_null_iron_ore",
+    "echoing_void:knell_ore",
+    "echoing_void:knell_block"
   ]
 }

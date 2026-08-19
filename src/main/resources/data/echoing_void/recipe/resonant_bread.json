@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "#": "echoing_void:resonant_grain"
+  },
+  "pattern": [
+    "###"
+  ],
+  "result": {
+    "id": "echoing_void:resonant_bread"
+  }
+}

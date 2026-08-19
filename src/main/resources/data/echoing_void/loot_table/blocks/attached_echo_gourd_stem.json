@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "rolls": 1.0,
+      "functions": [
+        {
+          "function": "minecraft:explosion_decay"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "echoing_void:echo_gourd_seeds",
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:binomial",
+                "n": 3.0,
+                "p": 0.53333336
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "random_sequence": "echoing_void:blocks/attached_echo_gourd_stem"
+}

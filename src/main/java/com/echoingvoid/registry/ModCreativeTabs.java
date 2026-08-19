@@ -75,6 +75,8 @@ public final class ModCreativeTabs {
         // as not existing. Any future DeferredRegister of items has to be added here
         // too; there is no automatic discovery.
         ModKnell.tabOrder().forEach(emit);
+        ModFluids.tabOrder().forEach(emit);
+        ModCrops.tabOrder().forEach(emit);
         ModBlockFamilies.tabOrder().forEach(emit);
     }
 

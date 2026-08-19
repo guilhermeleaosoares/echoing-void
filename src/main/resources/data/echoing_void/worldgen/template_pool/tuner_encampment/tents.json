@@ -8,8 +8,7 @@
           "processors": [
             {
               "processor_type": "echoing_void:ground_support",
-              "max_depth": 24,
-              "edges_only": true
+              "max_depth": 24
             }
           ]
         },
@@ -25,14 +24,13 @@
           "processors": [
             {
               "processor_type": "echoing_void:ground_support",
-              "max_depth": 24,
-              "edges_only": true
+              "max_depth": 24
             }
           ]
         },
         "projection": "rigid"
       },
-      "weight": 3
+      "weight": 2
     },
     {
       "element": {
@@ -42,8 +40,7 @@
           "processors": [
             {
               "processor_type": "echoing_void:ground_support",
-              "max_depth": 24,
-              "edges_only": true
+              "max_depth": 24
             }
           ]
         },
@@ -59,14 +56,45 @@
           "processors": [
             {
               "processor_type": "echoing_void:ground_support",
-              "max_depth": 24,
-              "edges_only": true
+              "max_depth": 24
             }
           ]
         },
         "projection": "rigid"
       },
       "weight": 1
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "echoing_void:tuner_encampment/camp_field",
+        "processors": {
+          "processors": [
+            {
+              "processor_type": "echoing_void:ground_support",
+              "max_depth": 24
+            }
+          ]
+        },
+        "projection": "rigid"
+      },
+      "weight": 4
+    },
+    {
+      "element": {
+        "element_type": "minecraft:single_pool_element",
+        "location": "echoing_void:tuner_encampment/camp_granary",
+        "processors": {
+          "processors": [
+            {
+              "processor_type": "echoing_void:ground_support",
+              "max_depth": 24
+            }
+          ]
+        },
+        "projection": "rigid"
+      },
+      "weight": 2
     }
   ],
   "fallback": "minecraft:empty"

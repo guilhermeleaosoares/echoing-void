@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/crop",
+  "textures": {
+    "crop": "echoing_void:block/void_tubers_stage3"
+  }
+}

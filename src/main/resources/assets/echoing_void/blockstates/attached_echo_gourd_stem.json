@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=west": {
+      "model": "echoing_void:block/attached_echo_gourd_stem"
+    },
+    "facing=north": {
+      "model": "echoing_void:block/attached_echo_gourd_stem",
+      "y": 90
+    },
+    "facing=east": {
+      "model": "echoing_void:block/attached_echo_gourd_stem",
+      "y": 180
+    },
+    "facing=south": {
+      "model": "echoing_void:block/attached_echo_gourd_stem",
+      "y": 270
+    }
+  }
+}

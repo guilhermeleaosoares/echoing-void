@@ -3,6 +3,7 @@ package com.echoingvoid;
 import com.echoingvoid.client.EchoingVoidClient;
 import com.echoingvoid.client.VoidTravelOverlay;
 import com.echoingvoid.event.CombatEvents;
+import com.echoingvoid.event.FluidEvents;
 import com.echoingvoid.event.PlayerTickEvents;
 import com.echoingvoid.registry.ModBlockEntities;
 import com.echoingvoid.registry.ModBlockFamilies;
@@ -11,9 +12,11 @@ import com.echoingvoid.registry.ModNewEntities;
 import com.echoingvoid.registry.ModKnell;
 import com.echoingvoid.registry.ModComponents;
 import com.echoingvoid.registry.ModCreativeTabs;
+import com.echoingvoid.registry.ModCrops;
 import com.echoingvoid.registry.ModEffects;
 import com.echoingvoid.registry.ModHostOres;
 import com.echoingvoid.registry.ModEntities;
+import com.echoingvoid.registry.ModFluids;
 import com.echoingvoid.registry.ModItems;
 import com.echoingvoid.registry.ModTerrainBlocks;
 import com.mojang.logging.LogUtils;
@@ -46,6 +49,12 @@ public final class EchoingVoid {
         // so they come after it and before the item registry.
         ModBlockFamilies.register(modBus);
         ModKnell.register(modBus);
+        // Hushwater. Registered after the blocks it flows over and before the item
+        // registry, because its bucket is an item and its liquid form is a block.
+        ModFluids.register(modBus);
+        // Farming. After ModFluids because void farmland is watered by hushwater,
+        // and after ModTerrainBlocks because it is tilled out of resonance moss.
+        ModCrops.register(modBus);
         ModNewEntities.register(modBus);
         // Structure processors - the ground-support legs that stop pieces floating.
         com.echoingvoid.worldgen.ModProcessors.register(modBus);
@@ -64,6 +73,7 @@ public final class EchoingVoid {
         // Game-bus listeners. These are EventBus 7 static buses, not an IEventBus instance.
         CombatEvents.register();
         PlayerTickEvents.register();
+        FluidEvents.register();
 
         LOGGER.info("The Echoing Void is listening.");
     }

@@ -1,5 +1,9 @@
 {
-  "carvers": [],
+  "carvers": [
+    "echoing_void:hollow_cave",
+    "echoing_void:hollow_cave_deep",
+    "echoing_void:hollow_canyon"
+  ],
   "downfall": 0.0,
   "effects": {
     "water_color": "#1b3b47",
@@ -12,8 +16,15 @@
   },
   "features": [
     [],
-    [],
-    [],
+    [
+      "echoing_void:hushwater_lake_plains_placed"
+    ],
+    [
+      "echoing_void:hushwater_spring_placed",
+      "echoing_void:hushwater_cascade_placed",
+      "echoing_void:cavern_ground_cover_placed",
+      "echoing_void:ground_cover_placed"
+    ],
     [],
     [],
     [],
@@ -26,15 +37,14 @@
     [
       "echoing_void:bismuth_cluster_placed",
       "echoing_void:chime_sand_hollow_placed",
-      "echoing_void:cavern_ground_cover_placed",
       "echoing_void:cavern_debris_placed"
     ],
     [],
     [
       "echoing_void:amber_bough_grove_placed",
       "echoing_void:petrified_grove_placed",
-      "echoing_void:ground_cover_placed",
-      "echoing_void:chime_grass_meadow_placed"
+      "echoing_void:chime_grass_meadow_placed",
+      "echoing_void:echo_gourd_patch_placed"
     ],
     [
       "echoing_void:island_debris_placed"

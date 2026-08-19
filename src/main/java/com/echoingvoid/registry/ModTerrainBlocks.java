@@ -2,6 +2,7 @@ package com.echoingvoid.registry;
 
 import com.echoingvoid.EchoingVoid;
 import com.echoingvoid.block.BismuthClusterBlock;
+import com.echoingvoid.block.ResonanceMossBlock;
 import com.echoingvoid.block.HummingCrystalBlock;
 import com.echoingvoid.block.HummingStemBlock;
 import com.echoingvoid.block.ResonanceLeavesBlock;
@@ -151,9 +152,15 @@ public final class ModTerrainBlocks {
     // Two covers in opposing hues. One material over the whole surface is what made
     // the old build read as a single grey mass.
 
-    /** Hardness 0.4 / Blast 0.4 | Hoe | MOSS | Light 4 | marks walkable, lit ground. */
+    /**
+     * Hardness 0.4 / Blast 0.4 | Hoe | MOSS | Light 4 | marks walkable, lit ground.
+     *
+     * <p>A {@link ResonanceMossBlock} rather than a plain {@code Block} for exactly one reason:
+     * it is the dimension's tillable soil. A hoe cuts it into {@code void_farmland}, which is the
+     * only ground the void crops accept - see {@link com.echoingvoid.block.VoidFarmlandBlock}.
+     */
     public static final RegistryObject<Block> RESONANCE_MOSS = BLOCKS.register("resonance_moss",
-            () -> new Block(props("resonance_moss")
+            () -> new ResonanceMossBlock(props("resonance_moss")
                     .mapColor(MapColor.WARPED_NYLIUM)
                     .strength(0.4F, 0.4F)
                     .sound(SoundType.MOSS)

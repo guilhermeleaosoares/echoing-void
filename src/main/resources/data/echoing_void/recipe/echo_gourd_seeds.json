@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "echoing_void:echo_gourd"
+  ],
+  "result": {
+    "id": "echoing_void:echo_gourd_seeds",
+    "count": 4
+  }
+}

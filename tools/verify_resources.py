@@ -104,6 +104,12 @@ def texture_refs(value) -> list[str]:
 # what Java actually registers
 # ---------------------------------------------------------------------------
 
+# Blocks that are deliberately registered WITHOUT a block item, and so must not
+# be asked for an item model definition. Same idea as the portal, which the
+# comment in registered() already describes.
+NO_BLOCK_ITEM = {"echo_gourd_stem", "attached_echo_gourd_stem"}
+
+
 def registered() -> tuple[set[str], set[str]]:
     """Every block and item id registered anywhere in the Java source.
 
@@ -128,7 +134,7 @@ def registered() -> tuple[set[str], set[str]]:
         text = f.read_text(encoding="utf-8", errors="replace")
         blocks |= set(re.findall(r'BLOCKS\.register\(\s*"([a-z0-9_]+)"', text))
         items |= set(re.findall(r'ITEMS\.register\(\s*"([a-z0-9_]+)"', text))
-        items |= set(re.findall(r'(?:simple|blockItem|tool|armor)\(\s*"([a-z0-9_]+)"', text))
+        items |= set(re.findall(r'(?:simple|blockItem|tool|armor|seed)\(\s*"([a-z0-9_]+)"', text))
 
         for base in re.findall(r'stoneFamily\(\s*"([a-z0-9_]+)"', text):
             # The argument is a PREFIX, not a block: stoneFamily("phonolite_brick")
@@ -145,6 +151,13 @@ def registered() -> tuple[set[str], set[str]]:
         for extra in re.findall(r'"([a-z0-9_]*(?:_bark|_hyphae|_log|_wood|_stem))"', text):
             blocks.add(extra)
             family_items.add(extra)
+
+    # That last pattern is a heuristic for the wood families, and it over-reaches:
+    # it assumes anything ending in _stem is a placeable log with a block item.
+    # The gourd's two stem blocks genuinely have none - a stem is planted from
+    # its SEED, exactly as vanilla's pumpkin_stem is - so demanding an item model
+    # for them would be demanding a file that must not exist.
+    family_items -= NO_BLOCK_ITEM
 
     # Only family blocks are assumed to carry a BlockItem. Blanket-adding every
     # block would wrongly demand an item model for the portal, which is

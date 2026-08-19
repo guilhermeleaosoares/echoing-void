@@ -1,6 +1,11 @@
 {
   "replace": false,
   "values": [
-    "echoing_void:calcified_resonance_leaves"
+    "echoing_void:calcified_resonance_leaves",
+    "echoing_void:ashen_resonance_leaves",
+    "echoing_void:resonance_moss",
+    "echoing_void:amber_lichen",
+    "echoing_void:amber_resonance_leaves",
+    "echoing_void:violet_resonance_leaves"
   ]
 }

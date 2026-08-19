@@ -53,6 +53,18 @@ OVERRIDE = {
     "soul_lantern": ("soul_lantern",),
     "chain": ("chain",),
     "iron_bars": ("iron_bars",),
+    # A fluid's sprite is its STILL animation strip, not a block-named png;
+    # _load() already crops the first frame off a vertical strip.
+    "hushwater": ("hushwater_still",),
+    # Crops have one sprite per growth stage rather than one per block. The
+    # ripe stage is the one worth drawing: a render of a field is a picture of
+    # what the field looks like when it is worth harvesting.
+    "resonant_wheat": ("resonant_wheat_stage7",),
+    "chime_roots": ("chime_roots_stage3",),
+    "void_tubers": ("void_tubers_stage3",),
+    "echo_gourd_stem": ("echo_gourd_stem",),
+    "attached_echo_gourd_stem": ("attached_echo_gourd_stem",),
+    "composter": ("composter_side",),
 }
 
 # Last resort for blocks that render from an entity model or a non-block sheet,

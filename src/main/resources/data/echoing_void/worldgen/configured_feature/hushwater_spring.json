@@ -1,0 +1,15 @@
+{
+  "type": "minecraft:spring_feature",
+  "config": {
+    "state": {
+      "Name": "echoing_void:hushwater",
+      "Properties": {
+        "falling": "true"
+      }
+    },
+    "requires_block_below": true,
+    "rock_count": 4,
+    "hole_count": 1,
+    "valid_blocks": "#echoing_void:hollow_horizon_carvable"
+  }
+}

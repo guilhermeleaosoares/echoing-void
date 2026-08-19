@@ -1,6 +1,7 @@
 {
   "replace": false,
   "values": [
-    "echoing_void:chime_sand"
+    "echoing_void:chime_sand",
+    "echoing_void:void_farmland"
   ]
 }

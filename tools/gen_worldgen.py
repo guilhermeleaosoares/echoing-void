@@ -206,6 +206,7 @@ written_paths: set[Path] = set()
 # shared too - this file writes the placement, that one writes the pieces - so
 # neither is pruned either.
 OWNED_DIRS = (
+    ("worldgen", "configured_carver"),
     ("worldgen", "density_function"),
     ("worldgen", "biome"),
     ("worldgen", "configured_feature"),
@@ -1194,8 +1195,34 @@ def gen_noise_settings() -> None:
 # biomes
 # ---------------------------------------------------------------------------
 
-# GenerationStep.Decoration ordinals (GenerationStep.java): 6 UNDERGROUND_ORES,
-# 7 UNDERGROUND_DECORATION, 9 VEGETAL_DECORATION, 10 TOP_LAYER_MODIFICATION.
+# GenerationStep.Decoration ordinals (GenerationStep.java): 1 LAKES,
+# 2 LOCAL_MODIFICATIONS, 4 SURFACE_STRUCTURES, 6 UNDERGROUND_ORES,
+# 7 UNDERGROUND_DECORATION, 8 FLUID_SPRINGS, 9 VEGETAL_DECORATION,
+# 10 TOP_LAYER_MODIFICATION.
+#
+# PLAYER: "there is moss and hushwater overriding the generation of outpost
+# structures meaning that there is hushwater and moss inside the walkways and
+# interiors".
+#
+# ChunkGenerator.applyBiomeDecoration walks the eleven steps in order and, for
+# each one, places the STRUCTURES of that step before that step's features. The
+# settlements sit at surface_structures, ordinal 4. So a feature below 4 is
+# buried by the settlement that lands on top of it, and a feature above 4
+# decorates a building that is already standing. The springs were at 8 and the
+# moss at 9. Both were above it. That is the whole bug.
+#
+# The #hollow_horizon_natural_ground guard those placements already carry was
+# never going to catch this, and it is worth being precise about why: the
+# outposts' roofs are echo_slate and their decks resonant_chalk, and BOTH of
+# those are in that tag, because they are also what the terrain is made of. A
+# whitelist cannot separate a floor from the rock it imitates.
+#
+# So the two of them move below 4, to local_modifications. Neither loses
+# anything by it. A spring drains into caves, and caves are cut in
+# ChunkStatus.CARVERS, which finishes before FEATURES begins at all; the moss
+# only needs the lakes at step 1 dug before it, and 2 is still after 1.
+STEP_LAKES = 1
+STEP_LOCAL = 2
 STEP_ORES = 6
 STEP_UNDERGROUND = 7
 STEP_VEGETAL = 9
@@ -1226,7 +1253,11 @@ def write_biome(name: str, *, fog: str, foliage: str, grass: str,
                 monsters: list[dict], costs: list[tuple[str, dict]],
                 ores: list[str], underground: list[str],
                 vegetal: list[str], top: list[str],
-                ambient: list[dict] | None = None) -> None:
+                ambient: list[dict] | None = None,
+                lakes: list[str] | None = None,
+                springs: list[str] | None = None,
+                ground_cover: list[str] | None = None,
+                carvers: list[str] | None = None) -> None:
     """Write one biome.
 
     `ambient` is the MobCategory.AMBIENT bucket and is separate from `monsters`
@@ -1234,15 +1265,28 @@ def write_biome(name: str, *, fog: str, foliage: str, grass: str,
     anything listed here cannot consume the hostile budget - a cave full of
     chime motes still gets its monsters. Defaults to empty, which is what every
     biome had hardcoded before.
+
+    `carvers` used to be hard-coded to the empty list here, which meant the
+    dimension had the noise-cave half of vanilla's cave system and none of the
+    carver half - no winding tunnels, no ravines. It is a parameter now;
+    BiomeGenerationSettings decodes it as a HolderSet<ConfiguredWorldCarver>,
+    and an empty list makes ChunkStatus.CARVERS a no-op for the whole biome.
+
+    `lakes`, `springs` and `ground_cover` are the three buckets that have to run
+    BEFORE the settlements, and the comment on STEP_LOCAL says why. A lake also
+    has to be dug before anything decorates the ground it floods, which is what
+    keeps it at 1 and the other two at 2.
     """
     features: list[list[str]] = [[] for _ in range(11)]
+    features[STEP_LAKES] = lakes or []
+    features[STEP_LOCAL] = (springs or []) + (ground_cover or [])
     features[STEP_ORES] = ores
     features[STEP_UNDERGROUND] = underground
     features[STEP_VEGETAL] = vegetal
     features[STEP_TOP] = top
 
     write(MOD / "worldgen" / "biome" / f"{name}.json", {
-        "carvers": [],
+        "carvers": carvers or [],
         "downfall": 0.0,
         # In 26.2 biome "effects" accepts ONLY water_color / foliage_color /
         # dry_foliage_color / grass_color / grass_color_modifier. Fog, sky and
@@ -1311,17 +1355,29 @@ def gen_biomes() -> None:
             spawn_cost("strata_burrower", 1.0, 0.08),
         ],
         ores=COMMON_ORES,
+        carvers=HOLLOW_CARVERS,
         underground=[
             ev("bismuth_cluster_placed"),
             ev("chime_sand_hollow_placed"),
-            ev("cavern_ground_cover_placed"),
             ev("cavern_debris_placed"),
+        ],
+        lakes=[ev("hushwater_lake_plains_placed")],
+        ground_cover=[
+            ev("cavern_ground_cover_placed"),
+            ev("ground_cover_placed"),
+        ],
+        springs=[
+            ev("hushwater_spring_placed"),
+            ev("hushwater_cascade_placed"),
         ],
         vegetal=[
             ev("amber_bough_grove_placed"),
             ev("petrified_grove_placed"),
-            ev("ground_cover_placed"),
             ev("chime_grass_meadow_placed"),
+            # Wild gourds. Resonant Plains only: it is the biome with broad
+            # connected tops, and a patch is meant to be something a player
+            # walks into rather than something they have to go looking for.
+            ev("echo_gourd_patch_placed"),
         ],
         top=[ev("island_debris_placed")],
     )
@@ -1349,13 +1405,19 @@ def gen_biomes() -> None:
             spawn_cost("echo_weaver", 1.0, 0.08),
         ],
         ores=COMMON_ORES,
+        carvers=HOLLOW_CARVERS,
         underground=[
             ev("bismuth_cluster_dense_placed"),
             ev("cavern_debris_placed"),
         ],
+        lakes=[ev("hushwater_lake_octaves_placed")],
+        ground_cover=[ev("sparse_ground_cover_placed")],
+        springs=[
+            ev("hushwater_spring_placed"),
+            ev("hushwater_cascade_placed"),
+        ],
         vegetal=[
             ev("humming_grove_placed"),
-            ev("sparse_ground_cover_placed"),
         ],
         top=[ev("island_debris_placed")],
     )
@@ -1380,14 +1442,22 @@ def gen_biomes() -> None:
             spawn_cost("echo_weaver", 1.0, 0.10),
         ],
         ores=COMMON_ORES,
+        carvers=HOLLOW_CARVERS,
         underground=[
             ev("bismuth_cluster_placed"),
             ev("chime_sand_hollow_placed"),
+        ],
+        lakes=[ev("hushwater_lake_chalk_placed")],
+        ground_cover=[
             ev("cavern_ground_cover_placed"),
+            ev("ground_cover_placed"),
+        ],
+        springs=[
+            ev("hushwater_spring_placed"),
+            ev("hushwater_cascade_placed"),
         ],
         vegetal=[
             ev("echo_ash_grove_placed"),
-            ev("ground_cover_placed"),
             ev("chime_sand_drift_placed"),
         ],
         top=[ev("island_debris_placed")],
@@ -1738,15 +1808,24 @@ def gen_features() -> None:
         "placement": [
             {"type": "minecraft:count", "count": 14},
             {"type": "minecraft:in_square"},
-            {"type": "minecraft:height_range", "height": _uniform(10, 200)},
+            # Ceiling pulled from 200 to 150. Above that is sky-island rock,
+            # which the carvers deliberately do not touch, so those veins could
+            # only ever be found by digging - and every one of them was a vein
+            # not spent on the carved band below.
+            {"type": "minecraft:height_range", "height": _uniform(10, 150)},
             {"type": "minecraft:biome"},
         ],
     })
 
+    # discard_chance_on_air_exposure was 0.6, which threw away 60% of exactly
+    # the blocks a player walking a tunnel would SEE - vanilla only uses a
+    # nonzero discard where it deliberately wants an ore hidden from cave walls.
+    # With carvers now cutting real tunnels through this rock, that setting was
+    # working directly against "null iron should be easier to find in caves".
     write(cf / "ore_phonolite_null_iron.json", {
         "type": "minecraft:scattered_ore",
         "config": {
-            "discard_chance_on_air_exposure": 0.6,
+            "discard_chance_on_air_exposure": 0.0,
             "size": 3,
             "targets": [{
                 "state": B("phonolite_null_iron_ore"),
@@ -1758,9 +1837,14 @@ def gen_features() -> None:
     write(pf / "ore_phonolite_null_iron_placed.json", {
         "feature": ev("ore_phonolite_null_iron"),
         "placement": [
-            {"type": "minecraft:count", "count": 4},
+            # 4 -> 6, and the band narrowed from 4..90 onto the 10..100 the
+            # carvers cut. Both moves are aimed at the same thing: a vein the
+            # player meets in a tunnel wall rather than one they only ever find
+            # by strip-mining. The band still bottoms out below the cave floor
+            # so the ore is not purely a cave reward.
+            {"type": "minecraft:count", "count": 6},
             {"type": "minecraft:in_square"},
-            {"type": "minecraft:height_range", "height": _uniform(4, 90)},
+            {"type": "minecraft:height_range", "height": _uniform(6, 100)},
             {"type": "minecraft:biome"},
         ],
     })
@@ -2134,6 +2218,249 @@ def gen_features() -> None:
         "placement": tree_placement(1, clear_height=8, spacing=3, rarity=6),
     })
 
+    gen_hushwater(cf, pf)
+    gen_void_crops(cf, pf)
+
+
+# ---------------------------------------------------------------------------
+# void crops
+#
+# Only the gourd generates wild. The grain, the root and the tuber are farmed -
+# they come from the encampment's fields and from the traders - which is what
+# makes finding a gourd patch worth something: it is the one way into the whole
+# farming loop without a settlement.
+# ---------------------------------------------------------------------------
+
+def gen_void_crops(cf: Path, pf: Path) -> None:
+    write(cf / "echo_gourd_patch.json", {
+        "type": "minecraft:simple_block",
+        "config": {"to_place": {"type": "minecraft:simple_state_provider",
+                                "state": B("echo_gourd")}},
+    })
+
+    # Shape copied from vanilla patch_pumpkin: a rare roll that then makes many
+    # attempts in one spot, so gourds arrive as a PATCH rather than as one every
+    # few chunks. Vanilla's rarity is 300; 40 here because this dimension has
+    # far less walkable surface per chunk than the overworld does, so the same
+    # number would put a patch out of reach of most islands entirely.
+    write(pf / "echo_gourd_patch_placed.json", {
+        "feature": ev("echo_gourd_patch"),
+        "placement": [
+            {"type": "minecraft:rarity_filter", "chance": 40},
+            {"type": "minecraft:in_square"},
+            {"type": "minecraft:heightmap", "heightmap": "OCEAN_FLOOR_WG"},
+            {"type": "minecraft:count", "count": 48},
+            {"type": "minecraft:random_offset",
+             "xz_spread": {"type": "minecraft:trapezoid", "min": -7, "max": 7,
+                           "plateau": 0},
+             "y_spread": {"type": "minecraft:trapezoid", "min": -3, "max": 3,
+                          "plateau": 0}},
+            # Natural ground only, and only into a replaceable block - so a
+            # gourd cannot land on an outpost deck or inside a tree.
+            m_filter(p_all(p_replaceable(), p_tag(NATURAL_GROUND, (0, -1, 0)))),
+            {"type": "minecraft:biome"},
+        ],
+    })
+
+
+# ---------------------------------------------------------------------------
+# carvers
+#
+# The dimension shipped with `"carvers": []` on every biome. It already had the
+# NOISE half of vanilla's cave system - the cheese/spaghetti/noodle density
+# functions faithfully reproduce NoiseRouterData - but none of the carver half,
+# which is the winding tunnels and ravines players actually recognise as caves.
+#
+# Two fields cannot be copied from vanilla and are the reason a straight copy
+# would have carved nothing and flooded the world floor with lava:
+#
+#   replaceable  WorldCarver.carveBlock refuses any block outside this set, and
+#                vanilla's #minecraft:overworld_carver_replaceables contains
+#                none of this dimension's rock. Every carve attempt would have
+#                been a silent no-op. The mod already ships the right set under
+#                its own name.
+#   lava_level   vanilla's {"above_bottom": 8} resolves against THIS dimension's
+#                min_y of 0, i.e. everything at or below y=8 becomes lava.
+#                {"absolute": -1} is below the world floor, so no carved block
+#                is ever replaced with lava.
+#
+# The y bands are retuned as well: vanilla's 8..180 is meaningless here. The
+# mainland surface sits around y66-155 and the deep strata run to about y48, so
+# the caves are put where the rock actually is. The SKY islands (roughly y166
+# upward) are deliberately left uncarved - they are thin, and a tunnel through
+# one is a hole into the void rather than a cave.
+# ---------------------------------------------------------------------------
+
+CARVER_REPLACEABLE = f"#{NS}:hollow_horizon_carvable"
+
+# Below the world floor. See the note above - this is the whole reason the
+# dimension does not fill with lava.
+NO_LAVA = {"absolute": -1}
+
+
+def _uniform_float(lo: float, hi: float) -> dict:
+    return {"type": "minecraft:uniform", "min_inclusive": lo, "max_exclusive": hi}
+
+
+def gen_carvers() -> None:
+    cv = MOD / "worldgen" / "configured_carver"
+
+    def cave(name: str, probability: float, lo: int, hi: int) -> None:
+        write(cv / f"{name}.json", {
+            "type": "minecraft:cave",
+            "config": {
+                "probability": probability,
+                "y": _uniform(lo, hi),
+                "yScale": _uniform_float(0.1, 0.9),
+                "horizontal_radius_multiplier": _uniform_float(0.7, 1.4),
+                "vertical_radius_multiplier": _uniform_float(0.8, 1.3),
+                "floor_level": _uniform_float(-1.0, -0.4),
+                "lava_level": NO_LAVA,
+                "replaceable": CARVER_REPLACEABLE,
+            },
+        })
+
+    # The main tunnel network, spanning the whole rock column below the islands.
+    cave("hollow_cave", 0.15, 30, 140)
+    # Vanilla's cave_extra_underground: a second, rarer pass confined to the
+    # deep, which is what stops the lower strata being a solid block of rock.
+    cave("hollow_cave_deep", 0.07, 10, 70)
+
+    # Ravines. Kept well below the surface band's ceiling so one cannot slice
+    # the top off an island; vanilla's 0.01 probability is already very rare.
+    write(cv / "hollow_canyon.json", {
+        "type": "minecraft:canyon",
+        "config": {
+            "probability": 0.01,
+            "y": _uniform(50, 110),
+            "yScale": 3.0,
+            "vertical_rotation": _uniform_float(-0.125, 0.125),
+            "shape": {
+                "distance_factor": _uniform_float(0.75, 1.0),
+                "horizontal_radius_factor": _uniform_float(0.75, 1.0),
+                "thickness": {"type": "minecraft:trapezoid", "min": 0.0,
+                              "max": 6.0, "plateau": 2.0},
+                "vertical_radius_center_factor": 0.0,
+                "vertical_radius_default_factor": 1.0,
+                "width_smoothness": 3,
+            },
+            "lava_level": NO_LAVA,
+            "replaceable": CARVER_REPLACEABLE,
+        },
+    })
+
+
+HOLLOW_CARVERS = [ev("hollow_cave"), ev("hollow_cave_deep"), ev("hollow_canyon")]
+
+
+# ---------------------------------------------------------------------------
+# hushwater
+#
+# The dimension's liquid. Three placed features, doing three different jobs:
+#
+#   hushwater_lake_placed      pools on island tops - the sight the fluid is for
+#   hushwater_spring_placed    seeps through the rock column - streams in caves
+#   hushwater_cascade_placed   the same springs, concentrated in the band the
+#                              island tops occupy, which is where one breaking
+#                              out of a cliff face becomes a fall a player can
+#                              ride down. That is the traversal half of the
+#                              feature: a floating-island world with no way off
+#                              an island except building is a world you fight.
+#
+# A note on why lakes are safe on a floating island. LakeFeature checks its own
+# shell before it writes anything: for every cell of the 16x8x16 grid below the
+# midline it requires the neighbouring block to be solid, and returns false
+# outright if it is not (LakeFeature.java, the `yy < 4 && !blockState.isSolid()`
+# branch). An island thinner than the basin therefore rejects the lake rather
+# than getting a hole punched through it, and the barrier pass then seals the
+# basin it did accept. No guard of our own is needed, and none would be as
+# accurate.
+# ---------------------------------------------------------------------------
+
+def gen_hushwater(cf: Path, pf: Path) -> None:
+    # The BLOCK form, for the lake's BlockStateProvider.
+    fluid_block = {"Name": block_id("hushwater"), "Properties": {"level": "0"}}
+    # The FLUID form, for the spring's FluidState. `falling` is what makes a
+    # spring pour rather than sit; vanilla's spring_water.json sets it too.
+    fluid_state = {"Name": f"{NS}:hushwater", "Properties": {"falling": "true"}}
+
+    write(cf / "hushwater_lake.json", {
+        "type": "minecraft:lake",
+        "config": {
+            # Resonant chalk, not the local rock: a pale rim is what makes a
+            # cyan pool legible from the air, which is how a player on an
+            # island above will actually find one.
+            "barrier": {"type": "minecraft:simple_state_provider",
+                        "state": {"Name": block_id("resonant_chalk")}},
+            "can_place_feature": {"type": "minecraft:true"},
+            "can_replace_with_air_or_fluid":
+                p_not(p_tag("minecraft:features_cannot_replace")),
+            "can_replace_with_barrier":
+                p_not(p_tag("minecraft:lava_pool_stone_cannot_replace")),
+            "fluid": {"type": "minecraft:simple_state_provider",
+                      "state": fluid_block},
+        },
+    })
+
+    # Rarity per biome rather than one shared number: Shattered Octaves is the
+    # thin-island biome, where most attempts would be rejected by the shell test
+    # anyway, and Chalk Reaches is the high plateau, where a pool reads best.
+    for biome_suffix, chance in (("plains", 22), ("octaves", 40), ("chalk", 28)):
+        write(pf / f"hushwater_lake_{biome_suffix}_placed.json", {
+            "feature": ev("hushwater_lake"),
+            "placement": [
+                {"type": "minecraft:rarity_filter", "chance": chance},
+                {"type": "minecraft:in_square"},
+                {"type": "minecraft:heightmap", "heightmap": "OCEAN_FLOOR_WG"},
+                # Natural ground only, so a lake cannot flood an outpost deck.
+                m_filter(p_tag(NATURAL_GROUND, (0, -1, 0))),
+                {"type": "minecraft:biome"},
+            ],
+        })
+
+    # SpringFeature fires only where exactly `rock_count` of the five
+    # neighbours (N/E/S/W/below) are valid rock and exactly `hole_count` are
+    # empty - i.e. in a wall with one way out. Those are vanilla's defaults and
+    # they are what makes a spring look like a seep instead of a puddle.
+    write(cf / "hushwater_spring.json", {
+        "type": "minecraft:spring_feature",
+        "config": {
+            "state": fluid_state,
+            "requires_block_below": True,
+            "rock_count": 4,
+            "hole_count": 1,
+            # The same four stones the carvers cut and the ores replace, so a
+            # spring can open anywhere rock exists in this dimension.
+            "valid_blocks": CARVABLE,
+        },
+    })
+
+    write(pf / "hushwater_spring_placed.json", {
+        "feature": ev("hushwater_spring"),
+        "placement": [
+            {"type": "minecraft:count", "count": 20},
+            {"type": "minecraft:in_square"},
+            # The whole rock column. Deliberately stops short of y=6: a spring
+            # at the world floor drains into the void and is never seen.
+            {"type": "minecraft:height_range", "height": _uniform(10, 200)},
+            {"type": "minecraft:biome"},
+        ],
+    })
+
+    # The traversal half. SKY_BOTTOM_FROM/SKY_TOP_TO put the sky islands
+    # between roughly y150 and y220, so this band is their flanks and their
+    # tops - the only place a spring can break out over open air and fall far
+    # enough to be worth riding down.
+    write(pf / "hushwater_cascade_placed.json", {
+        "feature": ev("hushwater_spring"),
+        "placement": [
+            {"type": "minecraft:count", "count": 14},
+            {"type": "minecraft:in_square"},
+            {"type": "minecraft:height_range", "height": _uniform(140, 218)},
+            {"type": "minecraft:biome"},
+        ],
+    })
+
 
 # ---------------------------------------------------------------------------
 # structure
@@ -2340,11 +2667,21 @@ def main() -> int:
                          "holder class is ever class-loaded, so when the server "
                          "log reports 'Unknown registry key' for an id that IS "
                          "in the sources, this is how a probe run gets past it.")
+    # For the carver A/B in tools/test_worldgen_features.py: there is no way to
+    # tell a carved block from a noise cavern by inspection in this dimension,
+    # so the only honest measurement is the same seed generated twice, once with
+    # the carver lists empty. This flag is that second half.
+    ap.add_argument("--no-carvers", action="store_true",
+                    help="write every biome with an empty carver list, for a "
+                         "with/without comparison on one seed")
     ap.add_argument("--stub-unregistered", action="store_true",
                     help="swap unregistered mod blocks for vanilla stand-ins so "
                          "the dimension can be probed before the registries land")
     args = ap.parse_args()
     _stub_mode = args.stub_unregistered
+    if args.no_carvers:
+        HOLLOW_CARVERS.clear()
+        print("--no-carvers: every biome will be written with \"carvers\": []")
 
     if not VANILLA.exists():
         print(f"FAIL: vanilla reference data not found at {VANILLA}")
@@ -2363,6 +2700,9 @@ def main() -> int:
     gen_dimension()
     gen_density_functions()
     gen_noise_settings()
+    # Carvers before biomes: gen_biomes names them, and writing them first
+    # keeps the "does this file exist" question answerable by reading top down.
+    gen_carvers()
     gen_biomes()
     gen_features()
     gen_structure()

@@ -65,6 +65,14 @@ STAGES = [
     ("terrain block tags", "gen_terrain_tags.py"),
     ("entity textures", "gen_entity_textures.py"),
     ("new creature textures", "gen_new_creature_textures.py"),
+    # Hushwater. After the item generator because it imports its Sprite/Material
+    # API, and before worldgen because the lake and spring features name the
+    # fluid block this stage writes the blockstate for.
+    ("hushwater fluid assets", "gen_fluid_assets.py"),
+    # After the fluid stage, which owns the periodic-noise helper it imports,
+    # and after gen_terrain_tags.py, whose mineable/* files it merges into
+    # rather than overwrites.
+    ("void farming assets", "gen_crop_assets.py"),
     ("worldgen", "gen_worldgen.py"),
     ("jigsaw structures", "gen_structures.py"),
     # The animated portal, the anvil shape and the jukebox. Their models used to be
@@ -121,6 +129,12 @@ def main() -> int:
     print("  python tools/verify_textures.py")
     print("  python tools/verify_models.py")
     print("  python tools/verify_resources.py")
+    print("  python tools/check_creative_tabs.py")
+    # Compares the emitted settlement templates against git HEAD and refuses any
+    # change to a block visible from outside the building, then walks the new
+    # upper floors to prove they can be reached on foot. Only meaningful while
+    # interiors are being reworked, which is why it is listed last.
+    print("  python tools/verify_interiors.py")
     return 0
 
 

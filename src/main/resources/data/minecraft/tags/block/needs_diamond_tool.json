@@ -8,6 +8,22 @@
     "echoing_void:inversion_anvil",
     "echoing_void:null_iron_ore",
     "echoing_void:null_iron_block",
-    "echoing_void:tuners_mask"
+    "echoing_void:tuners_mask",
+    "echoing_void:phonolite_resonant_bismuth_ore",
+    "echoing_void:deepslate_null_iron_ore",
+    "echoing_void:phonolite_null_iron_ore",
+    "echoing_void:raw_phonolite_slab",
+    "echoing_void:raw_phonolite_stairs",
+    "echoing_void:raw_phonolite_wall",
+    "echoing_void:polished_phonolite_slab",
+    "echoing_void:polished_phonolite_stairs",
+    "echoing_void:polished_phonolite_wall",
+    "echoing_void:phonolite_brick_slab",
+    "echoing_void:phonolite_brick_stairs",
+    "echoing_void:phonolite_brick_wall",
+    "echoing_void:knell_ore",
+    "echoing_void:knell_block",
+    "echoing_void:knell_integrator",
+    "echoing_void:polished_phonolite"
   ]
 }

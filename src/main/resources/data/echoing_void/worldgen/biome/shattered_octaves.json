@@ -1,5 +1,9 @@
 {
-  "carvers": [],
+  "carvers": [
+    "echoing_void:hollow_cave",
+    "echoing_void:hollow_cave_deep",
+    "echoing_void:hollow_canyon"
+  ],
   "downfall": 0.0,
   "effects": {
     "water_color": "#1b3b47",
@@ -12,8 +16,14 @@
   },
   "features": [
     [],
-    [],
-    [],
+    [
+      "echoing_void:hushwater_lake_octaves_placed"
+    ],
+    [
+      "echoing_void:hushwater_spring_placed",
+      "echoing_void:hushwater_cascade_placed",
+      "echoing_void:sparse_ground_cover_placed"
+    ],
     [],
     [],
     [],
@@ -29,8 +39,7 @@
     ],
     [],
     [
-      "echoing_void:humming_grove_placed",
-      "echoing_void:sparse_ground_cover_placed"
+      "echoing_void:humming_grove_placed"
     ],
     [
       "echoing_void:island_debris_placed"
