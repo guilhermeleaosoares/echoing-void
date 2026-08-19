@@ -152,7 +152,7 @@ public final class ModKnell {
     public static final RegistryObject<Item> RESONANT_SWORD = tool("knell_sword",
             () -> new KnellSwordItem(gearProps("knell_sword").sword(KnellMaterials.KNELL, 3.0F, -2.4F)));
 
-    /** The Harmonic Pickaxe's rhythm-shatter, amplified to a 4x4 plane - see KnellPickaxeItem. */
+    /** The Harmonic Pickaxe's rhythm-shatter, amplified to a 5-wide x 4-tall plane - see KnellPickaxeItem. */
     public static final RegistryObject<Item> RESONANT_PICKAXE = tool("knell_pickaxe",
             () -> new KnellPickaxeItem(gearProps("knell_pickaxe").pickaxe(KnellMaterials.KNELL, 1.0F, -2.8F)));
 

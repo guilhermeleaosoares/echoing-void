@@ -1,6 +1,7 @@
 package com.echoingvoid.event;
 
 import com.echoingvoid.item.AeroStrideGreavesItem;
+import com.echoingvoid.item.HarmonicPickaxeItem;
 import com.echoingvoid.item.ResonanceArmorItem;
 import com.echoingvoid.item.SonicLanceItem;
 import com.echoingvoid.item.VoidGlassRapierItem;
@@ -17,6 +18,7 @@ import net.minecraftforge.event.entity.living.LivingFallEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.CriticalHitEvent;
+import net.minecraftforge.event.level.BlockEvent;
 
 /**
  * Combat wiring for the gear suite. Everything here is reactive: no listener walks a level's
@@ -46,6 +48,7 @@ public final class CombatEvents {
         LivingDamageEvent.BUS.addListener(CombatEvents::onLivingDamage);
         CriticalHitEvent.BUS.addListener(CombatEvents::onCriticalHit);
         LivingFallEvent.BUS.addListener(CombatEvents::onLivingFall);
+        BlockEvent.BreakEvent.BUS.addListener(CombatEvents::onBlockBreak);
     }
 
     // ------------------------------------------------------------- rapier arming
@@ -148,6 +151,24 @@ public final class CombatEvents {
             return;
         }
         VoidGlassRapierItem.veil(attacker);
+    }
+
+    // -------------------------------------------------------------------- mining
+
+    /**
+     * Fires for every block a player breaks, survival or creative - see
+     * {@link HarmonicPickaxeItem}'s class javadoc for why the rhythm-shatter trigger lives
+     * here now instead of on {@code Item#mineBlock}, which Creative players never reach.
+     */
+    private static void onBlockBreak(BlockEvent.BreakEvent event) {
+        Player player = event.getPlayer();
+        ItemStack stack = player.getMainHandItem();
+        if (!(stack.getItem() instanceof HarmonicPickaxeItem pickaxe)) {
+            return;
+        }
+        if (event.getLevel() instanceof ServerLevel level) {
+            pickaxe.onBlockBroken(stack, level, event.getState(), event.getPos(), player);
+        }
     }
 
     // ------------------------------------------------------------------- landing

@@ -268,41 +268,76 @@ FLUID = Material("hushwater", [
 ])
 
 
-def hushwater_bucket() -> Sprite:
-    """Vanilla's bucket silhouette - a tapered pail with a wire bail - filled to
-    the brim, which is how every vanilla bucket says what is in it."""
-    sp = Sprite()
+class _FixedSprite:
+    """A sprite whose pixels are literal, not procedural.
 
-    body = spans({
-        5:  [(2, 13)],
-        6:  [(2, 13)],
-        7:  [(3, 12)],
-        8:  [(3, 12)],
-        9:  [(3, 12)],
-        10: [(3, 12)],
-        11: [(4, 11)],
-        12: [(4, 11)],
-        13: [(4, 11)],
-        14: [(5, 10)],
-    })
-    sp.paint(body, PAIL, 0.52, 5501, spread=0.26, light=0.30)
+    Every other sprite in this file is generated from a material and a shape,
+    because that is what keeps the palette machinery honest. This one is not:
+    it is Antigravity's hand-drawn hushwater bucket, PLAYER-approved after a
+    dedicated design pass (docs/FIXES_round2.md item 1) and then silently
+    overwritten by a later regeneration - "the hushwater textures and bucket
+    item were reverted" - because it lived only as a checked-in PNG with no
+    generator behind it, so the next `asset_gen.py` run rebuilt the old
+    procedural version right over it.
 
-    # The fluid sits in the mouth, inset one pixel from the wall so the pail
-    # keeps a visible lip on both sides.
-    surface = spans({6: [(3, 12)], 7: [(4, 11)], 8: [(4, 11)]})
-    sp.paint(surface, FLUID, 0.70, 9203, spread=0.34, light=0.24)
-    # Two crest pixels so the surface is legibly a liquid at icon size.
-    sp.stamp([(5, 6), (9, 6)], FLUID, 1.0)
+    Encoding the exact pixel grid here closes that gap: this IS the generator
+    now, so there is nothing left for a future regeneration to revert. The
+    grid below was read pixel-by-pixel from that approved PNG (git show
+    8b1926e:.../hushwater_bucket.png) rather than redrawn from memory, so this
+    reproduces it exactly rather than approximately.
+    """
 
-    # The bail, arcing over the mouth. Drawn after the body so it overwrites it,
-    # and locked so the outline pass leaves it as drawn.
-    bail = stroke([(2.5, 5.0), (5.0, 1.6), (11.0, 1.6), (13.5, 5.0)], 1.0)
-    for (x, y) in sorted(bail):
-        if y <= 4:
-            sp.put(x, y, PAIL, PAIL.tone(0.85), lock=True)
+    _ROWS = [
+        "................",
+        ".....KKKKKK.....",
+        "...KKdgggmmKK...",
+        "..KdADBCCDDAdK..",
+        "..KABEEBCEFBAK..",
+        "..KKKACBBCAKKK..",
+        "..KLmKKFKKKdgK..",
+        "..KLLLLmFgddgK..",
+        "..KLLWLmmgddmK..",
+        "..KmLWLmmgddmK..",
+        "..KdLWLmmgddgK..",
+        "...KLLLmmgdgK...",
+        "...KmLLmggdgK...",
+        "....KmLmgdgK....",
+        ".....KKKKKK.....",
+        "................",
+    ]
+    # Colours as measured off the approved PNG - not this file's usual
+    # material ramps, because this sprite predates them and was approved as
+    # drawn, pixel values and all.
+    _PALETTE = {
+        ".": (0, 0, 0, 0),
+        "K": (53, 53, 53, 255),
+        "m": (168, 168, 168, 255),
+        "L": (216, 216, 216, 255),
+        "g": (150, 150, 150, 255),
+        "d": (114, 114, 114, 255),
+        "A": (15, 94, 109, 255),
+        "B": (50, 182, 198, 255),
+        "C": (33, 150, 166, 255),
+        "D": (13, 111, 128, 255),
+        "E": (118, 224, 246, 255),
+        "F": (47, 218, 238, 255),
+        "W": (255, 255, 255, 255),
+    }
 
-    sp.outline()
-    return sp
+    def save(self, path: Path) -> Image.Image:
+        img = Image.new("RGBA", (16, 16), (0, 0, 0, 0))
+        for y, row in enumerate(self._ROWS):
+            for x, ch in enumerate(row):
+                img.putpixel((x, y), self._PALETTE[ch])
+        path.parent.mkdir(parents=True, exist_ok=True)
+        img.save(path, "PNG", optimize=True)
+        return img
+
+
+def hushwater_bucket() -> _FixedSprite:
+    """Antigravity's approved bucket design - see `_FixedSprite` for why this
+    is pixel data rather than a procedural paint like every sprite above it."""
+    return _FixedSprite()
 
 
 # ---------------------------------------------------------------------------

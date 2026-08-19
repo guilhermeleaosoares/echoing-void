@@ -6,11 +6,9 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.HashMap;
@@ -27,6 +25,17 @@ import java.util.UUID;
  *
  * <p>Only blocks of comparable hardness give way, and only ones this pickaxe could have
  * harvested anyway - the tool cheats the block count, never the tier gate.
+ *
+ * <p>PLAYER: "none of the new pickaxe effects work." They did not - not because the rhythm
+ * logic was wrong, but because it lived in {@code Item#mineBlock}, and {@code
+ * ServerPlayerGameMode#destroyBlock} only calls that for a player whose {@code
+ * preventsBlockDrops()} is false. A Creative player's is true, so the method returns before
+ * {@code itemStack.mineBlock(...)} is ever reached - the single most likely way anyone would
+ * first try a new tool. {@code ForgeHooks.onBlockBreakEvent}, a few lines earlier in the same
+ * method, fires {@link net.minecraftforge.event.level.BlockEvent.BreakEvent} unconditionally,
+ * survival or creative, so the trigger now lives on that event instead (wired in
+ * {@code CombatEvents}) and {@code mineBlock} is no longer overridden here at all - keeping
+ * both would have double-counted every survival break, since both used to fire for one.
  */
 public class HarmonicPickaxeItem extends Item {
 
@@ -61,11 +70,14 @@ public class HarmonicPickaxeItem extends Item {
         super(properties);
     }
 
-    @Override
-    public boolean mineBlock(ItemStack stack, Level level, BlockState state, BlockPos pos, LivingEntity owner) {
-        boolean handled = super.mineBlock(stack, level, state, pos, owner);
-        if (shattering || !(level instanceof ServerLevel serverLevel) || !(owner instanceof Player player)) {
-            return handled;
+    /**
+     * Called from {@code CombatEvents} on {@link net.minecraftforge.event.level.BlockEvent.BreakEvent},
+     * once per real block break, survival or creative alike - see the class javadoc for why
+     * this is not {@code Item#mineBlock} any more.
+     */
+    public void onBlockBroken(ItemStack stack, ServerLevel level, BlockState state, BlockPos pos, Player player) {
+        if (shattering) {
+            return;
         }
 
         Beat beat = RHYTHM.get(player.getUUID());
@@ -73,7 +85,7 @@ public class HarmonicPickaxeItem extends Item {
             beat = new Beat();
             RHYTHM.put(player.getUUID(), beat);
             beat.lastBreakTick = player.tickCount;
-            return handled;
+            return;
         }
 
         int interval = player.tickCount - beat.lastBreakTick;
@@ -81,21 +93,20 @@ public class HarmonicPickaxeItem extends Item {
 
         if (interval > PHRASE_TIMEOUT) {
             beat.streak = 0;
-            return handled;
+            return;
         }
 
         if (Math.abs(interval - BEAT_TICKS) <= BEAT_TOLERANCE) {
             beat.streak++;
         } else {
             beat.streak = 0;
-            return handled;
+            return;
         }
 
         if (beat.streak >= STREAK_TO_SHATTER) {
             beat.streak = 0;
-            shatter(serverLevel, player, stack, state, pos);
+            shatter(level, player, stack, state, pos);
         }
-        return handled;
     }
 
     /**
