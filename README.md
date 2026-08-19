@@ -1,5 +1,31 @@
 # The Echoing Void
 
+## Installing the mod
+
+There's no prebuilt download yet — the jar has to be built from source. Five steps:
+
+1. **Get the files.** Either:
+   - `git clone https://github.com/guilhermeleaosoares/echoing-void.git`, or
+   - on the repo's GitHub page, click the green **Code** button → **Download ZIP**, then extract it.
+2. **Install Forge 26.2-65.1.1** for Minecraft 26.2 if you haven't already — get the installer from
+   [files.minecraftforge.net](https://files.minecraftforge.net/) and run it in *Install client*
+   mode. This creates the `forge-26.2-65.1.1` profile in your launcher and the `mods` folder it
+   loads from.
+3. **Build the jar.** Open a terminal in the folder you downloaded and run:
+   ```bash
+   gradlew build
+   ```
+   (JDK 25 is required — Minecraft 26.2 ships Java 25 to end users.) This produces
+   `build/libs/echoing-void-1.0.0.jar`.
+4. **Copy that jar into your mods folder.** From a Run dialog or File Explorer's address bar, go to:
+   ```
+   %appdata%\.minecraft\mods
+   ```
+   (create the `mods` folder if it doesn't exist yet), and copy `echoing-void-1.0.0.jar` there.
+5. **Launch Minecraft** through your launcher, select the `forge-26.2-65.1.1` profile, and play.
+
+---
+
 A resonance-and-acoustics dimension mod for **Minecraft 26.2** on **Forge 26.2-65.1.1** (Java 25).
 
 Mine Resonant Bismuth and Null-Iron, tune a frame of Phonolite Bricks with a Tuning Fork, and
