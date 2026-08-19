@@ -11,12 +11,23 @@ There's no prebuilt download yet — the jar has to be built from source. Five s
    [files.minecraftforge.net](https://files.minecraftforge.net/) and run it in *Install client*
    mode. This creates the `forge-26.2-65.1.1` profile in your launcher and the `mods` folder it
    loads from.
-3. **Build the jar.** Open a terminal in the folder you downloaded and run:
-   ```bash
+3. **Build the jar.** Open a terminal in the folder you downloaded. The build needs *some* JDK
+   already installed to bootstrap Gradle itself — if `java -version` fails in your terminal, install
+   one first (e.g. [Temurin](https://adoptium.net/)). You do **not** need JDK 25 specifically: this
+   project downloads its own JDK 25 automatically the first time you build, regardless of what's on
+   your system — do not manually set `JAVA_HOME` to a specific JDK path, since a wrapper build fails
+   immediately if that path doesn't exist on your machine.
+
+   In **PowerShell** (the default on Windows 11):
+   ```powershell
+   .\gradlew.bat build
+   ```
+   In **Command Prompt**:
+   ```cmd
    gradlew build
    ```
-   (JDK 25 is required — Minecraft 26.2 ships Java 25 to end users.) This produces
-   `build/libs/echoing-void-1.0.0.jar`.
+   The first run downloads Gradle and the JDK 25 toolchain, so it's slow (several minutes); later
+   builds are fast. This produces `build/libs/echoing-void-1.0.0.jar`.
 4. **Copy that jar into your mods folder.** From a Run dialog or File Explorer's address bar, go to:
    ```
    %appdata%\.minecraft\mods
@@ -36,13 +47,19 @@ where the Outposts of the Tuners still hum.
 
 ## Building
 
-```bash
-# JDK 25 is required (Minecraft 26.2 ships Java 25 to end users)
-set JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-25.0.4.7-hotspot
+Any JDK on your `PATH` or `JAVA_HOME` is enough to bootstrap Gradle — the build then downloads its
+own JDK 25 toolchain automatically (via `foojay-resolver-convention` in `settings.gradle`) and
+compiles with that, regardless of what version you had installed. Don't hardcode `JAVA_HOME` to a
+specific JDK's install path; `gradlew` fails immediately if that exact path doesn't exist, and a
+patch-version path like `jdk-25.0.4.7-hotspot` is specific to whichever build happens to be
+installed on one machine.
 
-gradlew build          # compile + jar
-gradlew runClient      # play it
-gradlew runServer      # dedicated server
+PowerShell needs the `.\` prefix to run a script from the current directory; Command Prompt doesn't.
+
+```powershell
+.\gradlew.bat build          # compile + jar
+.\gradlew.bat runClient      # play it
+.\gradlew.bat runServer      # dedicated server
 ```
 
 The built jar lands in `build/libs/echoing-void-1.0.0.jar`.
