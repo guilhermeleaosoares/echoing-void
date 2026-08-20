@@ -123,7 +123,8 @@ python tools/asset_gen.py
 
 ### Gear
 
-- **Harmonic Pickaxe** — mined blocks shatter in a 3×3 plane when swung on tempo
+- **Harmonic Pickaxe** — mine five blocks at a steady rhythm (any speed, within 33% variance) and
+  the 3×3 plane you're facing starts shattering, and keeps shattering while the rhythm holds
 - **Sonic Lance** — absorbs incoming projectile damage as charge, discharges a piercing shockwave
 - **Void-Glass Rapier** — bypasses half of armour; critical strikes grant brief invisibility
 - **Resonance Armour** — banks incoming kinetic damage; double-tap crouch releases it as a shockwave
