@@ -107,9 +107,58 @@ def main() -> int:
     tag("minecraft", "item", "chest_armor",
         [b("resonance_chestplate"), b("knell_chestplate")])
     tag("minecraft", "item", "leg_armor",
-        [b("resonance_leggings"), b("knell_leggings"), b("aero_stride_greaves")])
+        [b("resonance_leggings"), b("knell_leggings")])
+    # The Aero-Stride Greaves are BOOTS, whatever the name suggests: ModItems
+    # builds them with ArmorType.BOOTS, and AeroStrideGreavesItem.isWorn asks
+    # for EquipmentSlot.FEET. They were listed under leg_armor, which put them
+    # in the wrong enchantable class - #minecraft:foot_armor is the only route
+    # into enchantable/foot_armor, and that gates Feather Falling, Depth
+    # Strider, Frost Walker and Soul Speed. A boot whose entire purpose is
+    # cancelling fall damage could not take Feather Falling. Found by an armour
+    # stand refusing to equip them: "No targets accepted item into slot 101".
     tag("minecraft", "item", "foot_armor",
-        [b("resonance_boots"), b("knell_boots")])
+        [b("resonance_boots"), b("knell_boots"), b("aero_stride_greaves")])
+
+    # ---- tool and weapon classes, which is what makes ENCHANTING work ------
+    #
+    # PLAYER: "make sure all enchantments work as normal in all the new armors
+    # tools and weapons." The armour above was already fine. Every tool and
+    # weapon in the mod was NOT: not one of them appeared in a single vanilla
+    # item tag, so none of them could take a single enchantment.
+    #
+    # Enchantability in 26.2 is tag-driven, and the chain runs through these
+    # class tags rather than through the item's material or its enchantment
+    # value (ours are all healthy - 22 bismuth, 26 void-glass, 18 knell, 8
+    # null-iron). Checked against the 26.2 tag files:
+    #
+    #   enchantable/mining      -> #axes #pickaxes #shovels #hoes    (Efficiency,
+    #                                                                Fortune, Silk Touch)
+    #   enchantable/melee_weapon-> #swords #spears
+    #   enchantable/sharp_weapon-> #enchantable/melee_weapon #axes   (Sharpness, Looting...)
+    #   enchantable/weapon      -> #enchantable/sharp_weapon
+    #   enchantable/durability  -> #swords #axes #pickaxes #shovels #hoes,
+    #                              plus the four armour slots               (Unbreaking, Mending)
+    #
+    # So membership here is the whole fix - nothing needs an
+    # echoing_void:enchantable/* tag of its own, and shipping one would not
+    # have helped, because the enchantments' own supported_items point at
+    # these vanilla class tags.
+    #
+    # The Rapier and the Lance are built with Item.Properties.sword(...) in
+    # ModItems, so they are swords mechanically and belong in #swords with the
+    # rest - a spear-flavoured lance that cannot take Unbreaking would be the
+    # same bug wearing a different name.
+    tag("minecraft", "item", "swords",
+        [b("harmonic_sword"), b("knell_sword"),
+         b("void_glass_rapier"), b("sonic_lance")])
+    tag("minecraft", "item", "pickaxes",
+        [b("harmonic_pickaxe"), b("knell_pickaxe")])
+    tag("minecraft", "item", "axes",
+        [b("harmonic_axe"), b("knell_axe")])
+    tag("minecraft", "item", "shovels",
+        [b("harmonic_shovel"), b("knell_shovel")])
+    tag("minecraft", "item", "hoes",
+        [b("harmonic_hoe"), b("knell_hoe")])
 
     print(f"generated {len(written)} tag files")
     for w in written:
