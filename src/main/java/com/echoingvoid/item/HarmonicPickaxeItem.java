@@ -18,38 +18,73 @@ import java.util.UUID;
 /**
  * The Harmonic Pickaxe - stone answers to rhythm rather than to force.
  *
- * <p>The pickaxe remembers how long ago the wielder last broke a block. Land two breaks in a
- * row close to the ten-tick beat and the third one resonates: the 3x3 plane facing the miner
- * shatters along its acoustic fault lines and drops normally. Break arrhythmically and it is
- * an ordinary, if quick, pickaxe.
+ * <p>The pickaxe watches the gaps between the wielder's breaks. Mine five blocks at a steady
+ * rhythm - any rhythm - and the plane facing the miner starts shattering along its acoustic
+ * fault lines, and keeps shattering on every further block that holds the beat. Break
+ * arrhythmically and it is an ordinary, if quick, pickaxe.
  *
  * <p>Only blocks of comparable hardness give way, and only ones this pickaxe could have
  * harvested anyway - the tool cheats the block count, never the tier gate.
  *
- * <p>PLAYER: "none of the new pickaxe effects work." They did not - not because the rhythm
- * logic was wrong, but because it lived in {@code Item#mineBlock}, and {@code
- * ServerPlayerGameMode#destroyBlock} only calls that for a player whose {@code
- * preventsBlockDrops()} is false. A Creative player's is true, so the method returns before
- * {@code itemStack.mineBlock(...)} is ever reached - the single most likely way anyone would
- * first try a new tool. {@code ForgeHooks.onBlockBreakEvent}, a few lines earlier in the same
- * method, fires {@link net.minecraftforge.event.level.BlockEvent.BreakEvent} unconditionally,
- * survival or creative, so the trigger now lives on that event instead (wired in
- * {@code CombatEvents}) and {@code mineBlock} is no longer overridden here at all - keeping
- * both would have double-counted every survival break, since both used to fire for one.
+ * <h2>Why this did not work, twice</h2>
+ *
+ * <p>PLAYER: "the pickaxes still seem to not be working", after an earlier round that only
+ * fixed half of it. Two separate causes, and the second one is mine to own.
+ *
+ * <p><b>One: Creative never reached the hook.</b> The trigger used to live in {@code
+ * Item#mineBlock}, and {@code ServerPlayerGameMode#destroyBlock} only calls that for a player
+ * whose {@code preventsBlockDrops()} is false. A Creative player's is true, so the method
+ * returns before {@code itemStack.mineBlock(...)} is ever reached - the single most likely way
+ * anyone would first try a new tool. {@code ForgeHooks.onBlockBreakEvent}, a few lines earlier
+ * in that same method, fires {@link net.minecraftforge.event.level.BlockEvent.BreakEvent}
+ * unconditionally, survival or creative, so the trigger lives on that event now (wired in
+ * {@code CombatEvents}) and {@code mineBlock} is not overridden here at all - keeping both
+ * would have double-counted every survival break.
+ *
+ * <p><b>Two: the tempo was impossible to hit, and should never have been there.</b> The
+ * player asked, in as many words, for the trigger to have "no absolute time clause" and to key
+ * off five blocks at a consistent cadence within 33% variance. What was actually implemented
+ * was {@code |interval - 10| <= 3} - a hard requirement to break a block every ten ticks,
+ * give or take three. That is an absolute time clause, it is the exact thing that was ruled
+ * out, and almost nothing a player naturally does lands in it: Creative insta-breaking runs
+ * far faster than a ten-tick gap, and survival mining times vary with hardness and tool. So
+ * even once the event fired, the window virtually never opened. I had previously marked this
+ * item complete on the claim that no absolute-time clause remained, which was simply wrong.
+ * The rule the player asked for is what is implemented above now.
  */
 public class HarmonicPickaxeItem extends Item {
 
-    /** The tempo the tool is tuned to, in ticks between breaks. */
-    private static final int BEAT_TICKS = 10;
+    /**
+     * Blocks that must land on a consistent cadence before the plane starts shattering.
+     *
+     * <p>PLAYER, stating the rule: "make it without an absolute time clause, just say that if 5
+     * blocks are mined at a similar time per block and similar cadance within 33% variance in the
+     * cadance, the effect starts taking effect." Five blocks is four intervals: the first sets the
+     * cadence and the next three have to match it.
+     */
+    private static final int BLOCKS_TO_ARM = 5;
 
-    /** How far off the beat a break may land and still count. */
-    private static final int BEAT_TOLERANCE = 3;
+    /** How far an interval may stray from the running cadence and still count, as a fraction. */
+    private static final double CADENCE_VARIANCE = 0.33;
 
-    /** Consecutive on-tempo intervals needed before the plane shatters. */
-    private static final int STREAK_TO_SHATTER = 2;
+    /**
+     * How much of each in-cadence interval folds back into the running reference.
+     *
+     * <p>Without this the cadence is pinned to whatever the very first interval happened to be,
+     * and a rhythm that drifts even slightly - which every human one does - walks out of the
+     * variance window and drops the phrase. Half-weighting lets the reference follow the player.
+     */
+    private static final double CADENCE_SMOOTHING = 0.5;
 
-    /** Beyond this many ticks the player has clearly stopped mining; the phrase restarts. */
-    private static final int PHRASE_TIMEOUT = 60;
+    /**
+     * The one time-based bound left, and deliberately not a tempo.
+     *
+     * <p>The rule above has no required speed: any rhythm qualifies as long as it is *consistent*,
+     * which is the whole point of the player's "without an absolute time clause". This constant
+     * only ends a phrase that has plainly stopped - thirty seconds between blocks is not a rhythm
+     * anyone is holding - so that a break now and a break next week cannot be read as a cadence.
+     */
+    private static final int PHRASE_TIMEOUT = 600;
 
     /** Neighbours may be at most this much harder than the struck block. */
     private static final float HARDNESS_TOLERANCE = 1.5F;
@@ -80,31 +115,55 @@ public class HarmonicPickaxeItem extends Item {
             return;
         }
 
+        // Server game time rather than player.tickCount: monotonic, shared by every player, and
+        // unaffected by anything that resets an entity's own counter.
+        long now = level.getGameTime();
         Beat beat = RHYTHM.get(player.getUUID());
         if (beat == null) {
             beat = new Beat();
             RHYTHM.put(player.getUUID(), beat);
-            beat.lastBreakTick = player.tickCount;
+            beat.restart(now);
             return;
         }
 
-        int interval = player.tickCount - beat.lastBreakTick;
-        beat.lastBreakTick = player.tickCount;
+        long interval = now - beat.lastBreak;
+        beat.lastBreak = now;
+
+        // Two blocks gone inside one tick is not a second beat - leave the phrase untouched
+        // rather than letting a zero-length interval either reset it or define the cadence.
+        if (interval <= 0) {
+            return;
+        }
 
         if (interval > PHRASE_TIMEOUT) {
-            beat.streak = 0;
+            beat.restart(now);
             return;
         }
 
-        if (Math.abs(interval - BEAT_TICKS) <= BEAT_TOLERANCE) {
-            beat.streak++;
-        } else {
-            beat.streak = 0;
+        // The first interval of a phrase sets the cadence. No tempo is required of it: whatever
+        // speed the player is mining at becomes the speed they have to keep.
+        if (beat.cadence <= 0.0) {
+            beat.cadence = interval;
+            beat.blocks = 2;
             return;
         }
 
-        if (beat.streak >= STREAK_TO_SHATTER) {
-            beat.streak = 0;
+        if (Math.abs(interval - beat.cadence) > beat.cadence * CADENCE_VARIANCE) {
+            // Off the rhythm. This block is not a failure so much as the start of a new phrase -
+            // it is the first block of whatever the player does next.
+            beat.restart(now);
+            return;
+        }
+
+        beat.cadence += (interval - beat.cadence) * CADENCE_SMOOTHING;
+        beat.blocks++;
+
+        // PLAYER: "as soon as it breaks the first 3x3, every new block it breaks that stays in
+        // the same cadence breaks 3x3 again, so not block block 3x3 block 3x3 block 3x3, but
+        // instead block block 3x3 3x3 3x3 3x3 etc". So the counter is NOT reset here: once the
+        // phrase is long enough, it stays armed and every further in-cadence break shatters,
+        // until the rhythm itself breaks and restart() takes it back to one.
+        if (beat.blocks >= BLOCKS_TO_ARM) {
             shatter(level, player, stack, state, pos);
         }
     }
@@ -217,7 +276,20 @@ public class HarmonicPickaxeItem extends Item {
 
     /** Mutable so the common path is a map lookup and two field writes, with no allocation. */
     private static final class Beat {
-        int lastBreakTick;
-        int streak;
+        /** Game time of the most recent break. */
+        long lastBreak;
+
+        /** The rhythm being held, in ticks, or 0 when the phrase has no cadence yet. */
+        double cadence;
+
+        /** Blocks in the current phrase, counting the one that started it. */
+        int blocks;
+
+        /** Begin a fresh phrase at {@code now}, with this break as its first block. */
+        void restart(long now) {
+            this.lastBreak = now;
+            this.cadence = 0.0;
+            this.blocks = 1;
+        }
     }
 }

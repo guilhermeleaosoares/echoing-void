@@ -736,36 +736,31 @@ def _harmonic_tool(form, seed: int, sparks: list) -> Sprite:
 
 
 def harmonic_sword() -> Sprite:
-    """A resonant tuning blade: null-iron handle, swept tuning-fork quillons,
-    and a crystalline bismuth blade with an acoustic fuller and harmonic sparks."""
-    sp = Sprite()
-    handle = stroke([(2.2, 13.8), (5.0, 11.0)], 1.05)
-    pommel = spans({14: [(1, 2)], 15: [(1, 2)]})
-    guard = spans({
-        9: [(2, 4)],
-        10: [(2, 5)],
-        11: [(3, 6)],
-        12: [(5, 8)],
-        13: [(7, 8)],
-    })
-    blade = poly([
-        (5.2, 10.4), (4.2, 9.4), (12.2, 1.4), (14.6, 0.4),
-        (13.6, 2.8), (6.2, 10.2)
-    ])
-    sp.paint(handle | pommel, NULL_IRON, 0.55, 7301, spread=0.30, light=0.26)
-    sp.paint(guard, NULL_IRON, 0.60, 7303, spread=0.28, light=0.28)
-    sp.paint(blade, BISMUTH, 0.65, 7307, spread=0.32, light=0.32)
+    """The Knell sword's silhouette, one notch calmer, in Harmonic's materials.
 
-    # Hollow acoustic slot / fuller along blade spine
-    for p in ((7, 7), (8, 6)):
-        sp.put(p[0], p[1], BISMUTH, BISMUTH.dark)
+    PLAYER: "you are using an outdated version of the harmonic sword asset. the
+    latest one was like a similar but more toned down silhouette of the knell
+    sword, with the harmonic toolset colors" - and, on what separates the two:
+    "the knell sword has a little bit of a change on the handle guard, the
+    harmonic sword doesnt but overall matches the knell silhouette."
 
-    sp.outline()
-    sp.stamp([(5, 10), (6, 11)], NULL_IRON, 1.0)        # guard collar
-    sp.stamp([(13, 1), (11, 3), (9, 5)], BISMUTH, 1.0)  # blade spine highlights
-    sp.stamp([(3, 9), (7, 13)], BISMUTH, 0.8)           # quillon tips
-    sp.stamp([(10, 4), (4, 10)], GOLD, 1.0)             # harmonic sparks
-    return sp
+    That is what this module's own header already promised for the whole set
+    ("the geometry is deliberately the same as the Knell set's, one notch
+    calmer - same handle diagonal, same head masses, less flare on the
+    outline"), and what `_harmonic_tool` was written to deliver. The sword was
+    simply never moved onto it: it kept a bespoke hand-built polygon from
+    before the vanilla-form pass, which left it the one piece of the set not
+    sharing the family silhouette - and `_harmonic_tool` sat uncalled.
+
+    The guard sweep flare is deliberately absent, exactly per the player:
+    knell_sword paints this same `vf.SWORD` base and then adds three extra
+    quillon pixels over it, and that flare is the whole visible difference
+    between the two blades. Drawn plain here, so the upgrade reads as the same
+    weapon sharpened rather than as an unrelated shape.
+    """
+    # Sparks on the blade proper - one near the tip, one just above the guard -
+    # so the gold reads as harmonics running the length of the edge.
+    return _harmonic_tool(vf.SWORD, 7301, [(12, 2), (5, 9)])
 
 
 def harmonic_axe() -> Sprite:
