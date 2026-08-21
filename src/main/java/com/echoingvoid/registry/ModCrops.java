@@ -159,6 +159,57 @@ public final class ModCrops {
                     new MobEffectInstance(MobEffects.REGENERATION, 100, 0))))
             .build();
 
+    /** One slice of a gourd, on melon-slice figures. */
+    private static final FoodProperties ECHO_GOURD_SLICE_FOOD =
+            new FoodProperties.Builder().nutrition(2).saturationModifier(0.3F).build();
+
+    /** Pumpkin pie's figures. The best meal in the mod, and the most work to make. */
+    private static final FoodProperties HUMMING_TART_FOOD =
+            new FoodProperties.Builder().nutrition(8).saturationModifier(0.6F).build();
+
+    // PLAYER: "all void foods shoudl have an effect, not just the resonant bread, so chime roots
+    // echo gourd foods and the other pink tube things, they should all have different special
+    // effects that help navigate the echoing void."
+    //
+    // So each one answers a different hazard of the dimension rather than being a different
+    // number of hearts, and no two overlap:
+    //
+    //   chime root    the dark            - it is a dimension of black rock under a dead sky
+    //   void tuber    the gaps            - islands are far apart and the fall is the whole map
+    //   gourd slice   the crossing        - being quick over an exposed span is the difference
+    //   humming tart  all three, longer   - the meal you eat before setting out, not during
+
+    /** Night vision: the root hums, and a player who has eaten one hears the dark. */
+    private static final Consumable CHIME_ROOT_EFFECT = Consumables.defaultFood()
+            .onConsume(new ApplyStatusEffectsConsumeEffect(List.of(
+                    new MobEffectInstance(MobEffects.NIGHT_VISION, 900, 0))))
+            .build();
+
+    /** Jump boost and slow falling: the tuber is what makes island-hopping survivable. */
+    private static final Consumable VOID_TUBER_EFFECT = Consumables.defaultFood()
+            .onConsume(new ApplyStatusEffectsConsumeEffect(List.of(
+                    new MobEffectInstance(MobEffects.JUMP_BOOST, 600, 0),
+                    new MobEffectInstance(MobEffects.SLOW_FALLING, 300, 0))))
+            .build();
+
+    /** Speed: a slice is a quick thing to eat and a quick thing to be. */
+    private static final Consumable ECHO_GOURD_SLICE_EFFECT = Consumables.defaultFood()
+            .onConsume(new ApplyStatusEffectsConsumeEffect(List.of(
+                    new MobEffectInstance(MobEffects.SPEED, 900, 0))))
+            .build();
+
+    /**
+     * The expedition meal: every navigation effect at once and for longer, plus the standing wave
+     * the bread gives. Expensive - a whole gourd, grain, and a hushwater bucket's worth of work.
+     */
+    private static final Consumable HUMMING_TART_EFFECT = Consumables.defaultFood()
+            .onConsume(new ApplyStatusEffectsConsumeEffect(List.of(
+                    new MobEffectInstance(MobEffects.NIGHT_VISION, 2400, 0),
+                    new MobEffectInstance(MobEffects.SLOW_FALLING, 1200, 0),
+                    new MobEffectInstance(MobEffects.SPEED, 1800, 0),
+                    new MobEffectInstance(MobEffects.ABSORPTION, 1800, 1))))
+            .build();
+
     // ----------------------------------------------------------------- items
 
     public static final RegistryObject<Item> RESONANT_WHEAT_SEEDS =
@@ -171,12 +222,12 @@ public final class ModCrops {
     public static final RegistryObject<Item> CHIME_ROOT = track(ITEMS.register("chime_root",
             () -> new BlockItem(CHIME_ROOTS.get(), itemProps("chime_root")
                     .useItemDescriptionPrefix()
-                    .food(CHIME_ROOT_FOOD))));
+                    .food(CHIME_ROOT_FOOD, CHIME_ROOT_EFFECT))));
 
     public static final RegistryObject<Item> VOID_TUBER = track(ITEMS.register("void_tuber",
             () -> new BlockItem(VOID_TUBERS.get(), itemProps("void_tuber")
                     .useItemDescriptionPrefix()
-                    .food(VOID_TUBER_FOOD))));
+                    .food(VOID_TUBER_FOOD, VOID_TUBER_EFFECT))));
 
     public static final RegistryObject<Item> ECHO_GOURD_SEEDS =
             seed("echo_gourd_seeds", ECHO_GOURD_STEM);
@@ -190,6 +241,23 @@ public final class ModCrops {
     public static final RegistryObject<Item> RESONANT_BREAD = track(ITEMS.register("resonant_bread",
             () -> new Item(itemProps("resonant_bread")
                     .food(RESONANT_BREAD_FOOD, RESONANT_BREAD_EFFECT))));
+
+    /**
+     * PLAYER: "the resonance gourds should be able to be consumed, so it can drop slices like a
+     * watermelon, and these slices can be crafted back into blocks, or into a humming tart."
+     *
+     * <p>So the gourd behaves like a melon: breaking the block drops slices (loot table), a slice
+     * is food, and nine slices go back into a gourd. A plain {@code Item}, not a {@code BlockItem}
+     * - a slice is not placeable, which is exactly what separates it from the whole gourd.
+     */
+    public static final RegistryObject<Item> ECHO_GOURD_SLICE = track(ITEMS.register("echo_gourd_slice",
+            () -> new Item(itemProps("echo_gourd_slice")
+                    .food(ECHO_GOURD_SLICE_FOOD, ECHO_GOURD_SLICE_EFFECT))));
+
+    /** This dimension's pumpkin pie, and the best thing in it to eat before a long crossing. */
+    public static final RegistryObject<Item> HUMMING_TART = track(ITEMS.register("humming_tart",
+            () -> new Item(itemProps("humming_tart")
+                    .food(HUMMING_TART_FOOD, HUMMING_TART_EFFECT))));
 
     // --------------------------------------------------------------- helpers
 

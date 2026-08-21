@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_echo_gourd_slice": {
+      "conditions": {
+        "items": [
+          {
+            "items": "echoing_void:echo_gourd_slice"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "echoing_void:humming_tart"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_echo_gourd_slice"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "echoing_void:humming_tart"
+    ]
+  }
+}

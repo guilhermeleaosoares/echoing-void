@@ -1,6 +1,9 @@
 package com.echoingvoid.entity;
 
 import com.echoingvoid.EchoingVoid;
+import com.echoingvoid.registry.ModCrops;
+import com.echoingvoid.registry.ModFluids;
+import com.echoingvoid.registry.ModKnell;
 import com.echoingvoid.registry.ModItems;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
@@ -31,6 +34,7 @@ import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.npc.villager.AbstractVillager;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.trading.ItemCost;
@@ -42,6 +46,10 @@ import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import org.jspecify.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * PLAYER: "maybe the outpost and camp could have different varieties of neutral mobs that can
@@ -228,61 +236,126 @@ public class TraderMob extends AbstractVillager {
         return tradeLevel;
     }
 
+    /**
+     * One possible offer. A factory rather than an instance, because a {@link MerchantOffer}
+     * carries its own uses counter - handing the same object to two traders would have them
+     * share a stock level.
+     */
+    @FunctionalInterface
+    private interface Trade {
+        MerchantOffer create(RandomSource random);
+    }
+
+    /** How many offers each level contributes, drawn without replacement from that level's pool. */
+    private static final int OFFERS_PER_LEVEL = 2;
+
+    /**
+     * Every trade a Tuner can know, indexed by the level that unlocks it.
+     *
+     * <p>PLAYER: "instead of discrete jobs tuners do a bit of everything that is needed, they
+     * dont need seperate roles and stations, but their trades do need to be randomised. though
+     * they are progressive and traders can level up as we trade more with them, they have the
+     * same base trades and as they evolve the trades are also the same. add more varied,
+     * echoing void related trades, make it interesting."
+     *
+     * <p>Two things follow from that, and both are departures from what was here before.
+     *
+     * <p><b>No roles.</b> The old table branched on {@link Variety}, so an outpost Tuner and a
+     * camp Tuner were effectively two professions with two fixed stock lists. There is one pool
+     * now and every Tuner draws from all of it - a tuning society where everyone does a bit of
+     * whatever is needed, which is what the player described. Variety still exists and still
+     * decides where a Tuner spawns and how it behaves; it just no longer dictates what it sells.
+     *
+     * <p><b>Randomised.</b> Each level offers far more trades than a trader will ever show, and
+     * each trader draws {@link #OFFERS_PER_LEVEL} of them at random when it reaches that level.
+     * Two Tuners standing side by side at level 3 now stock different things, and finding a
+     * trader who happens to sell Knell is worth something. The draw happens once, when the level
+     * is reached, and the resulting offers are persisted by the Merchant save - so a trader's
+     * stock is stable for that trader forever, which is what makes it worth remembering one.
+     *
+     * <p>The pool leans on this dimension's own goods rather than on emeralds for everything:
+     * hushwater, tuning discs, seeds, void food, phonolite and the Knell line all appear, and
+     * several trades buy the player's surplus rather than selling to them.
+     */
+    private static final List<List<Trade>> TRADE_POOL = List.of(
+            // ---- level 1: a stranger who has just arrived can afford these ----
+            List.of(
+                    r -> sell(Items.EMERALD, 6, ModItems.RESONANCE_SHARD.get(), 3, 12, 5),
+                    r -> buy(ModItems.VOID_GLASS_SHARD.get(), 6, Items.EMERALD, 4, 12, 2),
+                    r -> sell(Items.EMERALD, 5, ModCrops.RESONANT_BREAD.get(), 4, 16, 3),
+                    r -> sell(Items.EMERALD, 3, ModCrops.RESONANT_WHEAT_SEEDS.get(), 6, 16, 2),
+                    r -> sell(Items.EMERALD, 4, ModCrops.CHIME_ROOT.get(), 5, 16, 2),
+                    r -> buy(ModItems.BISMUTH_SEEDLING.get(), 3, Items.EMERALD, 2, 12, 2),
+                    r -> sell(Items.EMERALD, 4, ModItems.RAW_PHONOLITE_ITEM.get(), 8, 12, 3)),
+
+            // ---- level 2: the tools of getting about the place ----
+            List.of(
+                    r -> sell(Items.EMERALD, 12, ModFluids.HUSHWATER_BUCKET.get(), 1, 8, 8),
+                    r -> sell(Items.EMERALD, 10, ModCrops.ECHO_GOURD_SEEDS.get(), 3, 12, 5),
+                    r -> buy(ModCrops.RESONANT_GRAIN.get(), 14, Items.EMERALD, 3, 12, 4),
+                    r -> sell(Items.EMERALD, 20, Items.IRON_INGOT, 4, 8, 10),
+                    r -> buy(ModItems.RESONANCE_SHARD.get(), 12, Items.EMERALD, 5, 10, 5),
+                    r -> sell(Items.EMERALD, 8, ModItems.PHONOLITE_BRICKS_ITEM.get(), 8, 12, 4),
+                    r -> sell(Items.EMERALD, 14, ModCrops.VOID_TUBER.get(), 6, 10, 5)),
+
+            // ---- level 3: the first things worth crossing over for ----
+            List.of(
+                    r -> sell(ModItems.RESONANCE_SHARD.get(), 8, ModItems.NULL_IRON_INGOT.get(), 1, 6, 12),
+                    r -> sell(Items.EMERALD, 14, ModItems.BISMUTH_SEEDLING.get(), 2, 8, 8),
+                    r -> sell(Items.EMERALD, 18, ModCrops.HUMMING_TART.get(), 1, 6, 10),
+                    r -> sell(Items.EMERALD, 16, ModItems.VOID_GLASS_ITEM.get(), 4, 8, 8),
+                    r -> buy(ModCrops.ECHO_GOURD_SLICE.get(), 12, Items.EMERALD, 3, 10, 6),
+                    r -> sell(Items.EMERALD, 22, ModItems.TUNING_FORK.get(), 1, 4, 12),
+                    r -> sell(Items.EMERALD, 20, ModItems.FREQUENCY_SIPHON_ITEM.get(), 1, 5, 10)),
+
+            // ---- level 4: a Tuner who trusts you opens the good cupboard ----
+            List.of(
+                    r -> sell(Items.EMERALD, 26, ModItems.NULL_IRON_INGOT.get(), 2, 5, 15),
+                    r -> sell(Items.EMERALD, 30, ModItems.HARMONIC_TUNING_DISC_ALPHA.get(), 1, 2, 18),
+                    r -> sell(Items.EMERALD, 30, ModItems.HARMONIC_TUNING_DISC_BETA.get(), 1, 2, 18),
+                    r -> sell(Items.EMERALD, 30, ModItems.HARMONIC_TUNING_DISC_GAMMA.get(), 1, 2, 18),
+                    r -> sell(Items.EMERALD, 28, ModItems.INVERSION_ANVIL_ITEM.get(), 1, 3, 16),
+                    r -> buy(ModItems.NULL_IRON_INGOT.get(), 2, Items.EMERALD, 18, 6, 12)),
+
+            // ---- level 5: the endgame counter ----
+            List.of(
+                    // The mask is a settlement's last word: trade one all the way up and you
+                    // can buy the means to build its own guardian.
+                    r -> sell(Items.EMERALD, 40, ModItems.TUNERS_MASK_ITEM.get(), 1, 3, 20),
+                    r -> sell(Items.EMERALD, 36, ModKnell.RESONANCE_TEMPLATE.get(), 1, 3, 20),
+                    r -> sell(Items.EMERALD, 44, ModKnell.KNELL_INGOT.get(), 1, 2, 22),
+                    r -> sell(ModItems.NULL_IRON_INGOT.get(), 6, ModKnell.RAW_KNELL.get(), 1, 3, 20),
+                    r -> sell(Items.EMERALD, 34, ModItems.ACOUSTIC_LOCK_BOX_ITEM.get(), 1, 3, 18)));
+
+    /** The player pays {@code cost} and receives {@code result}. */
+    private static MerchantOffer sell(net.minecraft.world.item.Item cost, int costCount,
+                                      net.minecraft.world.item.Item result, int resultCount,
+                                      int maxUses, int xp) {
+        return new MerchantOffer(new ItemCost(cost, costCount),
+                new ItemStack(result, resultCount), maxUses, xp, 0.05F);
+    }
+
+    /** Reads the same as {@link #sell}; named separately so the pool says which way it runs. */
+    private static MerchantOffer buy(net.minecraft.world.item.Item cost, int costCount,
+                                     net.minecraft.world.item.Item result, int resultCount,
+                                     int maxUses, int xp) {
+        return sell(cost, costCount, result, resultCount, maxUses, xp);
+    }
+
     /** Offers unlocked at exactly {@code level}, appended when that level is reached. */
     private void addTier(MerchantOffers offers, int level) {
-        switch (variety) {
-            case OUTPOST -> {
-                switch (level) {
-                    case 1 -> {
-                        offers.add(new MerchantOffer(new ItemCost(Items.EMERALD, 6),
-                                new ItemStack(ModItems.RESONANCE_SHARD.get(), 3), 12, 5, 0.05F));
-                        offers.add(new MerchantOffer(new ItemCost(ModItems.VOID_GLASS_SHARD.get(), 6),
-                                new ItemStack(Items.EMERALD, 4), 12, 2, 0.05F));
-                    }
-                    case 2 -> {
-                        offers.add(new MerchantOffer(new ItemCost(Items.EMERALD, 20),
-                                new ItemStack(Items.IRON_INGOT, 4), 8, 10, 0.05F));
-                        offers.add(new MerchantOffer(new ItemCost(ModItems.RESONANCE_SHARD.get(), 12),
-                                new ItemStack(Items.EMERALD, 5), 10, 5, 0.05F));
-                    }
-                    case 3 -> {
-                        offers.add(new MerchantOffer(new ItemCost(ModItems.RESONANCE_SHARD.get(), 8),
-                                new ItemStack(ModItems.NULL_IRON_INGOT.get(), 1), 6, 12, 0.05F));
-                        offers.add(new MerchantOffer(new ItemCost(Items.EMERALD, 14),
-                                new ItemStack(ModItems.BISMUTH_SEEDLING.get(), 2), 8, 8, 0.05F));
-                    }
-                    case 4 -> offers.add(new MerchantOffer(new ItemCost(Items.EMERALD, 26),
-                            new ItemStack(ModItems.NULL_IRON_INGOT.get(), 2), 5, 15, 0.05F));
-                    // The mask is the outpost's endgame stock: a player who has traded a
-                    // settlement all the way up can buy the means to build its guardian.
-                    case 5 -> offers.add(new MerchantOffer(new ItemCost(Items.EMERALD, 40),
-                            new ItemStack(ModItems.TUNERS_MASK_ITEM.get(), 1), 3, 20, 0.05F));
-                    default -> { }
-                }
-            }
-            case CAMP -> {
-                switch (level) {
-                    case 1 -> {
-                        offers.add(new MerchantOffer(new ItemCost(Items.EMERALD, 4),
-                                new ItemStack(Items.COOKED_BEEF, 6), 16, 3, 0.05F));
-                        offers.add(new MerchantOffer(new ItemCost(ModItems.BISMUTH_SEEDLING.get(), 3),
-                                new ItemStack(Items.EMERALD, 2), 12, 2, 0.05F));
-                    }
-                    case 2 -> {
-                        offers.add(new MerchantOffer(new ItemCost(Items.EMERALD, 10),
-                                new ItemStack(Items.ARROW, 16), 12, 5, 0.05F));
-                        offers.add(new MerchantOffer(new ItemCost(ModItems.RESONANCE_SHARD.get(), 4),
-                                new ItemStack(Items.TORCH, 8), 12, 4, 0.05F));
-                    }
-                    case 3 -> offers.add(new MerchantOffer(new ItemCost(Items.EMERALD, 12),
-                            new ItemStack(ModItems.RESONANCE_SHARD.get(), 5), 10, 8, 0.05F));
-                    case 4 -> offers.add(new MerchantOffer(new ItemCost(ModItems.RESONANCE_SHARD.get(), 10),
-                            new ItemStack(Items.EMERALD, 4), 8, 10, 0.05F));
-                    case 5 -> offers.add(new MerchantOffer(new ItemCost(Items.EMERALD, 18),
-                            new ItemStack(ModItems.VOID_GLASS_SHARD.get(), 4), 6, 15, 0.05F));
-                    default -> { }
-                }
-            }
+        if (level < 1 || level > TRADE_POOL.size()) {
+            return;
+        }
+        List<Trade> pool = TRADE_POOL.get(level - 1);
+        RandomSource random = this.getRandom();
+
+        // Without replacement: a trader must never be shown the same offer twice, and shuffling
+        // a copy is the only way to guarantee that when the draw is bigger than one.
+        List<Trade> shuffled = new ArrayList<>(pool);
+        Collections.shuffle(shuffled, new java.util.Random(random.nextLong()));
+        for (int i = 0; i < Math.min(OFFERS_PER_LEVEL, shuffled.size()); i++) {
+            offers.add(shuffled.get(i).create(random));
         }
     }
 

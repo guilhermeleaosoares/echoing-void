@@ -423,6 +423,96 @@ def void_tuber_icon() -> Sprite:
     return sp
 
 
+def echo_gourd_slice() -> Sprite:
+    """A wedge cut from a gourd: flat cut face on top, teal rind round the curve.
+
+    PLAYER: "the resonance gourds should be able to be consumed, so it can drop
+    slices like a watermelon".
+
+    A melon slice reads at 16 pixels from two cues together: a FLAT cut face
+    with a curved back, and a hard two-tone split with the rind on the curve
+    only. The first attempt drew rind on both the top and the arc, which lost
+    the cut face entirely and came out as a pale blob with teal specks. Here the
+    silhouette is a half-disc - flat along the top, curving away below - and the
+    rind is computed as the boundary of that shape MINUS its top row, so the cut
+    face is guaranteed to stay open however the disc is shaped.
+    """
+    sp = Sprite()
+    rows = {
+        3:  (3, 12),
+        4:  (2, 13),
+        5:  (2, 13),
+        6:  (2, 13),
+        7:  (3, 12),
+        8:  (3, 12),
+        9:  (4, 11),
+        10: (5, 10),
+        11: (6, 9),
+        12: (7, 8),
+    }
+    body = {(x, y) for y, (a, b) in rows.items() for x in range(a, b + 1)}
+    sp.paint(body, PALE, 0.66, 4401, spread=0.22, light=0.30)
+
+    # The rind: every body cell on the silhouette edge except the cut face.
+    top = min(rows)
+    rind = {
+        (x, y) for (x, y) in body
+        if y != top and (
+            (x - 1, y) not in body or (x + 1, y) not in body
+            or (x, y + 1) not in body
+        )
+    }
+    sp.paint(rind, TEAL, 0.56, 4407, spread=0.22, light=0.26)
+
+    # Seed pips on the open face, mirrored about the centre line.
+    for (x, y) in ((6, 5), (9, 5), (7, 7)):
+        sp.put(x, y, TEAL, 2)
+
+    sp.outline()
+    return sp
+
+
+def humming_tart() -> Sprite:
+    """This dimension's pumpkin pie: pale crust round a teal filling with a lit core.
+
+    PLAYER: "a humming tart. like an overworld pumpkin pie but with the void
+    look, and some special effects."
+
+    Vanilla's pumpkin_pie is a round tart with a lighter crust rim and a darker
+    filling; that silhouette is the readability and it is kept. What changes is
+    the filling - gourd teal with a bright centre, because this carries the
+    strongest effects in the mod and should look like it is holding a note.
+    """
+    sp = Sprite()
+    body = spans({
+        4:  [(4, 11)],
+        5:  [(3, 12)],
+        6:  [(2, 13)],
+        7:  [(2, 13)],
+        8:  [(2, 13)],
+        9:  [(2, 13)],
+        10: [(3, 12)],
+        11: [(4, 11)],
+    })
+    sp.paint(body, GRAIN, 0.52, 4501, spread=0.26, light=0.26)
+
+    # The filling, inset so the crust rim survives all the way round.
+    filling = spans({
+        6:  [(5, 10)],
+        7:  [(4, 11)],
+        8:  [(4, 11)],
+        9:  [(5, 10)],
+    })
+    sp.paint(filling, TEAL, 0.60, 4507, spread=0.26, light=0.30)
+
+    # The hum: a lit core in the middle of the filling.
+    for (x, y) in ((7, 7), (8, 7), (7, 8), (8, 8)):
+        sp.put(x, y, TEAL, len(TEAL.colors) - 1)
+
+    sp.outline()
+    return sp
+
+
 def resonant_bread() -> Sprite:
     """A split loaf: amber crust, pale crumb through the score down the middle."""
     sp = Sprite()
@@ -524,7 +614,8 @@ def gen_models() -> None:
 
     # ---- item models ------------------------------------------------------
     for item in ("resonant_wheat_seeds", "resonant_grain", "chime_root",
-                 "void_tuber", "echo_gourd_seeds", "resonant_bread"):
+                 "void_tuber", "echo_gourd_seeds", "resonant_bread",
+                 "echo_gourd_slice", "humming_tart"):
         write_json(ASSETS / "models" / "item" / f"{item}.json",
                    {"parent": "minecraft:item/generated",
                     "textures": {"layer0": f"{NS}:item/{item}"}})
@@ -594,10 +685,32 @@ def gen_loot() -> None:
             ],
         })
 
+    # PLAYER: "the resonance gourds should be able to be consumed, so it can
+    # drop slices like a watermelon, and these slices can be crafted back into
+    # blocks". So the block drops SLICES rather than itself, which is what makes
+    # the craft-back recipe below mean anything - a block that dropped itself
+    # would make the 3x3 a no-op. Melon's own numbers: 3-7 slices, Fortune
+    # raising the count and capped at 9 so it can never beat placing it back.
     write_loot("echo_gourd", {
         "type": "minecraft:block",
-        "pools": [{"rolls": 1.0, "functions": [EXPLOSION_DECAY],
-                   "entries": [{"type": "minecraft:item", "name": f"{NS}:echo_gourd"}]}],
+        "pools": [{
+            "rolls": 1.0,
+            "entries": [{
+                "type": "minecraft:item",
+                "name": f"{NS}:echo_gourd_slice",
+                "functions": [
+                    {"function": "minecraft:set_count",
+                     "count": {"type": "minecraft:uniform", "min": 3.0, "max": 7.0}},
+                    {"function": "minecraft:apply_bonus",
+                     "enchantment": "minecraft:fortune",
+                     "formula": "minecraft:uniform_bonus_count",
+                     "parameters": {"bonusMultiplier": 1}},
+                    {"function": "minecraft:limit_count",
+                     "limit": {"max": 9.0}},
+                    EXPLOSION_DECAY,
+                ],
+            }],
+        }],
     })
 
     # Stems drop seeds on a per-age binomial, so an old stem is worth breaking
@@ -661,6 +774,32 @@ def gen_recipes() -> None:
         "result": {"id": f"{NS}:echo_gourd_seeds", "count": 4},
     })
 
+    # Nine slices back into a whole gourd, exactly as melon slices rebuild a
+    # melon block. This is the other half of the block dropping slices.
+    write_json(recipe / "echo_gourd_from_slices.json", {
+        "type": "minecraft:crafting_shaped",
+        "category": "building",
+        "key": {"#": f"{NS}:echo_gourd_slice"},
+        "pattern": ["###", "###", "###"],
+        "result": {"id": f"{NS}:echo_gourd"},
+    })
+
+    # PLAYER: "or into a humming tart. like an overworld pumpkin pie but with
+    # the void look, and some special effects."
+    #
+    # Vanilla's pumpkin pie is pumpkin + sugar + egg. There is no sugar or egg
+    # in the Hollow Horizon, so the tart is built from what this dimension
+    # actually has: the gourd for the filling, grain for the crust, and a
+    # chime root for the hum. Shapeless, like the pie it answers to.
+    write_json(recipe / "humming_tart.json", {
+        "type": "minecraft:crafting_shapeless",
+        "category": "misc",
+        "ingredients": [f"{NS}:echo_gourd_slice",
+                        f"{NS}:resonant_grain",
+                        f"{NS}:chime_root"],
+        "result": {"id": f"{NS}:humming_tart"},
+    })
+
 
 def gen_tags() -> None:
     # The stems' support test is a tag, not an instanceof - see ModCrops.VOID_SOIL.
@@ -708,6 +847,8 @@ LANG = {
     "item.echoing_void.echo_gourd_seeds": "Echo Gourd Seeds",
     "item.echoing_void.echo_gourd": "Echo Gourd",
     "item.echoing_void.resonant_bread": "Resonant Bread",
+    "item.echoing_void.echo_gourd_slice": "Echo Gourd Slice",
+    "item.echoing_void.humming_tart": "Humming Tart",
 }
 
 
@@ -761,6 +902,8 @@ def main() -> int:
         ("chime_root", chime_root_icon()),
         ("void_tuber", void_tuber_icon()),
         ("resonant_bread", resonant_bread()),
+        ("echo_gourd_slice", echo_gourd_slice()),
+        ("humming_tart", humming_tart()),
     ]
 
     failures: list[str] = []

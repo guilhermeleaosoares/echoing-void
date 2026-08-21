@@ -193,5 +193,7 @@
   "item.echoing_void.void_tuber": "Void Tuber",
   "item.echoing_void.echo_gourd_seeds": "Echo Gourd Seeds",
   "item.echoing_void.echo_gourd": "Echo Gourd",
-  "item.echoing_void.resonant_bread": "Resonant Bread"
+  "item.echoing_void.resonant_bread": "Resonant Bread",
+  "item.echoing_void.echo_gourd_slice": "Echo Gourd Slice",
+  "item.echoing_void.humming_tart": "Humming Tart"
 }

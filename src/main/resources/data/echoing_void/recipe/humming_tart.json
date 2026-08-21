@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "echoing_void:echo_gourd_slice",
+    "echoing_void:resonant_grain",
+    "echoing_void:chime_root"
+  ],
+  "result": {
+    "id": "echoing_void:humming_tart"
+  }
+}

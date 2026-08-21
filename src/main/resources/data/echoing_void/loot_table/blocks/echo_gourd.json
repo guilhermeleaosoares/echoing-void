@@ -3,15 +3,37 @@
   "pools": [
     {
       "rolls": 1.0,
-      "functions": [
-        {
-          "function": "minecraft:explosion_decay"
-        }
-      ],
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "echoing_void:echo_gourd"
+          "name": "echoing_void:echo_gourd_slice",
+          "functions": [
+            {
+              "function": "minecraft:set_count",
+              "count": {
+                "type": "minecraft:uniform",
+                "min": 3.0,
+                "max": 7.0
+              }
+            },
+            {
+              "function": "minecraft:apply_bonus",
+              "enchantment": "minecraft:fortune",
+              "formula": "minecraft:uniform_bonus_count",
+              "parameters": {
+                "bonusMultiplier": 1
+              }
+            },
+            {
+              "function": "minecraft:limit_count",
+              "limit": {
+                "max": 9.0
+              }
+            },
+            {
+              "function": "minecraft:explosion_decay"
+            }
+          ]
         }
       ]
     }

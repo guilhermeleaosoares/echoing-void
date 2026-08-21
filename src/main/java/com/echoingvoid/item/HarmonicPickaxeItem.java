@@ -5,10 +5,12 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.HashMap;
@@ -23,8 +25,10 @@ import java.util.UUID;
  * fault lines, and keeps shattering on every further block that holds the beat. Break
  * arrhythmically and it is an ordinary, if quick, pickaxe.
  *
- * <p>Only blocks of comparable hardness give way, and only ones this pickaxe could have
- * harvested anyway - the tool cheats the block count, never the tier gate.
+ * <p>Everything mined with a pickaxe gives way - stone, ore, metal, whatever the plane catches -
+ * so long as this pickaxe could have harvested it anyway. The tool cheats the block count, never
+ * the tier gate, and every block it takes drops through the tool, so Silk Touch and Fortune reach
+ * the whole plane rather than only the block struck by hand.
  *
  * <h2>Why this did not work, twice</h2>
  *
@@ -86,8 +90,6 @@ public class HarmonicPickaxeItem extends Item {
      */
     private static final int PHRASE_TIMEOUT = 600;
 
-    /** Neighbours may be at most this much harder than the struck block. */
-    private static final float HARDNESS_TOLERANCE = 1.5F;
 
     /**
      * Swing rhythm per player. Keyed by UUID and pruned when the player logs out - this is
@@ -202,11 +204,9 @@ public class HarmonicPickaxeItem extends Item {
      * itself is left to the vanilla break that called us.
      */
     private void shatter(ServerLevel level, Player player, ItemStack stack, BlockState struck, BlockPos pos) {
-        float baseHardness = struck.getDestroySpeed(level, pos);
-        if (baseHardness < 0.0F) {
+        if (struck.getDestroySpeed(level, pos) < 0.0F) {
             return;
         }
-        float hardnessCap = baseHardness * HARDNESS_TOLERANCE + 0.5F;
 
         // The fault plane is perpendicular to the face being mined, so it is spanned by the two
         // axes the look direction is weakest on.
@@ -244,17 +244,31 @@ public class HarmonicPickaxeItem extends Item {
                     if (neighbour.isAir()) {
                         continue;
                     }
-                    float hardness = neighbour.getDestroySpeed(level, CURSOR);
-                    if (hardness < 0.0F || hardness > hardnessCap) {
+                    // PLAYER: "if im using the harmonic pickaxe mining normal overworld stone,
+                    // and there is a vein of diorite, it will do 3x3 for stone but leave the
+                    // diorite intact even if its within the 3x3 area. this should be no more,
+                    // the pickaxe effect should apply in all stone blocks, so all blocks that
+                    // are mined with pickaxes (dirt and sand arent included for example)".
+                    //
+                    // The old gate was a HARDNESS SIMILARITY test against the struck block,
+                    // which is exactly what left the diorite standing: diorite and stone have
+                    // different destroy speeds, so a plane opened on stone excluded it. The
+                    // class of block is what matters, not how closely its hardness matches, so
+                    // the test is now simply "is this mined with a pickaxe" - which admits every
+                    // stone, ore and metal block while still excluding dirt, sand and gravel.
+                    if (!neighbour.is(BlockTags.MINEABLE_WITH_PICKAXE)) {
                         continue;
                     }
+                    if (neighbour.getDestroySpeed(level, CURSOR) < 0.0F) {
+                        continue;   // unbreakable, e.g. bedrock
+                    }
+
+                    // The tier gate stays: the tool cheats the block count, never the tier.
                     if (!stack.isCorrectToolForDrops(neighbour)) {
                         continue;
                     }
 
-                    // destroyBlock keeps the position around for loot and particles, so hand it
-                    // an immutable copy rather than the shared cursor.
-                    if (level.destroyBlock(CURSOR.immutable(), true, player)) {
+                    if (breakWithTool(level, player, stack, neighbour, CURSOR.immutable())) {
                         broken++;
                     }
                 }
@@ -267,6 +281,53 @@ public class HarmonicPickaxeItem extends Item {
             stack.hurtAndBreak(broken, player, EquipmentSlot.MAINHAND);
             level.playSound(null, pos, SoundEvents.AMETHYST_BLOCK_CHIME, SoundSource.BLOCKS, 0.8F, 1.4F);
         }
+    }
+
+    /**
+     * Breaks one shattered block as though the player had mined it with this pickaxe.
+     *
+     * <p>PLAYER: "silk touch makes sure that if i mine a 3x3 of solid stone, it doesnt drop the
+     * block i actually mined as silk touch so it drops stone but all 8 others arent affected and
+     * drop stone, this should not be the case, i mine a 3x3 of all stone, silk touch is applied
+     * to all the 9 stone, so i get 9 stone instead of 1 stone and 8 cobblestone. fortune for
+     * example, applies if an ore block is caught and mined wihtin the 3x3 area."
+     *
+     * <p>The old code called {@code level.destroyBlock(pos, true, player)}. That drops the
+     * block's <em>default</em> loot: it knows who broke the block but not what they broke it
+     * with, so the loot context carries no tool and every enchantment on the pickaxe is simply
+     * absent. Silk Touch and Fortune are properties of the tool, so they applied to the one
+     * block vanilla broke and to none of the ones we broke - which is precisely the split the
+     * player describes.
+     *
+     * <p>This instead walks the same sequence {@code ServerPlayerGameMode#destroyBlock} does,
+     * with {@code stack} threaded through: {@code playerWillDestroy}, remove, {@code destroy},
+     * then {@code playerDestroy}, which calls {@code dropResources(..., tool)} and builds a loot
+     * context that includes the tool. Every enchantment on the pickaxe therefore applies to
+     * every block in the plane, exactly as it does to the one struck by hand.
+     *
+     * <p>{@code spawnAfterBreak} is called separately for experience because
+     * {@code Block#playerDestroy} passes {@code dropXp = false} - Forge moved XP out of it and
+     * into the game-mode patch, so a shatter that did not do this would silently eat the
+     * experience from every ore it broke.
+     */
+    private static boolean breakWithTool(
+            ServerLevel level, Player player, ItemStack stack, BlockState state, BlockPos pos) {
+        BlockEntity blockEntity = state.hasBlockEntity() ? level.getBlockEntity(pos) : null;
+        boolean canHarvest = state.canHarvestBlock(level, pos, player);
+
+        state.getBlock().playerWillDestroy(level, pos, state, player);
+        if (!level.removeBlock(pos, false)) {
+            return false;
+        }
+        state.getBlock().destroy(level, pos, state);
+
+        if (canHarvest) {
+            // The copy matters: playerDestroy can consume or damage what it is handed, and this
+            // stack is the pickaxe still in the player's hand.
+            state.getBlock().playerDestroy(level, player, pos, state, blockEntity, stack.copy());
+            state.spawnAfterBreak(level, pos, stack, true);
+        }
+        return true;
     }
 
     /** Drops a player's rhythm when they leave, so the map never outgrows the online roster. */
