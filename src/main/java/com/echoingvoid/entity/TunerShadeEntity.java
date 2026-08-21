@@ -49,34 +49,23 @@ import java.util.List;
  * six doubles and a counter, ticked here, which costs a fraction of what an {@code EntityType} plus
  * a renderer plus tracking would.
  */
-public class TunerShadeEntity extends Monster {
+public class TunerShadeEntity extends Monster implements BoltCaster {
     // ------------------------------------------------------------------ bolt
 
-    /** Blocks travelled per tick. Slow enough to sidestep at range, fast enough to punish standing. */
-    private static final double BOLT_SPEED = 0.9;
 
-    /** Ticks a bolt survives before dissipating; at {@link #BOLT_SPEED} that is about 40 blocks. */
-    private static final int BOLT_LIFETIME = 45;
 
-    /** How close to the bolt's line an entity has to be to be struck. */
-    private static final double BOLT_RADIUS = 0.55;
 
     private static final float BOLT_DAMAGE = 5.0F;
 
-    /** Ticks of slowness a bolt leaves behind. The shade wins by keeping you slow and far away. */
-    private static final int BOLT_SLOW_TICKS = 70;
 
-    private boolean boltActive;
-    private double boltX;
-    private double boltY;
-    private double boltZ;
-    private double boltVx;
-    private double boltVy;
-    private double boltVz;
+    /**
+     * The projectile, a shared helper rather than a dozen fields here - see
+     * {@link ResonanceBolt}, which the angered Tuner Trader also uses at lower damage.
+     */
+    private final ResonanceBolt bolt =
+            new ResonanceBolt(this, BOLT_DAMAGE, other -> other instanceof TunerShadeEntity);
     private int boltAge;
 
-    /** Reused by the bolt's block test so a bolt in flight allocates no positions. */
-    private final BlockPos.MutableBlockPos boltCursor = new BlockPos.MutableBlockPos();
 
     // ----------------------------------------------------------------- blink
 
@@ -151,125 +140,34 @@ public class TunerShadeEntity extends Monster {
         if (this.blinkCooldown > 0) {
             this.blinkCooldown--;
         }
-        if (this.boltActive) {
-            this.tickBolt(level);
-        }
+        this.bolt.tick(level);
     }
 
     // ------------------------------------------------------------------ bolt
+    //
+    // The projectile itself lives in ResonanceBolt now. It was ~100 lines here - flight,
+    // collision, the crowd-nearest pick, the burst - and the Tuner Trader needs all of it at a
+    // different damage. Two copies of a hit test drift apart, so it moved out rather than being
+    // duplicated. What is left is the two methods the goal actually calls.
 
     /** Whether a bolt is currently in the air. The goal will not fire a second one over it. */
+    @Override
     public boolean hasBoltInFlight() {
-        return this.boltActive;
+        return this.bolt.inFlight();
     }
 
     /**
      * Launches a bolt from the shade's resonator at wherever the target is standing right now.
      *
      * <p>Deliberately not led: the bolt goes to where the target was at the instant the cast
-     * completed, so walking sideways during the flight time is a complete dodge. The wind-up in
+     * completed, so walking sideways during the flight is a complete dodge. The wind-up in
      * {@link ResonanceBoltGoal} is what tells the player when that window opens.
      */
+    @Override
     public void fireBolt(ServerLevel level, LivingEntity target) {
-        double sx = this.getX();
-        double sy = this.getEyeY() - 0.4;
-        double sz = this.getZ();
-        double dx = target.getX() - sx;
-        double dy = target.getY(0.6) - sy;
-        double dz = target.getZ() - sz;
-        double length = Math.sqrt(dx * dx + dy * dy + dz * dz);
-        if (length < 1.0E-4) {
-            return;
-        }
-
-        this.boltX = sx;
-        this.boltY = sy;
-        this.boltZ = sz;
-        this.boltVx = dx / length * BOLT_SPEED;
-        this.boltVy = dy / length * BOLT_SPEED;
-        this.boltVz = dz / length * BOLT_SPEED;
-        this.boltAge = 0;
-        this.boltActive = true;
-
-        level.playSound(null, sx, sy, sz, SoundEvents.WARDEN_SONIC_BOOM,
-                SoundSource.HOSTILE, 0.7F, 1.8F);
+        this.bolt.fire(level, target);
     }
 
-    /**
-     * Advances the bolt one tick and resolves whatever it meets.
-     *
-     * <p>One bounded {@code getEntitiesOfClass} per tick over the box the bolt swept this tick, not
-     * one per sub-step and never a world scan. A tick's travel is well under a block, so the box is
-     * tiny and usually empty.
-     */
-    private void tickBolt(ServerLevel level) {
-        double nx = this.boltX + this.boltVx;
-        double ny = this.boltY + this.boltVy;
-        double nz = this.boltZ + this.boltVz;
-
-        this.boltCursor.set(Mth.floor(nx), Mth.floor(ny), Mth.floor(nz));
-        if (!level.isLoaded(this.boltCursor)) {
-            this.boltActive = false;
-            return;
-        }
-
-        BlockState state = level.getBlockState(this.boltCursor);
-        if (state.blocksMotion()) {
-            this.burstBolt(level, nx, ny, nz);
-            return;
-        }
-
-        AABB swept = new AABB(this.boltX, this.boltY, this.boltZ, nx, ny, nz).inflate(BOLT_RADIUS);
-        List<LivingEntity> struck = level.getEntitiesOfClass(LivingEntity.class, swept,
-                candidate -> candidate != this
-                        && candidate.isAlive()
-                        && !candidate.isSpectator()
-                        && !(candidate instanceof TunerShadeEntity));
-        if (!struck.isEmpty()) {
-            // Nearest to where the bolt started this tick, so a bolt passing through a crowd hits
-            // the front of it rather than whichever entity the query happened to list first.
-            LivingEntity nearest = struck.get(0);
-            double best = nearest.distanceToSqr(this.boltX, this.boltY, this.boltZ);
-            for (int i = 1; i < struck.size(); i++) {
-                double distSq = struck.get(i).distanceToSqr(this.boltX, this.boltY, this.boltZ);
-                if (distSq < best) {
-                    best = distSq;
-                    nearest = struck.get(i);
-                }
-            }
-
-            this.hitWithBolt(level, nearest);
-            this.burstBolt(level, nearest.getX(), nearest.getY(0.6), nearest.getZ());
-            return;
-        }
-
-        this.boltX = nx;
-        this.boltY = ny;
-        this.boltZ = nz;
-
-        level.sendParticles(ParticleTypes.SCULK_SOUL, nx, ny, nz, 1, 0.03, 0.03, 0.03, 0.0);
-        if ((this.boltAge & 1) == 0) {
-            level.sendParticles(ParticleTypes.ELECTRIC_SPARK, nx, ny, nz, 1, 0.06, 0.06, 0.06, 0.01);
-        }
-
-        if (++this.boltAge >= BOLT_LIFETIME) {
-            this.boltActive = false;
-        }
-    }
-
-    private void hitWithBolt(ServerLevel level, LivingEntity victim) {
-        if (victim.hurtServer(level, this.damageSources().indirectMagic(this, this), BOLT_DAMAGE)) {
-            victim.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, BOLT_SLOW_TICKS, 1), this);
-        }
-    }
-
-    /** Ends the bolt with a visible pop, so a miss is as legible as a hit. */
-    private void burstBolt(ServerLevel level, double x, double y, double z) {
-        this.boltActive = false;
-        level.sendParticles(ParticleTypes.SCULK_CHARGE_POP, x, y, z, 10, 0.25, 0.25, 0.25, 0.05);
-        level.playSound(null, x, y, z, SoundEvents.AMETHYST_BLOCK_CHIME,
-                SoundSource.HOSTILE, 0.8F, 0.6F);
-    }
 
     // ----------------------------------------------------------------- blink
 
@@ -424,6 +322,7 @@ public class TunerShadeEntity extends Monster {
     }
 
     /** Where the resonator ring sits, for anything that wants to draw from it. */
+    @Override
     public Vec3 resonatorPosition() {
         float yaw = this.getYRot() * ((float) Math.PI / 180.0F);
         return new Vec3(this.getX() - Mth.sin(yaw) * 0.55,

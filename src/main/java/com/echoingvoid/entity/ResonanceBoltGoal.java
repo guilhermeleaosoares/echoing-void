@@ -27,7 +27,7 @@ import java.util.EnumSet;
  * <p>Only one bolt is ever in the air. That is what keeps a pair of shades survivable: they have to
  * take turns, and the gaps are where the player closes the distance.
  */
-class ResonanceBoltGoal extends Goal {
+class ResonanceBoltGoal<T extends net.minecraft.world.entity.Mob & BoltCaster> extends Goal {
     /** Closer than this and the shade gives ground instead of casting. */
     private static final double IDEAL_MIN = 6.0;
 
@@ -41,12 +41,12 @@ class ResonanceBoltGoal extends Goal {
     private static final int CAST_TICKS = 26;
     private static final int CAST_COOLDOWN = 45;
 
-    private final TunerShadeEntity shade;
+    private final T shade;
     private int repath;
     private int cooldown;
     private int charge;
 
-    ResonanceBoltGoal(TunerShadeEntity shade) {
+    ResonanceBoltGoal(T shade) {
         this.shade = shade;
         this.setFlags(EnumSet.of(Goal.Flag.MOVE, Goal.Flag.LOOK));
     }

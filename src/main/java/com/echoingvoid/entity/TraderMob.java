@@ -40,6 +40,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.trading.ItemCost;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.item.trading.MerchantOffers;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.levelgen.structure.Structure;
@@ -65,11 +66,38 @@ import java.util.List;
  * short-lived melee response, not a permanent grudge), which is also what tells the {@link
  * ProtectorMob} nearby to step in.
  */
-public class TraderMob extends AbstractVillager {
+public class TraderMob extends AbstractVillager implements BoltCaster {
 
     public enum Variety { OUTPOST, CAMP }
 
-    private static final int RETALIATION_TICKS = 100; // 5 seconds of fighting back
+    /**
+     * How long a struck Tuner stays angry.
+     *
+     * <p>PLAYER: "the tuner trader mobs should be neutral, not passive, like piglings. they have
+     * the trade gui, but when attacked they turn hostile and will attack you back."
+     *
+     * <p>Five seconds was a flinch, not a grudge - it read as a passive mob shoving back. Piglin
+     * anger runs 30-ish seconds, and that is the feel being asked for: hit one and you have a
+     * fight on your hands, not a scuffle.
+     */
+    private static final int RETALIATION_TICKS = 600;
+
+    /**
+     * The bolt an angry Tuner throws, at 75% of a Tuner Shade's.
+     *
+     * <p>PLAYER: "they can attack with magic like the tuner shader mob, similar attacks to those,
+     * though dealing 75% the damage of what a tuner shader would." The Shade's bolt is 5.0, so
+     * this is 3.75 - the same projectile, the same wind-up, the same dodge window, landing softer.
+     * A Tuner is a trader who can defend itself, not an assassin.
+     *
+     * <p>Traders never bolt each other: the predicate excludes their own kind, exactly as the
+     * Shade's excludes Shades. Without it a crowded outpost would tear itself apart the moment
+     * one of them was hit.
+     */
+    private static final float BOLT_DAMAGE = 3.75F;
+
+    private final ResonanceBolt bolt =
+            new ResonanceBolt(this, BOLT_DAMAGE, other -> other instanceof TraderMob);
 
     private Variety variety = Variety.OUTPOST;
     private int retaliationTimer;
@@ -136,7 +164,18 @@ public class TraderMob extends AbstractVillager {
     protected void registerGoals() {
         this.goalSelector.addGoal(0, new FloatGoal(this));
         this.goalSelector.addGoal(1, new TradeWithPlayerGoal(this));
-        this.goalSelector.addGoal(1, new PanicGoal(this, 0.5));
+        // PLAYER: "should be neutral, not passive, like piglings". A mob that panics when hit
+        // is passive by definition, so panic only applies while it is NOT angry - otherwise the
+        // trader would run away from the fight it is supposed to be putting up.
+        this.goalSelector.addGoal(1, new PanicGoal(this, 0.5) {
+            @Override
+            public boolean canUse() {
+                return !TraderMob.this.isRetaliating() && super.canUse();
+            }
+        });
+        // The magic. Sits above strolling and below trading, so a Tuner mid-trade is not
+        // interrupted by a fight it is not in, but an angry one stops wandering to cast.
+        this.goalSelector.addGoal(2, new ResonanceBoltGoal<>(this));
         this.goalSelector.addGoal(2, new LookAtTradingPlayerGoal(this));
         this.goalSelector.addGoal(3, new WaterAvoidingRandomStrollGoal(this, 0.4));
         this.goalSelector.addGoal(4, new LookAtPlayerGoal(this, Player.class, 8.0F));
@@ -161,9 +200,31 @@ public class TraderMob extends AbstractVillager {
         if (retaliationTimer > 0) {
             retaliationTimer--;
         }
-        if (!this.level().isClientSide()) {
+        if (this.level() instanceof ServerLevel serverLevel) {
+            this.bolt.tick(serverLevel);
             restockIfDue();
         }
+    }
+
+    // --------------------------------------------------------------- casting
+
+    @Override
+    public boolean hasBoltInFlight() {
+        return this.bolt.inFlight();
+    }
+
+    @Override
+    public void fireBolt(ServerLevel level, LivingEntity target) {
+        this.bolt.fire(level, target);
+    }
+
+    /**
+     * Where the bolt gathers before it leaves. A Tuner has no resonator ring like a Shade, so it
+     * casts from the chest - high enough to read as deliberate rather than as something dropped.
+     */
+    @Override
+    public Vec3 resonatorPosition() {
+        return new Vec3(this.getX(), this.getEyeY() - 0.35, this.getZ());
     }
 
     /** True while the trader is still willing to fight back - what {@link ProtectorMob} watches. */

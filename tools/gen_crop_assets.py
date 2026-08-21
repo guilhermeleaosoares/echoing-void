@@ -368,7 +368,7 @@ def _grid_sprite(grid: list[str], hex_map: dict[str, tuple[int, int, int, int]])
 
 
 def resonant_grain() -> Sprite:
-    """A diagonal sheaf of ripe resonant wheat with 3 distinct ears fanning to the upper-right."""
+    """A diagonal sheaf of ripe resonant wheat with textured kernel beads and bristling awns."""
     hex_map = {
         "0": (57, 34, 18, 255),
         "1": (86, 63, 35, 255),
@@ -376,19 +376,20 @@ def resonant_grain() -> Sprite:
         "3": (173, 133, 67, 255),
         "4": (215, 177, 99, 255),
         "H": (221, 204, 171, 255),
+        "G": (255, 215, 0, 255),
     }
     grid = [
         "..........H.....",
         "........034.H...",
-        "......0.3443...H",
-        "......03444434H.",
-        "......34444444..",
-        "......44444444H0",
-        "......4444444H0.",
-        ".....34444444320",
-        ".....4444443210.",
-        "....3044443200..",
-        "...303043200H3..",
+        "......0.3G43.0.H",
+        "......03G43G434H",
+        "......3G414G4130",
+        ".....034134143H0",
+        ".....0414G434H0.",
+        "....0314G41320..",
+        "....041413210...",
+        "...301413200....",
+        "..303023200.H3..",
         ".03440000..000..",
         ".344400.........",
         ".44320..........",
@@ -445,7 +446,7 @@ def chime_root_icon() -> Sprite:
 
 
 def void_tuber_icon() -> Sprite:
-    """A plump organic root tuber on a diagonal with dusty violet skin and root eyes."""
+    """An elongated knobbly root tuber on a diagonal with dusty violet skin and root eyes."""
     hex_map = {
         "0": (28, 14, 34, 255),
         "1": (46, 24, 58, 255),
@@ -457,21 +458,21 @@ def void_tuber_icon() -> Sprite:
     }
     grid = [
         "................",
+        ".............00.",
+        "...........00H40",
+        ".........00H44E0",
+        "........0HH44320",
+        "......00H443220.",
+        ".....0HH4E43210.",
+        "....0H44322100..",
+        "...0HH4E32100...",
+        "..0H44322100....",
+        ".0H4432100......",
+        ".04321000.......",
+        ".02100..........",
+        "..00............",
         "................",
         "................",
-        "................",
-        "........0000....",
-        ".....000HH430...",
-        "....044HH44430..",
-        "...0HHHHH4E4320.",
-        '..04HHHH4443210.',
-        '..0HHHH44432210.',
-        '..043H44332210..',
-        '..03344322100...',
-        '...02332100.....',
-        '....0000........',
-        '................',
-        '................',
     ]
     return _grid_sprite(grid, hex_map)
 
@@ -510,7 +511,7 @@ def echo_gourd_slice() -> Sprite:
 
 
 def humming_tart() -> Sprite:
-    """An isometric 3/4 round tart with a missing slice, golden fluted crust, acoustic teal custard, and glowing harmonic core."""
+    """An isometric 3/4 round tart with a missing slice, golden fluted crust, acoustic teal custard, glowing harmonic core, and rounded bottom."""
     hex_map = {
         "0": (57, 34, 18, 255),
         "1": (86, 63, 35, 255),
@@ -536,8 +537,8 @@ def humming_tart() -> Sprite:
         ".001100SCCCCFTH0",
         ".011000FHHHH20..",
         "..000.0022220...",
-        "......0022000...",
-        ".......0000.....",
+        "....00022200....",
+        "......00000.....",
         "................",
     ]
     return _grid_sprite(grid, hex_map)
