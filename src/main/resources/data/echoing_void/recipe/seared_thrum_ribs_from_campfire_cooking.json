@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:campfire_cooking",
+  "category": "misc",
+  "cookingtime": 600,
+  "experience": 0.35,
+  "group": "seared_thrum_ribs",
+  "ingredient": "echoing_void:thrum_ribs",
+  "result": {
+    "id": "echoing_void:seared_thrum_ribs"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_thrum_ribs": {
+      "conditions": {
+        "items": [
+          {
+            "items": "echoing_void:thrum_ribs"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "echoing_void:seared_thrum_ribs_from_campfire_cooking"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_thrum_ribs"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "echoing_void:seared_thrum_ribs_from_campfire_cooking"
+    ]
+  }
+}

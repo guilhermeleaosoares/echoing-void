@@ -215,6 +215,29 @@ def gen_entities() -> None:
          "entries": [{"type": "minecraft:item", "name": f"{NS}:harmonic_tuning_disc_beta"}]},
     ])
 
+    # The two grazing animals. Vanilla's own cow/pig loot shape, including the
+    # smelt-on-fire branch: a beast killed by fire drops its meat already seared,
+    # which is a small thing a player notices immediately if it is missing.
+    for entity, raw, seared in (("drone_auroch", "drone_loin", "seared_drone_loin"),
+                                ("thrum_boar", "thrum_ribs", "seared_thrum_ribs")):
+        entity_table(entity, [
+            {"rolls": 1.0,
+             "entries": [{"type": "minecraft:item", "name": f"{NS}:{raw}",
+                          "functions": [
+                              {"function": "minecraft:set_count",
+                               "count": {"type": "minecraft:uniform", "min": 1.0, "max": 3.0}},
+                              {"function": "minecraft:furnace_smelt",
+                               "conditions": [{"condition": "minecraft:entity_properties",
+                                               "entity": "this",
+                                               "predicate": {"flags": {"is_on_fire": True}}}]},
+                              looting(0, 1.0),
+                          ]}]},
+        ])
+        # furnace_smelt needs the cooked item to be the smelting RESULT of the raw
+        # one, which gen_recipes.py provides - naming it here keeps the pair
+        # visible from the loot side too.
+        _ = seared
+
     # Chime Mote: ambient, harmless, and the only thing down there not trying to
     # kill the player. It drops almost nothing on purpose - a worthwhile drop would
     # turn the dimension's one friendly creature into a farm.

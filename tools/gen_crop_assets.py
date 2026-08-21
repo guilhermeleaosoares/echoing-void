@@ -51,6 +51,7 @@ sys.path.insert(0, str(TOOLS))
 
 from gen_item_textures import (  # noqa: E402
     Material, Sprite, col, spans, rect, blob, lozenge, stroke,
+    BISMUTH, GOLD,
 )
 # The periodic-noise helper lives with the fluid sheets, which needed the same
 # thing first. Duplicating it would be two hash functions to keep in step.
@@ -348,35 +349,59 @@ def gourd_top() -> Sprite:
 # item icons
 # ---------------------------------------------------------------------------
 
-def resonant_grain() -> Sprite:
-    """A bound sheaf: three ears leaning the same way over a tie."""
+class ColorMat:
+    def __init__(self, color: tuple[int, int, int, int]):
+        self.colors = [color]
+        self.dark = 0
+        self.rim = 0
+
+
+def _grid_sprite(grid: list[str], hex_map: dict[str, tuple[int, int, int, int]]) -> Sprite:
+    """Build a Sprite directly from a 16x16 pixel key grid."""
     sp = Sprite()
-    for i, base in enumerate((3, 6, 9)):
-        path = [(base + 1.0, 14.0), (base + 2.0, 8.0), (base + 3.5, 2.0)]
-        for (x, y) in sorted(stroke(path, 1.2)):
-            sp.put(x, y, GRAIN, GRAIN.tone(0.40 + 0.04 * (15 - y)))
-        for k in range(3):
-            sp.put(base + 2 + k, 3 + k, GRAIN, GRAIN.tone(0.95 - 0.12 * k))
-            sp.put(base + 4 + k, 4 + k, GRAIN, GRAIN.tone(0.80 - 0.12 * k))
-    for x in range(4, 11):
-        sp.put(x, 11, GRAIN, GRAIN.tone(0.22))
-    sp.outline()
+    mats = {k: ColorMat(hex_map[k]) for k in hex_map if k != "."}
+    for y, row in enumerate(grid):
+        for x, k in enumerate(row):
+            if k in mats:
+                sp.cell[(x, y)] = (mats[k], 0)
     return sp
+
+
+def resonant_grain() -> Sprite:
+    """A diagonal sheaf of ripe resonant wheat with 3 distinct ears fanning to the upper-right."""
+    hex_map = {
+        "0": (57, 34, 18, 255),
+        "1": (86, 63, 35, 255),
+        "2": (122, 92, 51, 255),
+        "3": (173, 133, 67, 255),
+        "4": (215, 177, 99, 255),
+        "H": (221, 204, 171, 255),
+    }
+    grid = [
+        "..........H.....",
+        "........034.H...",
+        "......0.3443...H",
+        "......03444434H.",
+        "......34444444..",
+        "......44444444H0",
+        "......4444444H0.",
+        ".....34444444320",
+        ".....4444443210.",
+        "....3044443200..",
+        "...303043200H3..",
+        ".03440000..000..",
+        ".344400.........",
+        ".44320..........",
+        ".40020..........",
+        ".0..0...........",
+    ]
+    return _grid_sprite(grid, hex_map)
 
 
 def seed_icon(mat: Material, seed: int) -> Sprite:
     """A scatter of seeds. Four lozenges rather than loose pixels, because a
     single pixel disappears in a hotbar slot."""
     sp = Sprite()
-    # Three seeds, further apart. Four fat lozenges at 16 pixels touch each
-    # other and merge into an X, which is what the first draft read as - a
-    # scatter has to have gaps in it to be a scatter.
-    #
-    # Each seed keeps a LOCKED core pixel, and the three cores sit at three
-    # different ramp levels. A small lozenge is almost entirely silhouette
-    # edge, and Sprite.outline() repaints every edge pixel into the ramp's two
-    # darkest tones - without the locked cores the whole icon came out in two
-    # colours and the gate rejected it as flat programmer art.
     for i, (cx, cy, angle, core) in enumerate((
             (4.5, 6.0, 35.0, 0.35), (10.5, 5.0, -30.0, 0.68), (7.5, 11.0, 10.0, 1.0))):
         for (x, y) in lozenge(cx, cy, 2.4, 1.3, angle):
@@ -387,147 +412,167 @@ def seed_icon(mat: Material, seed: int) -> Sprite:
 
 
 def chime_root_icon() -> Sprite:
-    """A tapered root, pale flesh with a teal crown - carrot's silhouette in
-    this dimension's colours."""
-    sp = Sprite()
-    # A fatter shoulder than the first draft, which tapered from three pixels
-    # and read as a splinter in the hotbar rather than as something to eat.
-    body = spans({
-        4: [(6, 10)], 5: [(5, 11)], 6: [(5, 11)], 7: [(5, 11)], 8: [(6, 10)],
-        9: [(6, 10)], 10: [(7, 9)], 11: [(7, 9)], 12: [(8, 9)], 13: [(8, 8)],
-    })
-    sp.paint(body, ROOT_FLESH, 0.60, 7701, spread=0.30, light=0.26)
-    # A crown big enough to read: five blades fanning off the shoulder rather
-    # than the seven loose pixels the first draft scattered above it.
-    for (x, y) in ((4, 3), (5, 2), (6, 1), (7, 0), (8, 1), (9, 1),
-                   (10, 2), (11, 3), (6, 2), (9, 2), (7, 1), (8, 2)):
-        sp.put(x, y, TEAL, TEAL.tone(0.40 + 0.14 * (x % 4)))
-    for (x, y) in ((5, 1), (8, 0), (10, 1)):
-        sp.put(x, y, TEAL, TEAL.tone(0.92))
-    sp.outline()
-    return sp
+    """A diagonal root vegetable running corner-to-corner with feathery teal foliage and pale acoustic flesh."""
+    hex_map = {
+        "0": (11, 13, 18, 255),
+        "1": (76, 86, 106, 255),
+        "2": (135, 148, 171, 255),
+        "3": (201, 211, 226, 255),
+        "R": (54, 214, 232, 255),
+        "a": (11, 94, 108, 255),
+        "b": (36, 156, 172, 255),
+        "c": (107, 225, 248, 255),
+    }
+    grid = [
+        "................",
+        ".......ccb......",
+        "........bcb.cb..",
+        ".....bcabcabcab.",
+        "......ba0c0bcb..",
+        "......032aa0a...",
+        ".....0333210aba.",
+        ".....03333200a0a",
+        "....0R333210aa..",
+        "....03332200.a..",
+        "...02R3210......",
+        "...032210.......",
+        "..03210.........",
+        "..0200..........",
+        "..00............",
+        "................",
+    ]
+    return _grid_sprite(grid, hex_map)
 
 
 def void_tuber_icon() -> Sprite:
-    """A lumpy oval with two eyes, which is the whole visual language of a
-    potato."""
-    sp = Sprite()
-    for (x, y) in blob(8.0, 8.5, 5.0, 8811, wobble=0.26):
-        sp.put(x, y, VIOLET, VIOLET.tone(0.5))
-    sp.paint({(x, y) for (x, y) in blob(8.0, 8.5, 5.0, 8811, wobble=0.26)},
-             VIOLET, 0.58, 8811, spread=0.34, light=0.28)
-    for (x, y) in ((6, 7), (10, 10), (9, 6)):
-        sp.put(x, y, VIOLET, VIOLET.tone(0.12))
-        sp.put(x + 1, y, VIOLET, VIOLET.tone(0.28))
-    sp.outline()
-    return sp
+    """A plump organic root tuber on a diagonal with dusty violet skin and root eyes."""
+    hex_map = {
+        "0": (28, 14, 34, 255),
+        "1": (46, 24, 58, 255),
+        "2": (55, 28, 67, 255),
+        "3": (74, 37, 89, 255),
+        "4": (137, 60, 132, 255),
+        "H": (188, 154, 192, 255),
+        "E": (206, 61, 149, 255),
+    }
+    grid = [
+        "................",
+        "................",
+        "................",
+        "................",
+        "........0000....",
+        ".....000HH430...",
+        "....044HH44430..",
+        "...0HHHHH4E4320.",
+        '..04HHHH4443210.',
+        '..0HHHH44432210.',
+        '..043H44332210..',
+        '..03344322100...',
+        '...02332100.....',
+        '....0000........',
+        '................',
+        '................',
+    ]
+    return _grid_sprite(grid, hex_map)
 
 
 def echo_gourd_slice() -> Sprite:
-    """A wedge cut from a gourd: flat cut face on top, teal rind round the curve.
-
-    PLAYER: "the resonance gourds should be able to be consumed, so it can drop
-    slices like a watermelon".
-
-    A melon slice reads at 16 pixels from two cues together: a FLAT cut face
-    with a curved back, and a hard two-tone split with the rind on the curve
-    only. The first attempt drew rind on both the top and the arc, which lost
-    the cut face entirely and came out as a pale blob with teal specks. Here the
-    silhouette is a half-disc - flat along the top, curving away below - and the
-    rind is computed as the boundary of that shape MINUS its top row, so the cut
-    face is guaranteed to stay open however the disc is shaped.
-    """
-    sp = Sprite()
-    rows = {
-        3:  (3, 12),
-        4:  (2, 13),
-        5:  (2, 13),
-        6:  (2, 13),
-        7:  (3, 12),
-        8:  (3, 12),
-        9:  (4, 11),
-        10: (5, 10),
-        11: (6, 9),
-        12: (7, 8),
+    """A dynamic crescent wedge cut from a resonance gourd: glowing cyan flesh with a pale pith and teal outer rind."""
+    hex_map = {
+        "0": (11, 64, 75, 255),
+        "1": (11, 94, 108, 255),
+        "2": (13, 111, 128, 255),
+        "3": (36, 156, 172, 255),
+        "P": (201, 211, 226, 255),
+        "F": (54, 214, 232, 255),
+        "H": (107, 225, 248, 255),
+        "S": (11, 94, 108, 255),
     }
-    body = {(x, y) for y, (a, b) in rows.items() for x in range(a, b + 1)}
-    sp.paint(body, PALE, 0.66, 4401, spread=0.22, light=0.30)
-
-    # The rind: every body cell on the silhouette edge except the cut face.
-    top = min(rows)
-    rind = {
-        (x, y) for (x, y) in body
-        if y != top and (
-            (x - 1, y) not in body or (x + 1, y) not in body
-            or (x, y + 1) not in body
-        )
-    }
-    sp.paint(rind, TEAL, 0.56, 4407, spread=0.22, light=0.26)
-
-    # Seed pips on the open face, mirrored about the centre line.
-    for (x, y) in ((6, 5), (9, 5), (7, 7)):
-        sp.put(x, y, TEAL, 2)
-
-    sp.outline()
-    return sp
+    grid = [
+        "................",
+        "................",
+        "..........31....",
+        ".........0P31...",
+        "........0FHP31..",
+        ".......0HSFP31..",
+        "......0HFHFP21..",
+        ".....0HFSSFPG0..",
+        "....0FHFHFHPG0..",
+        "...0HFSFFFP320..",
+        "..0HSFFHFPG320..",
+        ".3PFFHFPPG3210..",
+        ".02PPPPP3210....",
+        "..022222100.....",
+        "...000000.......",
+        "................",
+    ]
+    return _grid_sprite(grid, hex_map)
 
 
 def humming_tart() -> Sprite:
-    """This dimension's pumpkin pie: pale crust round a teal filling with a lit core.
-
-    PLAYER: "a humming tart. like an overworld pumpkin pie but with the void
-    look, and some special effects."
-
-    Vanilla's pumpkin_pie is a round tart with a lighter crust rim and a darker
-    filling; that silhouette is the readability and it is kept. What changes is
-    the filling - gourd teal with a bright centre, because this carries the
-    strongest effects in the mod and should look like it is holding a note.
-    """
-    sp = Sprite()
-    body = spans({
-        4:  [(4, 11)],
-        5:  [(3, 12)],
-        6:  [(2, 13)],
-        7:  [(2, 13)],
-        8:  [(2, 13)],
-        9:  [(2, 13)],
-        10: [(3, 12)],
-        11: [(4, 11)],
-    })
-    sp.paint(body, GRAIN, 0.52, 4501, spread=0.26, light=0.26)
-
-    # The filling, inset so the crust rim survives all the way round.
-    filling = spans({
-        6:  [(5, 10)],
-        7:  [(4, 11)],
-        8:  [(4, 11)],
-        9:  [(5, 10)],
-    })
-    sp.paint(filling, TEAL, 0.60, 4507, spread=0.26, light=0.30)
-
-    # The hum: a lit core in the middle of the filling.
-    for (x, y) in ((7, 7), (8, 7), (7, 8), (8, 8)):
-        sp.put(x, y, TEAL, len(TEAL.colors) - 1)
-
-    sp.outline()
-    return sp
+    """An isometric 3/4 round tart with a missing slice, golden fluted crust, acoustic teal custard, and glowing harmonic core."""
+    hex_map = {
+        "0": (57, 34, 18, 255),
+        "1": (86, 63, 35, 255),
+        "2": (122, 92, 51, 255),
+        "3": (173, 133, 67, 255),
+        "H": (221, 204, 171, 255),
+        "F": (13, 111, 128, 255),
+        "C": (54, 214, 232, 255),
+        "G": (107, 225, 248, 255),
+        "S": (255, 215, 0, 255),
+    }
+    grid = [
+        "................",
+        "................",
+        "................",
+        "................",
+        ".....000000.....",
+        "...00H3H23200...",
+        "..032FCCCCF220..",
+        ".02FCCFGGFCCT20.",
+        ".02CGST00GTFCH0.",
+        ".0FGT1000GTFCTH0",
+        ".001100SCCCCFTH0",
+        ".011000FHHHH20..",
+        "..000.0022220...",
+        "......0022000...",
+        ".......0000.....",
+        "................",
+    ]
+    return _grid_sprite(grid, hex_map)
 
 
 def resonant_bread() -> Sprite:
-    """A split loaf: amber crust, pale crumb through the score down the middle."""
-    sp = Sprite()
-    body = spans({
-        5: [(3, 12)], 6: [(2, 13)], 7: [(2, 13)], 8: [(2, 13)],
-        9: [(2, 13)], 10: [(3, 12)],
-    })
-    sp.paint(body, GRAIN, 0.55, 9901, spread=0.28, light=0.26)
-    for x in range(4, 12):
-        sp.put(x, 7, PALE, PALE.tone(0.70))
-        sp.put(x, 8, PALE, PALE.tone(0.45))
-    for x in (5, 8, 11):
-        sp.put(x, 6, GRAIN, GRAIN.tone(0.95))
-    sp.outline()
-    return sp
+    """A large diagonal artisan boule with warm golden crust and 3 score cuts revealing fluffy pale crumb."""
+    hex_map = {
+        "0": (57, 34, 18, 255),
+        "1": (86, 63, 35, 255),
+        "2": (122, 92, 51, 255),
+        "3": (173, 133, 67, 255),
+        "4": (215, 177, 99, 255),
+        "C": (201, 211, 226, 255),
+        "H": (221, 204, 171, 255),
+    }
+    grid = [
+        "................",
+        ".........0000...",
+        ".......0023320..",
+        "......024444320.",
+        ".....043CH44420.",
+        "....044443C4320.",
+        "...044444434200.",
+        "..023CH44442210.",
+        "..04443C442200..",
+        ".024444342200...",
+        ".03444442200....",
+        ".0334442200.....",
+        ".023322200......",
+        ".00222200.......",
+        "..000000........",
+        "................",
+    ]
+    return _grid_sprite(grid, hex_map)
 
 
 # ---------------------------------------------------------------------------

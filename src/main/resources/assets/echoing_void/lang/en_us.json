@@ -195,5 +195,13 @@
   "item.echoing_void.echo_gourd": "Echo Gourd",
   "item.echoing_void.resonant_bread": "Resonant Bread",
   "item.echoing_void.echo_gourd_slice": "Echo Gourd Slice",
-  "item.echoing_void.humming_tart": "Humming Tart"
+  "item.echoing_void.humming_tart": "Humming Tart",
+  "entity.echoing_void.drone_auroch": "Drone Auroch",
+  "entity.echoing_void.thrum_boar": "Thrum Boar",
+  "item.echoing_void.drone_auroch_spawn_egg": "Drone Auroch Spawn Egg",
+  "item.echoing_void.thrum_boar_spawn_egg": "Thrum Boar Spawn Egg",
+  "item.echoing_void.drone_loin": "Drone Loin",
+  "item.echoing_void.seared_drone_loin": "Seared Drone Loin",
+  "item.echoing_void.thrum_ribs": "Thrum Ribs",
+  "item.echoing_void.seared_thrum_ribs": "Seared Thrum Ribs"
 }

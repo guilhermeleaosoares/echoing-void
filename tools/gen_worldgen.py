@@ -1283,6 +1283,7 @@ def write_biome(name: str, *, fog: str, foliage: str, grass: str,
                 ores: list[str], underground: list[str],
                 vegetal: list[str], top: list[str],
                 ambient: list[dict] | None = None,
+                creatures: list[dict] | None = None,
                 lakes: list[str] | None = None,
                 springs: list[str] | None = None,
                 ground_cover: list[str] | None = None,
@@ -1294,6 +1295,11 @@ def write_biome(name: str, *, fog: str, foliage: str, grass: str,
     anything listed here cannot consume the hostile budget - a cave full of
     chime motes still gets its monsters. Defaults to empty, which is what every
     biome had hardcoded before.
+
+    `creatures` is MobCategory.CREATURE - the passive farm-animal bucket. It was
+    hardcoded empty, which is why the dimension had nothing to hunt; the two
+    grazing animals go here, on their own budget, so a herd can never crowd out
+    the monsters.
 
     `carvers` used to be hard-coded to the empty list here, which meant the
     dimension had the noise-cave half of vanilla's cave system and none of the
@@ -1336,7 +1342,7 @@ def write_biome(name: str, *, fog: str, foliage: str, grass: str,
         "spawners": {
             "ambient": ambient or [],
             "axolotls": [],
-            "creature": [],
+            "creature": creatures or [],
             "misc": [],
             "monster": monsters,
             "underground_water_creature": [],
@@ -1349,6 +1355,26 @@ def write_biome(name: str, *, fog: str, foliage: str, grass: str,
 
 # Namespaced, like every other feature list: a bare id in a biome's features
 # array decodes as minecraft:<id> and fails registry load.
+# PLAYER: "add two mobs, equivilent to overworld cows and pigs, passive mobs
+# that can be killed for their meat."
+#
+# MobCategory.CREATURE, so they draw on the passive budget rather than the
+# hostile one - a herd can never crowd out the monsters, and the monsters can
+# never starve the herd. Weights follow vanilla's own farm animals (cows 8,
+# pigs 10 in a plains biome), and the group sizes are vanilla's too, so a
+# player meets them in the small clusters they expect rather than as a wall.
+HERDS = [
+    spawner("drone_auroch", 2, 4, 8),
+    spawner("thrum_boar", 2, 4, 10),
+]
+
+# The Chalk Reaches are barer and higher, so the same animals appear but thinly
+# - enough that the biome is not lifeless, not enough to farm comfortably.
+SPARSE_HERDS = [
+    spawner("drone_auroch", 1, 2, 4),
+    spawner("thrum_boar", 1, 2, 5),
+]
+
 COMMON_ORES = [
     # Echo slate is a vein through the phonolite now rather than the body of
     # the strata - see the band_slate note in strata_column().
@@ -1380,6 +1406,7 @@ def gen_biomes() -> None:
             spawner("strata_burrower", 1, 1, 1),
         ],
         ambient=[spawner("chime_mote", 1, 3, 10)],
+        creatures=HERDS,
         costs=[
             spawn_cost("echo_weaver", 0.9, 0.14),
             spawn_cost("resonance_wraith", 1.0, 0.10),
@@ -1468,6 +1495,7 @@ def gen_biomes() -> None:
             spawner("echo_weaver", 1, 1, 1),
         ],
         ambient=[spawner("chime_mote", 1, 3, 10)],
+        creatures=SPARSE_HERDS,
         costs=[
             spawn_cost("strata_golem", 1.0, 0.09),
             spawn_cost("strata_burrower", 1.0, 0.12),

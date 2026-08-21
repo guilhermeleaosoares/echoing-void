@@ -13,6 +13,7 @@ import com.echoingvoid.item.VoidGlassRapierItem;
 import net.minecraft.world.item.AxeItem;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.HoeItem;
+import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.ShovelItem;
@@ -127,6 +128,45 @@ public final class ModItems {
     public static final RegistryObject<Item> TUNERS_PROTECTOR_SPAWN_EGG = track(ITEMS.register("tuners_protector_spawn_egg",
             () -> new SpawnEggItem(props("tuners_protector_spawn_egg")
                     .spawnEgg(ModNewEntities.TUNERS_PROTECTOR.get()))));
+
+    public static final RegistryObject<Item> DRONE_AUROCH_SPAWN_EGG = track(ITEMS.register("drone_auroch_spawn_egg",
+            () -> new SpawnEggItem(props("drone_auroch_spawn_egg")
+                    .spawnEgg(ModNewEntities.DRONE_AUROCH.get()))));
+
+    public static final RegistryObject<Item> THRUM_BOAR_SPAWN_EGG = track(ITEMS.register("thrum_boar_spawn_egg",
+            () -> new SpawnEggItem(props("thrum_boar_spawn_egg")
+                    .spawnEgg(ModNewEntities.THRUM_BOAR.get()))));
+
+    // ------------------------------------------------------------------ meat
+    //
+    // PLAYER: "passive mobs that can be killed for their meat, but dont make it like chops or
+    // steak, for one of them call it (something echoing void related) loin, and then something
+    // echoing void related ribs."
+    //
+    // Vanilla's beef and porkchop figures, raw and cooked, so the cooking step is worth taking by
+    // the same margin a player already knows. Deliberately NO status effects on these: the void
+    // CROPS carry the navigation effects (see ModCrops), and meat that also did would leave the
+    // farm with nothing to be uniquely good at.
+
+    /** Raw beef's figures. */
+    private static final FoodProperties RAW_MEAT_FOOD =
+            new FoodProperties.Builder().nutrition(3).saturationModifier(0.3F).build();
+
+    /** Cooked beef's figures - the reason to bother with a furnace. */
+    private static final FoodProperties SEARED_MEAT_FOOD =
+            new FoodProperties.Builder().nutrition(8).saturationModifier(0.8F).build();
+
+    public static final RegistryObject<Item> DRONE_LOIN = track(ITEMS.register("drone_loin",
+            () -> new Item(props("drone_loin").food(RAW_MEAT_FOOD))));
+
+    public static final RegistryObject<Item> SEARED_DRONE_LOIN = track(ITEMS.register("seared_drone_loin",
+            () -> new Item(props("seared_drone_loin").food(SEARED_MEAT_FOOD))));
+
+    public static final RegistryObject<Item> THRUM_RIBS = track(ITEMS.register("thrum_ribs",
+            () -> new Item(props("thrum_ribs").food(RAW_MEAT_FOOD))));
+
+    public static final RegistryObject<Item> SEARED_THRUM_RIBS = track(ITEMS.register("seared_thrum_ribs",
+            () -> new Item(props("seared_thrum_ribs").food(SEARED_MEAT_FOOD))));
 
     // ------------------------------------------------------------------ gear
 

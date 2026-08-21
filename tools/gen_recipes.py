@@ -74,6 +74,21 @@ def main() -> int:
     glass_shard = f"{NS}:void_glass_shard"
     stick = "minecraft:stick"
 
+    # ---- meat: raw -> seared, on all three heat sources ---------------------
+    #
+    # Vanilla food cooks in a furnace, a smoker and over a campfire, at 200/100/600
+    # ticks respectively. Shipping only the furnace recipe is the classic modded-meat
+    # bug: the smoker exists precisely for food and a meat that ignores it feels
+    # broken long before anyone works out why.
+    for raw, seared in (("drone_loin", "seared_drone_loin"),
+                        ("thrum_ribs", "seared_thrum_ribs")):
+        cooking(f"{seared}_from_smelting", "smelting",
+                f"{NS}:{raw}", f"{NS}:{seared}", 0.35, 200, seared)
+        cooking(f"{seared}_from_smoking", "smoking",
+                f"{NS}:{raw}", f"{NS}:{seared}", 0.35, 100, seared)
+        cooking(f"{seared}_from_campfire_cooking", "campfire_cooking",
+                f"{NS}:{raw}", f"{NS}:{seared}", 0.35, 600, seared)
+
     # ---- smelting: raw Null-Iron -> ingot (slow and hot; it resists) --------
     cooking("null_iron_ingot_from_smelting", "smelting", raw_null, ingot, 1.2, 400, "null_iron_ingot")
     cooking("null_iron_ingot_from_blasting", "blasting", raw_null, ingot, 1.2, 200, "null_iron_ingot")

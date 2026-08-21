@@ -328,6 +328,111 @@ def build_tuners_protector() -> Model:
 
 
 # ---------------------------------------------------------------------------
+# drone_auroch
+# ---------------------------------------------------------------------------
+
+def build_drone_auroch() -> Model:
+    """A massive, stoic resonant bovine with sweeping tuning horns
+    and an acoustic dewlap that hums a low drone note.
+
+    The torso is heavy and deep with a raised dorsal resonance plate across the
+    shoulders. The head carries dual-pronged acoustic tuning horns that sweep
+    forward and upward. Four thick pillar legs support the chassis.
+    """
+    m = Model("drone_auroch", 128, 128)
+
+    m.bone("root", (0, 0, 0))
+
+    body = m.bone("body", (0, 15, 0), parent="root")
+    m.cube(body, (-7, 9, -10), (14, 12, 20), "hide")
+    m.cube(body, (-5, 21, -8), (10, 4, 10), "plate")        # dorsal shoulder hump
+    m.cube(body, (-3, 8, -10), (6, 6, 8), "resonator")      # acoustic dewlap
+
+    head = m.bone("head", (0, 16, -11), parent="body")
+    m.cube(head, (-4.5, 12, -18), (9, 9, 8), "head")
+    m.cube(head, (-3.5, 11, -22), (7, 5, 5), "snout")
+    m.cube(head, (-4, 20, -17), (8, 2, 6), "plate")         # brow plate
+
+    for side, sign in (("l", -1), ("r", 1)):
+        horn_base = m.bone(f"horn_{side}_base", (6 * sign, 18, -14), parent="head")
+        x0 = -8.5 if sign < 0 else 4.5
+        m.cube(horn_base, (x0, 18, -16), (4, 3, 3), "horn", mirror=(sign > 0))
+
+        horn_tip = m.bone(f"horn_{side}_tip", (8 * sign, 21, -15), parent=f"horn_{side}_base")
+        tx0 = -9.5 if sign < 0 else 6.5
+        m.cube(horn_tip, (tx0, 21, -18), (3, 6, 3), "horn", mirror=(sign > 0))
+
+        ear = m.bone(f"ear_{side}", (5 * sign, 17, -13), parent="head")
+        ex0 = -8 if sign < 0 else 4
+        m.cube(ear, (ex0, 16, -14), (4, 2, 1), "ear", mirror=(sign > 0))
+
+    for side, sign in (("l", -1), ("r", 1)):
+        for pos, z, leg_name in (("f", -6, "fl" if sign < 0 else "fr"), ("b", 6, "bl" if sign < 0 else "br")):
+            leg = m.bone(f"leg_{leg_name}", (4.5 * sign, 10, z), parent="body")
+            lx0 = -6.5 if sign < 0 else 2.5
+            lz0 = z - 2
+            m.cube(leg, (lx0, 0, lz0), (4, 10, 4), "leg", mirror=(sign > 0))
+
+    tail = m.bone("tail", (0, 18, 10), parent="body")
+    m.cube(tail, (-1, 8, 10), (2, 10, 2), "tail")
+    m.cube(tail, (-1.5, 5, 9.5), (3, 3, 3), "resonator")
+
+    return m
+
+
+# ---------------------------------------------------------------------------
+# thrum_boar
+# ---------------------------------------------------------------------------
+
+def build_thrum_boar() -> Model:
+    """A stout, armored rooter with forward-sweeping resonant tusks
+    and a vibrational dorsal comb that thrums with rhythmic acoustic energy.
+
+    The compact barrel torso is protected by side plates and capped with a
+    resonant spine comb that rapidly vibrates on an acoustic frequency.
+    """
+    m = Model("thrum_boar", 128, 128)
+
+    m.bone("root", (0, 0, 0))
+
+    body = m.bone("body", (0, 8, 0), parent="root")
+    m.cube(body, (-5, 4, -7), (10, 9, 15), "hide")
+
+    comb = m.bone("comb", (0, 13, 0), parent="body")
+    m.cube(comb, (-1.5, 13, -6), (3, 3, 13), "comb")
+
+    for side, sign in (("l", -1), ("r", 1)):
+        px0 = -5.5 if sign < 0 else 4.5
+        m.cube(body, (px0, 6, -3), (1, 6, 8), "plate", mirror=(sign > 0))
+
+    head = m.bone("head", (0, 7, -7), parent="body")
+    m.cube(head, (-4, 5, -14), (8, 7, 7), "head")
+    m.cube(head, (-2.5, 5, -17), (5, 4, 3), "snout")
+    m.cube(head, (-3, 11, -13), (6, 2, 5), "plate")
+
+    for side, sign in (("l", -1), ("r", 1)):
+        tusk = m.bone(f"tusk_{side}", (3.5 * sign, 5, -15), parent="head")
+        tx0 = -4.5 if sign < 0 else 2.5
+        m.cube(tusk, (tx0, 5, -16), (2, 4, 3), "tusk", mirror=(sign > 0))
+
+        ear = m.bone(f"ear_{side}", (4.5 * sign, 10, -9), parent="head")
+        ex0 = -5.5 if sign < 0 else 3.5
+        m.cube(ear, (ex0, 9, -10), (2, 3, 1), "ear", mirror=(sign > 0))
+
+    for side, sign in (("l", -1), ("r", 1)):
+        for pos, z, leg_name in (("f", -4, "fl" if sign < 0 else "fr"), ("b", 5, "bl" if sign < 0 else "br")):
+            leg = m.bone(f"leg_{leg_name}", (3.5 * sign, 5, z), parent="body")
+            lx0 = -5 if sign < 0 else 2
+            lz0 = z - 1.5
+            m.cube(leg, (lx0, 0, lz0), (3, 6, 3), "leg", mirror=(sign > 0))
+
+    tail = m.bone("tail", (0, 10, 8), parent="body")
+    m.cube(tail, (-1, 8, 8), (2, 4, 2), "tail")
+
+    return m
+
+
+# ---------------------------------------------------------------------------
 
 BUILDERS = {
     "chime_mote": (build_chime_mote, 1.5, 1.5, (0, 0.5, 0)),
@@ -335,6 +440,8 @@ BUILDERS = {
     "strata_burrower": (build_strata_burrower, 4.0, 2.0, (0, 0.75, 0)),
     "tuner_trader": (build_tuner_trader, 0.9, 2.5, (0, 0.0, 0)),
     "tuners_protector": (build_tuners_protector, 1.8, 3.4, (0, 0.0, 0)),
+    "drone_auroch": (build_drone_auroch, 2.2, 2.4, (0, 0.0, 0)),
+    "thrum_boar": (build_thrum_boar, 1.6, 1.6, (0, 0.0, 0)),
 }
 
 
@@ -602,6 +709,85 @@ ANIMATIONS: dict[str, dict] = {
             "    float phase = i == 0 ? (float) Math.PI : 0.0F;",
             "    this.armUppers[i].xRot -= Mth.cos(pos + phase) * 0.25F * speed;",
             "}",
+        ],
+    },
+    "drone_auroch": {
+        "class_name": "DroneAurochModel",
+        "imports": ("net.minecraft.util.Mth",),
+        "javadoc": [
+            "The drone auroch: a massive, stoic resonant bovine with sweeping tuning horns",
+            "and an acoustic dewlap that hums a low drone.",
+            "",
+            "<p>Walks with a heavy, steady quad gait. The massive head and horn assembly",
+            "sways gently with look direction and step cadence, while the throat resonator",
+            "breathes on a continuous slow idle.",
+        ],
+        "fields": [
+            {"name": "head", "bone": "head", "comment": "Massive horned skull. Tracks pitch and yaw."},
+            {"name": "body", "bone": "body", "comment": "Main torso chassis with dorsal plate and dewlap."},
+            {"name": "tail", "bone": "tail", "comment": "Trailing chime tail."},
+            {"name": "legFl", "bone": "leg_fl", "comment": "Front left leg."},
+            {"name": "legFr", "bone": "leg_fr", "comment": "Front right leg."},
+            {"name": "legBl", "bone": "leg_bl", "comment": "Back left leg."},
+            {"name": "legBr", "bone": "leg_br", "comment": "Back right leg."},
+        ],
+        "anim": [
+            "float pos = state.walkAnimationPos * 0.66F;",
+            "float speed = Math.min(state.walkAnimationSpeed, 1.0F);",
+            "float age = state.ageInTicks;",
+            "",
+            "this.head.xRot += state.xRot * ((float) Math.PI / 180.0F);",
+            "this.head.yRot += state.yRot * ((float) Math.PI / 180.0F);",
+            "",
+            "// Heavy quad gait: opposite diagonals in phase",
+            "this.legFl.xRot += Mth.cos(pos) * 1.0F * speed;",
+            "this.legFr.xRot += Mth.cos(pos + (float) Math.PI) * 1.0F * speed;",
+            "this.legBl.xRot += Mth.cos(pos + (float) Math.PI) * 1.0F * speed;",
+            "this.legBr.xRot += Mth.cos(pos) * 1.0F * speed;",
+            "",
+            "// Gentle body and tail sway",
+            "this.body.zRot += Mth.cos(pos) * 0.05F * speed;",
+            "this.tail.zRot += Mth.cos(age * 0.1F) * 0.15F + Mth.cos(pos) * 0.2F * speed;",
+        ],
+    },
+    "thrum_boar": {
+        "class_name": "ThrumBoarModel",
+        "imports": ("net.minecraft.util.Mth",),
+        "javadoc": [
+            "The thrum boar: a stout, armored rooter with forward-sweeping resonant tusks",
+            "and a vibrational dorsal comb that thrums with rhythmic acoustic energy.",
+            "",
+            "<p>Trots with a quick, rhythmic quad gait. The head bobs with a rooting rhythm",
+            "while the dorsal comb rapidly vibrates on a high-frequency idle.",
+        ],
+        "fields": [
+            {"name": "head", "bone": "head", "comment": "Wedge skull with tusks and snout. Tracks pitch and yaw."},
+            {"name": "body", "bone": "body", "comment": "Barrel torso with dorsal vibrational comb."},
+            {"name": "comb", "bone": "comb", "comment": "The dorsal vibrational comb spine."},
+            {"name": "tail", "bone": "tail", "comment": "Short bristly tail."},
+            {"name": "legFl", "bone": "leg_fl", "comment": "Front left leg."},
+            {"name": "legFr", "bone": "leg_fr", "comment": "Front right leg."},
+            {"name": "legBl", "bone": "leg_bl", "comment": "Back left leg."},
+            {"name": "legBr", "bone": "leg_br", "comment": "Back right leg."},
+        ],
+        "anim": [
+            "float pos = state.walkAnimationPos * 0.8F;",
+            "float speed = Math.min(state.walkAnimationSpeed, 1.0F);",
+            "float age = state.ageInTicks;",
+            "",
+            "this.head.xRot += state.xRot * ((float) Math.PI / 180.0F);",
+            "this.head.yRot += state.yRot * ((float) Math.PI / 180.0F);",
+            "",
+            "// Quick rooting trot",
+            "this.legFl.xRot += Mth.cos(pos) * 1.2F * speed;",
+            "this.legFr.xRot += Mth.cos(pos + (float) Math.PI) * 1.2F * speed;",
+            "this.legBl.xRot += Mth.cos(pos + (float) Math.PI) * 1.2F * speed;",
+            "this.legBr.xRot += Mth.cos(pos) * 1.2F * speed;",
+            "",
+            "// Rooting bob and high-frequency thrum vibration",
+            "this.head.xRot += Mth.sin(pos * 2.0F) * 0.1F * speed;",
+            "this.comb.y += Mth.sin(age * 0.8F) * 0.3F;",
+            "this.tail.zRot += Mth.cos(age * 0.2F) * 0.25F;",
         ],
     },
 }

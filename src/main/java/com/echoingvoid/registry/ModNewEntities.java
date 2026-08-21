@@ -2,12 +2,15 @@ package com.echoingvoid.registry;
 
 import com.echoingvoid.EchoingVoid;
 import com.echoingvoid.entity.ChimeMoteEntity;
+import com.echoingvoid.entity.DroneAurochEntity;
+import com.echoingvoid.entity.ThrumBoarEntity;
 import com.echoingvoid.entity.ProtectorMob;
 import com.echoingvoid.entity.StrataBurrowerEntity;
 import com.echoingvoid.entity.TraderMob;
 import com.echoingvoid.entity.TunerShadeEntity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.SpawnPlacementTypes;
 import net.minecraft.world.entity.monster.Monster;
@@ -113,12 +116,40 @@ public final class ModNewEntities {
                     .clientTrackingRange(10)
                     .build(ENTITIES.key("tuners_protector")));
 
+    /**
+     * PLAYER: "add two mobs, equivilent to overworld cows and pigs, passive mobs that can be
+     * killed for their meat."
+     *
+     * <p>{@link MobCategory#CREATURE}, like every vanilla farm animal - that is what puts them on
+     * the passive spawn budget and the daylight spawn cycle rather than making them compete with
+     * this dimension's monsters. Sized off their vanilla counterparts so a player reads the pair
+     * the same way they read a cow beside a pig: the auroch is the big slow one.
+     */
+    public static final RegistryObject<EntityType<DroneAurochEntity>> DRONE_AUROCH =
+            ENTITIES.register("drone_auroch", () -> EntityType.Builder
+                    .of(DroneAurochEntity::new, MobCategory.CREATURE)
+                    .sized(0.9F, 1.4F)
+                    .eyeHeight(1.3F)
+                    .clientTrackingRange(10)
+                    .build(ENTITIES.key("drone_auroch")));
+
+    /** The quicker, smaller half of the pair - a pig to the auroch's cow. */
+    public static final RegistryObject<EntityType<ThrumBoarEntity>> THRUM_BOAR =
+            ENTITIES.register("thrum_boar", () -> EntityType.Builder
+                    .of(ThrumBoarEntity::new, MobCategory.CREATURE)
+                    .sized(0.9F, 0.9F)
+                    .eyeHeight(0.8F)
+                    .clientTrackingRange(10)
+                    .build(ENTITIES.key("thrum_boar")));
+
     private static void onAttributes(EntityAttributeCreationEvent event) {
         event.put(CHIME_MOTE.get(), ChimeMoteEntity.createAttributes().build());
         event.put(TUNER_SHADE.get(), TunerShadeEntity.createAttributes().build());
         event.put(STRATA_BURROWER.get(), StrataBurrowerEntity.createAttributes().build());
         event.put(TUNER_TRADER.get(), TraderMob.createAttributes().build());
         event.put(TUNERS_PROTECTOR.get(), ProtectorMob.createAttributes().build());
+        event.put(DRONE_AUROCH.get(), DroneAurochEntity.createAttributes().build());
+        event.put(THRUM_BOAR.get(), ThrumBoarEntity.createAttributes().build());
     }
 
     private static void onSpawnPlacements(SpawnPlacementRegisterEvent event) {
@@ -146,6 +177,17 @@ public final class ModNewEntities {
         event.register(TUNERS_PROTECTOR.get(), SpawnPlacementTypes.ON_GROUND,
                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                 Mob::checkMobSpawnRules,
+                SpawnPlacementRegisterEvent.Operation.REPLACE);
+        // Farm animals spawn on the ground in daylight, on the same rule vanilla livestock
+        // uses - Animal::checkAnimalSpawnRules also demands a spawnable surface, which is what
+        // stops a herd appearing inside the rock of a floating island.
+        event.register(DRONE_AUROCH.get(), SpawnPlacementTypes.ON_GROUND,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                Animal::checkAnimalSpawnRules,
+                SpawnPlacementRegisterEvent.Operation.REPLACE);
+        event.register(THRUM_BOAR.get(), SpawnPlacementTypes.ON_GROUND,
+                Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
+                Animal::checkAnimalSpawnRules,
                 SpawnPlacementRegisterEvent.Operation.REPLACE);
     }
 

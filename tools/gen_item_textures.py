@@ -241,6 +241,33 @@ GOLD = Material("gold", [
     col("bis_gold", "bis_gold"),
 ])
 
+PALE_BONE = Material("pale_bone", [
+    col("ph_dark", "void_black", 6),
+    col("ph_mid", "ph_light", 6),
+    col("chalk_shadow", "chalk_mid", 7),
+    col("chalk_mid", "chalk_light", 8),
+    col("chalk_light", "chalk_hi", 8),
+])
+
+RAW_MEAT = Material("raw_meat", [
+    col("arc_deep", "void_black", 8),
+    col("arc_deep", "arc_deep"),
+    col("arc_deep", "arc_mid", 8),
+    col("arc_mid", "arc_light", 6),
+    col("arc_light", "amber_light", 6),
+    col("arc_light", "chalk_light", 8),
+])
+
+ROAST_MEAT = Material("roast_meat", [
+    col("amber_dark", "void_black", 8),
+    col("amber_dark", "void_shadow", 4),
+    col("amber_dark", "amber_dark"),
+    col("amber_dark", "amber_mid", 8),
+    col("amber_mid", "amber_light", 8),
+    col("amber_light", "amber_hi", 8),
+    col("amber_hi", "chalk_hi", 7),
+])
+
 
 # ---------------------------------------------------------------------------
 # Drawing surface
@@ -1112,6 +1139,10 @@ EGGS: list[tuple[str, Material, Material, int]] = [
     ("tuner_trader_spawn_egg", AMBER, GOLD, 4417),
     # the protector's own colours: stone-grey plate, null-iron forearms
     ("tuners_protector_spawn_egg", SLATE, NULL_IRON, 8801),
+    # the auroch's colours: slate-grey hide, cyan acoustic resonance
+    ("drone_auroch_spawn_egg", SLATE, BISMUTH, 5519),
+    # the boar's colours: plum hide, amber thrum nodes
+    ("thrum_boar_spawn_egg", ARCANE, AMBER, 7331),
 ]
 
 
@@ -1616,6 +1647,153 @@ def baby_sheet(mat: Material, seed: int) -> Sheet:
     return sh
 
 
+class ColorMat:
+    def __init__(self, color: tuple[int, int, int, int]):
+        self.colors = [color]
+        self.dark = 0
+        self.rim = 0
+
+
+def _grid_sprite(grid: list[str], hex_map: dict[str, tuple[int, int, int, int]]) -> Sprite:
+    """Build a Sprite directly from a 16x16 pixel key grid."""
+    sp = Sprite()
+    mats = {k: ColorMat(hex_map[k]) for k in hex_map if k != "."}
+    for y, row in enumerate(grid):
+        for x, k in enumerate(row):
+            if k in mats:
+                sp.cell[(x, y)] = (mats[k], 0)
+    return sp
+
+
+def drone_loin() -> Sprite:
+    """A primal diagonal void-auroch steak: dark phonolite-marbled meat with a pale bone ring and cyan acoustic veins."""
+    hex_map = {
+        "K": (11, 13, 18, 255),
+        "0": (28, 29, 33, 255),
+        "1": (40, 42, 49, 255),
+        "2": (59, 66, 82, 255),
+        "3": (76, 86, 106, 255),
+        "4": (99, 112, 138, 255),
+        "B": (201, 211, 226, 255),
+        "C": (54, 214, 232, 255),
+        "H": (125, 233, 245, 255),
+    }
+    grid = [
+        "................",
+        "................",
+        "................",
+        ".........KKKK...",
+        "........KBBBK4..",
+        ".......KBBB4343K",
+        "......K443C432K.",
+        "....KK3C433C21K.",
+        "...K3443C43210K.",
+        "...K4C433C4210K.",
+        '..K3CH3432110K..',
+        '..K433C43210K...',
+        '..K34332100K....',
+        '...K232100K.....',
+        '....KKKKK.......',
+        '................',
+    ]
+    return _grid_sprite(grid, hex_map)
+
+
+def seared_drone_loin() -> Sprite:
+    """A fire-seared caramelized diagonal auroch steak with golden-amber grill scores and toasted bone ring."""
+    hex_map = {
+        "0": (57, 34, 18, 255),
+        "1": (86, 63, 35, 255),
+        "2": (122, 92, 51, 255),
+        "3": (173, 133, 67, 255),
+        "4": (215, 177, 99, 255),
+        "H": (221, 204, 171, 255),
+    }
+    grid = [
+        "................",
+        "................",
+        "................",
+        ".........0000...",
+        "........0HHHH40.",
+        ".......0HH43430.",
+        "......044134120.",
+        "....00314313210.",
+        "...034431432100.",
+        "...041433142100.",
+        "..031H34321100..",
+        "..04331432100...",
+        "..0343321000....",
+        "...02321000.....",
+        "....00000.......",
+        "................",
+    ]
+    return _grid_sprite(grid, hex_map)
+
+
+def thrum_ribs() -> Sprite:
+    """A diagonal rack of three curved thrum boar ribs with exposed bone spurs and marbled plum meat."""
+    hex_map = {
+        "0": (22, 11, 30, 255),
+        "1": (42, 20, 54, 255),
+        "2": (58, 29, 71, 255),
+        "3": (90, 46, 107, 255),
+        "4": (125, 58, 142, 255),
+        "B": (220, 227, 238, 255),
+        "H": (177, 74, 158, 255),
+    }
+    grid = [
+        "................",
+        "................",
+        ".........BB0BB0.",
+        ".......BB430430.",
+        "......0B4320320.",
+        ".....0443210210.",
+        "....04H3210210..",
+        "...0443210210...",
+        "..04H3210110....",
+        "..033210100.....",
+        "..0221010.......",
+        "..011000........",
+        "...0100.........",
+        "....00..........",
+        "................",
+        "................",
+    ]
+    return _grid_sprite(grid, hex_map)
+
+
+def seared_thrum_ribs() -> Sprite:
+    """A glazed, fire-roasted rack of three diagonal thrum ribs with golden-amber caramelized glaze and charred bone ends."""
+    hex_map = {
+        "0": (22, 11, 30, 255),
+        "1": (86, 63, 35, 255),
+        "2": (122, 92, 51, 255),
+        "3": (173, 133, 67, 255),
+        "4": (215, 177, 99, 255),
+        "B": (221, 204, 171, 255),
+        "H": (255, 215, 0, 255),
+    }
+    grid = [
+        "................",
+        "................",
+        ".........BB0BB0.",
+        ".......BB430430.",
+        "......0B4320320.",
+        ".....0443210210.",
+        "....04H3210210..",
+        "...0443210210...",
+        "..04H3210110....",
+        "..033210100.....",
+        "..0221010.......",
+        "..011000........",
+        "...0100.........",
+        "....00..........",
+        "................",
+        "................",
+    ]
+    return _grid_sprite(grid, hex_map)
+
+
 # ---------------------------------------------------------------------------
 # Registry
 # ---------------------------------------------------------------------------
@@ -1642,6 +1820,10 @@ ITEMS: list[tuple[str, object]] = [
     ("resonance_leggings", resonance_leggings),
     ("resonance_boots", resonance_boots),
     ("aero_stride_greaves", aero_stride_greaves),
+    ("drone_loin", drone_loin),
+    ("seared_drone_loin", seared_drone_loin),
+    ("thrum_ribs", thrum_ribs),
+    ("seared_thrum_ribs", seared_thrum_ribs),
 ]
 
 EQUIPMENT_SHEETS = [

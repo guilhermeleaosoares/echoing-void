@@ -73,7 +73,20 @@
       }
     ],
     "axolotls": [],
-    "creature": [],
+    "creature": [
+      {
+        "type": "echoing_void:drone_auroch",
+        "minCount": 1,
+        "maxCount": 2,
+        "weight": 4
+      },
+      {
+        "type": "echoing_void:thrum_boar",
+        "minCount": 1,
+        "maxCount": 2,
+        "weight": 5
+      }
+    ],
     "misc": [],
     "monster": [
       {

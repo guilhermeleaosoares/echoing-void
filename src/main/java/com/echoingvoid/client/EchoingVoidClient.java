@@ -1,6 +1,8 @@
 package com.echoingvoid.client;
 
 import com.echoingvoid.client.model.ChimeMoteModel;
+import com.echoingvoid.client.model.DroneAurochModel;
+import com.echoingvoid.client.model.ThrumBoarModel;
 import com.echoingvoid.client.model.EchoWeaverModel;
 import com.echoingvoid.client.model.ResonanceWraithModel;
 import com.echoingvoid.client.model.StrataBurrowerModel;
@@ -9,6 +11,8 @@ import com.echoingvoid.client.model.TunerShadeModel;
 import com.echoingvoid.client.model.TunerTraderModel;
 import com.echoingvoid.client.model.TunersProtectorModel;
 import com.echoingvoid.client.renderer.ChimeMoteRenderer;
+import com.echoingvoid.client.renderer.DroneAurochRenderer;
+import com.echoingvoid.client.renderer.ThrumBoarRenderer;
 import com.echoingvoid.client.renderer.EchoWeaverRenderer;
 import com.echoingvoid.client.renderer.ProtectorMobRenderer;
 import com.echoingvoid.client.renderer.ResonanceWraithRenderer;
@@ -128,6 +132,8 @@ public final class EchoingVoidClient {
             event.registerLayerDefinition(StrataBurrowerModel.LAYER, StrataBurrowerModel::createBodyLayer);
             event.registerLayerDefinition(TunerTraderModel.LAYER, TunerTraderModel::createBodyLayer);
             event.registerLayerDefinition(TunersProtectorModel.LAYER, TunersProtectorModel::createBodyLayer);
+            event.registerLayerDefinition(DroneAurochModel.LAYER, DroneAurochModel::createBodyLayer);
+            event.registerLayerDefinition(ThrumBoarModel.LAYER, ThrumBoarModel::createBodyLayer);
         }
 
         private static void onRegisterRenderers(EntityRenderersEvent.RegisterRenderers event) {
@@ -135,6 +141,8 @@ public final class EchoingVoidClient {
             event.registerEntityRenderer(ModEntities.STRATA_GOLEM.get(), StrataGolemRenderer::new);
             event.registerEntityRenderer(ModEntities.RESONANCE_WRAITH.get(), ResonanceWraithRenderer::new);
             event.registerEntityRenderer(ModNewEntities.CHIME_MOTE.get(), ChimeMoteRenderer::new);
+            event.registerEntityRenderer(ModNewEntities.DRONE_AUROCH.get(), DroneAurochRenderer::new);
+            event.registerEntityRenderer(ModNewEntities.THRUM_BOAR.get(), ThrumBoarRenderer::new);
             event.registerEntityRenderer(ModNewEntities.TUNER_SHADE.get(), TunerShadeRenderer::new);
             event.registerEntityRenderer(ModNewEntities.STRATA_BURROWER.get(), StrataBurrowerRenderer::new);
             event.registerEntityRenderer(ModNewEntities.TUNER_TRADER.get(), TraderMobRenderer::new);

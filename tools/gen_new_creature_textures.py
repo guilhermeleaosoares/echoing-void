@@ -669,6 +669,217 @@ def protector_plate(base: Sheet, glow: Sheet, u, v, size, seed):
 
 
 # ---------------------------------------------------------------------------
+# drone_auroch
+# ---------------------------------------------------------------------------
+
+def auroch_hide(base: Sheet, glow: Sheet, u, v, size, seed):
+    w, h, d = size
+    faces = box_faces(u, v, w, h, d)
+    for face, rect in faces.items():
+        base_lvl = 3.5 if face == "up" else (1.5 if face == "down" else 2.5)
+        fill_face(base, rect, STONE, base_lvl, face, seed, grain_amount=1.2, scale=2.5)
+        if face in ("east", "west"):
+            x0, y0, fw, fh = rect
+            for rib_x in (4, 8, 12):
+                if rib_x < fw:
+                    for j in range(2, fh - 2):
+                        base.blend(x0 + rib_x, y0 + j, CYAN[2], 0.35)
+
+
+def auroch_plate(base: Sheet, glow: Sheet, u, v, size, seed):
+    w, h, d = size
+    faces = box_faces(u, v, w, h, d)
+    for face, rect in faces.items():
+        base_lvl = 4.0 if face == "up" else 2.8
+        fill_face(base, rect, STONE, base_lvl, face, seed, grain_amount=0.8, scale=1.5)
+        x0, y0, fw, fh = rect
+        for i in range(fw):
+            base.blend(x0 + i, y0, CYAN[3], 0.45)
+            base.blend(x0 + i, y0 + fh - 1, STONE[1], 0.6)
+
+
+def auroch_resonator(base: Sheet, glow: Sheet, u, v, size, seed):
+    w, h, d = size
+    faces = box_faces(u, v, w, h, d)
+    for face, rect in faces.items():
+        fill_face(base, rect, CYAN, 2.5, face, seed, grain_amount=0.6, scale=1.2)
+        x0, y0, fw, fh = rect
+        for j in range(1, fh - 1):
+            for i in range(1, fw - 1):
+                col = CYAN[5] if (i + j) % 2 == 0 else CYAN[4]
+                base.set(x0 + i, y0 + j, col)
+                glow.set(x0 + i, y0 + j, (*col[:3], 230))
+        for i in range(fw):
+            base.blend(x0 + i, y0, GOLD[2], 0.5)
+            glow.set(x0 + i, y0, (*GOLD[3][:3], 200))
+
+
+def auroch_head(base: Sheet, glow: Sheet, u, v, size, seed):
+    w, h, d = size
+    faces = box_faces(u, v, w, h, d)
+    for face, rect in faces.items():
+        fill_face(base, rect, STONE, 3.0, face, seed, grain_amount=1.0, scale=2.0)
+    if "north" in faces:
+        x0, y0, fw, fh = faces["north"]
+        for ex in (1, fw - 2):
+            base.set(x0 + ex, y0 + 3, CYAN[5])
+            glow.set(x0 + ex, y0 + 3, (*CYAN[5][:3], 255))
+            base.set(x0 + ex, y0 + 4, CYAN[4])
+            glow.set(x0 + ex, y0 + 4, (*CYAN[4][:3], 200))
+
+
+def auroch_snout(base: Sheet, glow: Sheet, u, v, size, seed):
+    w, h, d = size
+    faces = box_faces(u, v, w, h, d)
+    for face, rect in faces.items():
+        fill_face(base, rect, STONE, 2.0, face, seed, grain_amount=0.8, scale=1.5)
+    if "north" in faces:
+        x0, y0, fw, fh = faces["north"]
+        for nx in (1, fw - 2):
+            base.set(x0 + nx, y0 + 3, STONE[0])
+            base.set(x0 + nx, y0 + 2, STONE[1])
+
+
+def auroch_horn(base: Sheet, glow: Sheet, u, v, size, seed):
+    w, h, d = size
+    faces = box_faces(u, v, w, h, d)
+    for face, rect in faces.items():
+        fill_face(base, rect, CHALK, 2.5, face, seed, grain_amount=0.5, scale=1.0)
+        x0, y0, fw, fh = rect
+        for j in range(min(2, fh)):
+            for i in range(fw):
+                base.set(x0 + i, y0 + j, CYAN[4])
+                glow.set(x0 + i, y0 + j, (*CYAN[3][:3], 200))
+
+
+def auroch_ear(base: Sheet, glow: Sheet, u, v, size, seed):
+    w, h, d = size
+    faces = box_faces(u, v, w, h, d)
+    for face, rect in faces.items():
+        fill_face(base, rect, STONE, 2.2, face, seed, grain_amount=0.5, scale=1.0)
+
+
+def auroch_leg(base: Sheet, glow: Sheet, u, v, size, seed):
+    w, h, d = size
+    faces = box_faces(u, v, w, h, d)
+    for face, rect in faces.items():
+        fill_face(base, rect, STONE, 2.4, face, seed, grain_amount=1.0, scale=2.0)
+        x0, y0, fw, fh = rect
+        for i in range(fw):
+            base.set(x0 + i, y0 + fh - 2, STONE[0])
+            base.set(x0 + i, y0 + fh - 1, STONE[0])
+
+
+def auroch_tail(base: Sheet, glow: Sheet, u, v, size, seed):
+    w, h, d = size
+    faces = box_faces(u, v, w, h, d)
+    for face, rect in faces.items():
+        fill_face(base, rect, STONE, 2.0, face, seed, grain_amount=0.5, scale=1.0)
+
+
+# ---------------------------------------------------------------------------
+# thrum_boar
+# ---------------------------------------------------------------------------
+
+def boar_hide(base: Sheet, glow: Sheet, u, v, size, seed):
+    w, h, d = size
+    faces = box_faces(u, v, w, h, d)
+    for face, rect in faces.items():
+        base_lvl = 3.2 if face == "up" else (1.6 if face == "down" else 2.4)
+        fill_face(base, rect, ARCANE, base_lvl, face, seed, grain_amount=1.2, scale=2.2)
+        if face in ("east", "west", "up"):
+            x0, y0, fw, fh = rect
+            for j in range(0, fh, 2):
+                for i in range(fw):
+                    if (i + j + seed) % 3 == 0:
+                        base.blend(x0 + i, y0 + j, AMBER[2], 0.3)
+
+
+def boar_comb(base: Sheet, glow: Sheet, u, v, size, seed):
+    w, h, d = size
+    faces = box_faces(u, v, w, h, d)
+    for face, rect in faces.items():
+        fill_face(base, rect, AMBER, 3.5, face, seed, grain_amount=0.8, scale=1.5)
+        x0, y0, fw, fh = rect
+        for i in range(fw):
+            for j in range(fh):
+                if (i + j) % 2 == 0:
+                    base.set(x0 + i, y0 + j, GOLD[2])
+                    glow.set(x0 + i, y0 + j, (*GOLD[3][:3], 220))
+                else:
+                    base.set(x0 + i, y0 + j, AMBER[3])
+                    glow.set(x0 + i, y0 + j, (*AMBER[4][:3], 200))
+
+
+def boar_plate(base: Sheet, glow: Sheet, u, v, size, seed):
+    w, h, d = size
+    faces = box_faces(u, v, w, h, d)
+    for face, rect in faces.items():
+        fill_face(base, rect, ARCANE, 3.6, face, seed, grain_amount=0.6, scale=1.2)
+        x0, y0, fw, fh = rect
+        for i in range(fw):
+            base.blend(x0 + i, y0, AMBER[3], 0.4)
+            base.blend(x0 + i, y0 + fh - 1, ARCANE[1], 0.6)
+
+
+def boar_head(base: Sheet, glow: Sheet, u, v, size, seed):
+    w, h, d = size
+    faces = box_faces(u, v, w, h, d)
+    for face, rect in faces.items():
+        fill_face(base, rect, ARCANE, 2.8, face, seed, grain_amount=1.0, scale=1.8)
+    if "north" in faces:
+        x0, y0, fw, fh = faces["north"]
+        for ex in (1, fw - 2):
+            base.set(x0 + ex, y0 + 2, GOLD[2])
+            glow.set(x0 + ex, y0 + 2, (*GOLD[3][:3], 255))
+
+
+def boar_snout(base: Sheet, glow: Sheet, u, v, size, seed):
+    w, h, d = size
+    faces = box_faces(u, v, w, h, d)
+    for face, rect in faces.items():
+        fill_face(base, rect, ARCANE, 2.2, face, seed, grain_amount=0.6, scale=1.0)
+    if "north" in faces:
+        x0, y0, fw, fh = faces["north"]
+        for nx in (1, fw - 2):
+            base.set(x0 + nx, y0 + 1, ARCANE[0])
+
+
+def boar_tusk(base: Sheet, glow: Sheet, u, v, size, seed):
+    w, h, d = size
+    faces = box_faces(u, v, w, h, d)
+    for face, rect in faces.items():
+        fill_face(base, rect, CHALK, 2.8, face, seed, grain_amount=0.4, scale=1.0)
+        x0, y0, fw, fh = rect
+        base.set(x0, y0, CYAN[4])
+        glow.set(x0, y0, (*CYAN[4][:3], 180))
+
+
+def boar_ear(base: Sheet, glow: Sheet, u, v, size, seed):
+    w, h, d = size
+    faces = box_faces(u, v, w, h, d)
+    for face, rect in faces.items():
+        fill_face(base, rect, ARCANE, 2.0, face, seed, grain_amount=0.5, scale=1.0)
+
+
+def boar_leg(base: Sheet, glow: Sheet, u, v, size, seed):
+    w, h, d = size
+    faces = box_faces(u, v, w, h, d)
+    for face, rect in faces.items():
+        fill_face(base, rect, ARCANE, 2.2, face, seed, grain_amount=0.8, scale=1.5)
+        x0, y0, fw, fh = rect
+        for i in range(fw):
+            base.set(x0 + i, y0 + fh - 1, ARCANE[0])
+
+
+def boar_tail(base: Sheet, glow: Sheet, u, v, size, seed):
+    w, h, d = size
+    faces = box_faces(u, v, w, h, d)
+    for face, rect in faces.items():
+        fill_face(base, rect, ARCANE, 2.0, face, seed, grain_amount=0.5, scale=1.0)
+
+
+# ---------------------------------------------------------------------------
 # dispatch
 # ---------------------------------------------------------------------------
 
@@ -693,6 +904,14 @@ PALETTES: dict[str, tuple[list[RGBA], tuple[int, ...]]] = {
     # Authentic Null-Iron palette with rich cold-steel specular highlights and gold eye slits
     "tuners_protector": (
         NULL_IRON + GOLD + [OUTLINE],
+        (255,),
+    ),
+    "drone_auroch": (
+        STONE + CYAN + GOLD[:3] + CHALK[:3] + [OUTLINE],
+        (255,),
+    ),
+    "thrum_boar": (
+        ARCANE + AMBER + GOLD[:3] + CHALK[:3] + [OUTLINE],
         (255,),
     ),
 }
@@ -739,6 +958,28 @@ PAINTERS = {
         "fist": protector_fist,
         "leg": protector_leg,
         "plate": protector_plate,
+    },
+    "drone_auroch": {
+        "hide": auroch_hide,
+        "plate": auroch_plate,
+        "resonator": auroch_resonator,
+        "head": auroch_head,
+        "snout": auroch_snout,
+        "horn": auroch_horn,
+        "ear": auroch_ear,
+        "leg": auroch_leg,
+        "tail": auroch_tail,
+    },
+    "thrum_boar": {
+        "hide": boar_hide,
+        "comb": boar_comb,
+        "plate": boar_plate,
+        "head": boar_head,
+        "snout": boar_snout,
+        "tusk": boar_tusk,
+        "ear": boar_ear,
+        "leg": boar_leg,
+        "tail": boar_tail,
     },
 }
 
