@@ -119,6 +119,27 @@ def main() -> int:
     tag("minecraft", "item", "foot_armor",
         [b("resonance_boots"), b("knell_boots"), b("aero_stride_greaves")])
 
+    # ---- what farm animals will stand on -----------------------------------
+    #
+    # PLAYER: "do the new passive mobs spawn naturally? where and with what
+    # frequency". The biome spawner entries and the SpawnPlacementRegisterEvent
+    # registration were both in place and both INERT, because
+    # Animal.checkAnimalSpawnRules ends in:
+    #
+    #     level.getBlockState(pos.below()).is(BlockTags.ANIMALS_SPAWNABLE_ON)
+    #
+    # and vanilla's animals_spawnable_on contains exactly one entry:
+    # minecraft:grass_block. There is not one grass block in the Hollow
+    # Horizon, so no auroch or boar could ever have spawned naturally however
+    # good the weights looked.
+    #
+    # Adding this dimension's own ground to the vanilla tag is the fix, and it
+    # is additive (replace: false), so the Overworld keeps grass and nothing
+    # vanilla changes. The set is #hollow_horizon_natural_ground, which already
+    # names exactly the surfaces a player walks on here.
+    tag("minecraft", "block", "animals_spawnable_on",
+        [f"#{NS}:hollow_horizon_natural_ground"])
+
     # ---- tool and weapon classes, which is what makes ENCHANTING work ------
     #
     # PLAYER: "make sure all enchantments work as normal in all the new armors

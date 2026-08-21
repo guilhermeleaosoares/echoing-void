@@ -10,7 +10,7 @@ import com.echoingvoid.entity.TraderMob;
 import com.echoingvoid.entity.TunerShadeEntity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
-import net.minecraft.world.entity.animal.Animal;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.SpawnPlacementTypes;
 import net.minecraft.world.entity.monster.Monster;
@@ -178,16 +178,33 @@ public final class ModNewEntities {
                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                 Mob::checkMobSpawnRules,
                 SpawnPlacementRegisterEvent.Operation.REPLACE);
-        // Farm animals spawn on the ground in daylight, on the same rule vanilla livestock
-        // uses - Animal::checkAnimalSpawnRules also demands a spawnable surface, which is what
-        // stops a herd appearing inside the rock of a floating island.
+        // Farm animals stand on the ground, on this dimension's own surfaces.
+        //
+        // NOT Animal::checkAnimalSpawnRules, and the difference is the whole reason a herd
+        // appears at all. That method is:
+        //
+        //     state(pos.below()).is(ANIMALS_SPAWNABLE_ON) && getRawBrightness(pos, 0) > 8
+        //
+        // The block half is satisfied by gen_tags.py adding
+        // #echoing_void:hollow_horizon_natural_ground to the vanilla tag. The LIGHT half is not,
+        // and cannot be: the Hollow Horizon is a deliberately dim dimension - ambient_light 0.14
+        // under an end-like fixed sky - so demanding Overworld daylight would leave the surface
+        // permanently below the threshold and no animal would ever pass placement. A brightness
+        // rule written for a world with a sun does not transfer to one without.
+        //
+        // The block test is kept in full, because that is what stops a herd spawning inside the
+        // rock of a floating island or out over the void.
+        // Written out per entity rather than shared: SpawnPredicate is invariant in its type
+        // parameter, so one SpawnPredicate<Mob> will not satisfy register(EntityType<DroneAuroch>).
         event.register(DRONE_AUROCH.get(), SpawnPlacementTypes.ON_GROUND,
                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                Animal::checkAnimalSpawnRules,
+                (type, level, reason, pos, random) ->
+                        level.getBlockState(pos.below()).is(BlockTags.ANIMALS_SPAWNABLE_ON),
                 SpawnPlacementRegisterEvent.Operation.REPLACE);
         event.register(THRUM_BOAR.get(), SpawnPlacementTypes.ON_GROUND,
                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
-                Animal::checkAnimalSpawnRules,
+                (type, level, reason, pos, random) ->
+                        level.getBlockState(pos.below()).is(BlockTags.ANIMALS_SPAWNABLE_ON),
                 SpawnPlacementRegisterEvent.Operation.REPLACE);
     }
 

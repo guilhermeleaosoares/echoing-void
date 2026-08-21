@@ -1897,15 +1897,24 @@ def gen_features() -> None:
         ],
     })
 
-    # PLAYER: "resonant bismuth should be 1.3x rarer than it is now" - same
-    # rule as the Overworld vein above. 14/1.3 = 10.77, rounds to 11 (1.27x,
-    # the nearest a whole vein count can land on 1.3x).
+    # PLAYER, after playing it: "bismuth is way to common here. it should be
+    # 1.5x as rare, and null iron should be about 1.5x rarer than the adjusted
+    # rarity for bismuth."
+    #
+    # 11 / 1.5 = 7.33 -> 7. Note this reverses the ordering set two passes ago:
+    # null-iron was deliberately made MORE common than bismuth then, and the
+    # new rule puts it back underneath. That is what was asked for, not an
+    # oversight, and the null-iron block below carries the same note.
+    #
+    # Hollow Horizon only. The player said "here", and they have been playing
+    # in the dimension; the Overworld veins (bismuth 5, null-iron 7) are left
+    # exactly as they are rather than assumed into the change.
     write(cf / "ore_phonolite_resonant_bismuth.json",
           _ore(B("phonolite_resonant_bismuth_ore"), 9))
     write(pf / "ore_phonolite_resonant_bismuth_placed.json", {
         "feature": ev("ore_phonolite_resonant_bismuth"),
         "placement": [
-            {"type": "minecraft:count", "count": 11},
+            {"type": "minecraft:count", "count": 7},
             {"type": "minecraft:in_square"},
             # Ceiling pulled from 200 to 150. Above that is sky-island rock,
             # which the carvers deliberately do not touch, so those veins could
@@ -1916,9 +1925,14 @@ def gen_features() -> None:
         ],
     })
 
-    # PLAYER: "null iron should be as rare as the current resonant bismuth in
-    # both dimensions... null iron should be more common than resonant
-    # bismuth". Matched to bismuth's PRE-1.3x Hollow Horizon numbers exactly -
+    # PLAYER, superseding the pass that made this MORE common than bismuth:
+    # "null iron should be about 1.5x rarer than the adjusted rarity for
+    # bismuth." Bismuth is 7 now, so 7 / 1.5 = 4.67 -> 5. Null-iron is the
+    # rarer of the two again.
+    #
+    # The size/type reasoning below still stands and is unchanged - only the
+    # count moved. Kept for the record: it was matched to bismuth's
+    # PRE-1.3x Hollow Horizon numbers exactly -
     # size 9, count 14 - which also means switching off `scattered_ore`
     # entirely: bismuth here is a plain `ore` vein, and matching bismuth's
     # numbers onto scattered_ore's looser, spread-out placement would not
@@ -1937,7 +1951,7 @@ def gen_features() -> None:
     write(pf / "ore_phonolite_null_iron_placed.json", {
         "feature": ev("ore_phonolite_null_iron"),
         "placement": [
-            {"type": "minecraft:count", "count": 14},
+            {"type": "minecraft:count", "count": 5},
             {"type": "minecraft:in_square"},
             # Still the carved 6..100 band, so this is a vein a player meets
             # in a tunnel wall, not one only found by strip-mining - unrelated
