@@ -5,6 +5,7 @@ import com.echoingvoid.block.HollowHorizonPortalBlock;
 import com.echoingvoid.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.SectionPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
@@ -12,6 +13,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.LevelChunkSection;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -43,9 +46,31 @@ public final class HollowHorizonTeleporter {
     private static final int EXIT_WIDTH = 2;
     private static final int EXIT_HEIGHT = 3;
 
-    /** How far around the scaled destination we look before deciding to build a new portal. */
-    private static final int SEARCH_RADIUS = 12;
-    private static final int SEARCH_HEIGHT = 8;
+    /**
+     * How far around the scaled destination we look before deciding to build a new portal.
+     *
+     * <p>PLAYER: "the portals dont connect, like the nether portals... every time a portal is
+     * used, a new one is created in the other dimension... another portal generates in the exact
+     * xz coordinates but above in y, and thats where the player spawns."
+     *
+     * <p>Two things caused that, and the vertical one was the killer. The search used to run only
+     * {@code +-8} blocks around the traveller's ARRIVAL altitude, but the two portals of a pair
+     * almost never sit at the same height: the far-side portal is built on whatever ground
+     * {@link #findGround} finds, which in a floating-island dimension is routinely a hundred
+     * blocks off the altitude the traveller left from. So the return trip looked in a narrow
+     * slab that did not contain the original portal, found nothing, and built another one - and
+     * because the coordinate scale round-trips X and Z exactly, "another one" landed at the same
+     * XZ and a different Y. Hence the stack of portals.
+     *
+     * <p>The height window is gone entirely now: every candidate column is searched over its
+     * whole height, which is what vanilla effectively does via the portal POI index.
+     *
+     * <p>The radius has to cover the rounding drift the coordinate scale introduces. Going out at
+     * scale {@code s} floors to {@code floor(x / s)}; coming back multiplies by {@code s}, so the
+     * return can land up to {@code s - 1} blocks short of where it started - 23 blocks at the
+     * Hollow Horizon's scale of 24. 32 clears that with room to spare, on both axes.
+     */
+    private static final int SEARCH_RADIUS = 32;
 
     /** How far down we will look for ground to stand the exit portal on. */
     private static final int GROUND_PROBE = 24;
@@ -111,34 +136,89 @@ public final class HollowHorizonTeleporter {
 
     /**
      * Returns the portal cell nearest the scaled destination, or null if there is none in range.
-     * Searching outwards in shells rather than sweeping the whole box lets the common case - a
-     * portal you have used before, a few blocks away - stop almost immediately.
+     *
+     * <p>Scans every chunk within {@link #SEARCH_RADIUS} over its FULL height. Reading a million
+     * individual block states to do that would be far too slow for something that runs inside a
+     * portal transition, so the work is skipped a whole 16x16x16 section at a time: a section
+     * that {@code hasOnlyAir}, or whose palette {@code maybeHas} says cannot contain the portal
+     * block, is never opened. In practice that leaves a handful of sections to actually walk.
+     *
+     * <p>Every candidate is compared rather than returning the first hit, because "first" depends
+     * on iteration order and would happily link a portal further away than one right next to the
+     * traveller. Distance is measured in three dimensions from the scaled destination.
      */
     private static BlockPos findExistingPortal(final ServerLevel level, final int x, final int y, final int z) {
         Block portal = ModBlocks.HOLLOW_HORIZON_PORTAL.get();
-        int minY = Math.max(level.getMinY(), y - SEARCH_HEIGHT);
-        int maxY = Math.min(level.getMaxY(), y + SEARCH_HEIGHT);
+        int minChunkX = SectionPos.blockToSectionCoord(x - SEARCH_RADIUS);
+        int maxChunkX = SectionPos.blockToSectionCoord(x + SEARCH_RADIUS);
+        int minChunkZ = SectionPos.blockToSectionCoord(z - SEARCH_RADIUS);
+        int maxChunkZ = SectionPos.blockToSectionCoord(z + SEARCH_RADIUS);
 
-        for (int ring = 0; ring <= SEARCH_RADIUS; ring++) {
-            for (int dx = -ring; dx <= ring; dx++) {
-                for (int dz = -ring; dz <= ring; dz++) {
-                    // Only the outer edge of this ring is new; the inside was covered already.
-                    if (Math.abs(dx) != ring && Math.abs(dz) != ring) {
+        BlockPos best = null;
+        long bestDistance = Long.MAX_VALUE;
+
+        for (int cx = minChunkX; cx <= maxChunkX; cx++) {
+            for (int cz = minChunkZ; cz <= maxChunkZ; cz++) {
+                ChunkAccess chunk = level.getChunk(cx, cz);
+                LevelChunkSection[] sections = chunk.getSections();
+
+                for (int index = 0; index < sections.length; index++) {
+                    LevelChunkSection section = sections[index];
+                    if (section == null || section.hasOnlyAir()
+                            || !section.maybeHas(state -> state.is(portal))) {
                         continue;
                     }
 
-                    // Bottom up, so the cell we return is the one standing on the frame's floor.
-                    for (int sy = minY; sy <= maxY; sy++) {
-                        CURSOR.set(x + dx, sy, z + dz);
-                        if (level.getBlockState(CURSOR).is(portal)) {
-                            return CURSOR.immutable();
+                    int sectionBottom = SectionPos.sectionToBlockCoord(
+                            chunk.getSectionYFromSectionIndex(index));
+
+                    for (int ly = 0; ly < 16; ly++) {
+                        for (int lx = 0; lx < 16; lx++) {
+                            for (int lz = 0; lz < 16; lz++) {
+                                if (!section.getBlockState(lx, ly, lz).is(portal)) {
+                                    continue;
+                                }
+
+                                int bx = SectionPos.sectionToBlockCoord(cx) + lx;
+                                int by = sectionBottom + ly;
+                                int bz = SectionPos.sectionToBlockCoord(cz) + lz;
+                                if (Math.abs(bx - x) > SEARCH_RADIUS || Math.abs(bz - z) > SEARCH_RADIUS) {
+                                    continue;
+                                }
+
+                                long dx = bx - x;
+                                long dy = by - y;
+                                long dz = bz - z;
+                                long distance = dx * dx + dy * dy + dz * dz;
+                                if (distance < bestDistance) {
+                                    bestDistance = distance;
+                                    best = new BlockPos(bx, by, bz);
+                                }
+                            }
                         }
                     }
                 }
             }
         }
 
-        return null;
+        return best == null ? null : bottomOfPortal(level, best, portal);
+    }
+
+    /**
+     * Walks down the portal sheet to its lowest cell.
+     *
+     * <p>The nearest cell found above can be anywhere in the sheet, including its top row. Landing
+     * a traveller there drops them from the frame's full height, and on the return trip they are
+     * standing in a cell whose own nearest match is a different row again - which is its own slow
+     * drift. The bottom cell is the one sitting on the frame's floor, and it is stable.
+     */
+    private static BlockPos bottomOfPortal(final ServerLevel level, final BlockPos found, final Block portal) {
+        BlockPos.MutableBlockPos walk = found.mutable();
+        while (walk.getY() > level.getMinY()
+                && level.getBlockState(walk.move(Direction.DOWN)).is(portal)) {
+            // keep descending
+        }
+        return walk.move(Direction.UP).immutable();
     }
 
     // ------------------------------------------------------------------- build

@@ -29,7 +29,7 @@
     "minecraft:visual/sky_light_color": "#00e5ff",
     "minecraft:visual/sky_light_factor": 0.0
   },
-  "coordinate_scale": 1.0,
+  "coordinate_scale": 24.0,
   "default_clock": "minecraft:the_end",
   "has_ceiling": false,
   "has_ender_dragon_fight": false,

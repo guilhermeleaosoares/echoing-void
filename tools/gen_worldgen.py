@@ -766,7 +766,24 @@ def gen_dimension_type() -> None:
             "minecraft:visual/sky_light_color": "#00e5ff",
             "minecraft:visual/sky_light_factor": 0.0,
         },
-        "coordinate_scale": 1.0,
+        # PLAYER: "you know how in the nether, 1 block travelled is 8 in the
+        # overworld? that encouraged nether travel infrastructure in the end
+        # game... i was thinking that 1 block in the echoing void could be 24
+        # blocks in the overworld. its a dangerous dimension, but high risk
+        # high reward."
+        #
+        # coordinate_scale is "how many scale-1.0 blocks one block here is
+        # worth" - the Nether's is 8.0, not 0.125 - and
+        # DimensionType.getTeleportationScale returns from/to, so leaving at
+        # Overworld (1.0) into here (24.0) multiplies by 1/24 and coming back
+        # multiplies by 24. Three times the Nether's reach, which is the whole
+        # point: this dimension is a shortcut worth the danger.
+        #
+        # HollowHorizonTeleporter.SEARCH_RADIUS is tied to this number: the
+        # return trip can land up to (scale - 1) blocks short of where it
+        # started, so raising the scale past 33 would need that radius raised
+        # with it or portals would stop pairing again.
+        "coordinate_scale": 24.0,
         "default_clock": "minecraft:the_end",
         "has_ceiling": False,
         "has_ender_dragon_fight": False,
@@ -1031,10 +1048,22 @@ def strata_column(slate_top: int) -> dict:
             s_seam("seam_amber_phon", 80, 82, "raw_phonolite"),
             s_block("amber_strata"),
         )),
+        # PLAYER: "terrain is mostly echo slate instead of phonolite. where the
+        # phonolite moss spawns, like grass, below is echo slate, phonolite only
+        # generates naturally in the echoing void in those little mounds... the
+        # current echoslate generation in the echoing void should be phonolite,
+        # and echo slate spawns in veins like tuff in the overworld."
+        #
+        # This band runs from BAND_AMBER_TOP (110) to the biome's slate top,
+        # which is exactly the altitude the floating islands occupy - so it was
+        # the rock the player actually walked on, and it was echo slate. The
+        # phonolite the dimension is named for was buried below 70 where almost
+        # nobody goes. Swapped: phonolite is the body of the strata now, and
+        # echo slate comes back as ore_echo_slate veins (see the ore section).
         s_cond(s_below("band_slate", slate_top), s_seq(
             s_seam("seam_slate_chalk", 141, 143, "resonant_chalk"),
             s_seam("seam_slate_amber", 126, 129, "amber_strata"),
-            s_block("echo_slate"),
+            s_block("raw_phonolite"),
         )),
         s_seq(
             s_seam("seam_chalk_slate_hi", 176, 178, "echo_slate"),
@@ -1059,7 +1088,7 @@ def surface_skin(biome: str, slate_top: int) -> dict:
         mid = s_seq(
             s_cond(s_noise("minecraft:surface", -0.35, 4.0), s_block("resonance_moss")),
             s_cond(s_noise("minecraft:surface_secondary", 0.55, 4.0), s_block("chime_sand")),
-            s_block("echo_slate"),
+            s_block("raw_phonolite"),
         )
         amber = s_seq(
             s_cond(s_noise("minecraft:surface", -4.0, 0.35), s_block("amber_lichen")),
@@ -1076,7 +1105,7 @@ def surface_skin(biome: str, slate_top: int) -> dict:
             s_cond(s_noise("minecraft:patch", 0.60, 4.0, is_3d=True),
                    s_block("humming_crystal")),
             s_cond(s_noise("minecraft:surface", 0.55, 4.0), s_block("resonance_moss")),
-            s_block("echo_slate"),
+            s_block("raw_phonolite"),
         )
         amber = s_seq(
             s_cond(s_noise("minecraft:surface", -4.0, -0.20), s_block("amber_lichen")),
@@ -1093,7 +1122,7 @@ def surface_skin(biome: str, slate_top: int) -> dict:
         mid = s_seq(
             s_cond(s_noise("minecraft:surface_secondary", 0.25, 4.0),
                    s_block("chime_sand")),
-            s_block("echo_slate"),
+            s_block("raw_phonolite"),
         )
         amber = s_seq(
             s_cond(s_noise("minecraft:surface", -4.0, 0.10), s_block("amber_lichen")),
@@ -1321,6 +1350,9 @@ def write_biome(name: str, *, fog: str, foliage: str, grass: str,
 # Namespaced, like every other feature list: a bare id in a biome's features
 # array decodes as minecraft:<id> and fails registry load.
 COMMON_ORES = [
+    # Echo slate is a vein through the phonolite now rather than the body of
+    # the strata - see the band_slate note in strata_column().
+    ev("ore_echo_slate_placed"),
     ev("ore_phonolite_resonant_bismuth_placed"),
     ev("ore_phonolite_null_iron_placed"),
     ev("ore_knell_placed"),
@@ -1815,6 +1847,28 @@ def gen_features() -> None:
     })
 
     # ---- Hollow Horizon ores ---------------------------------------------
+    # PLAYER: "echo slate spawns in veins like tuff in the overworld."
+    #
+    # Literally vanilla ore_tuff's shape - size 64 blobs, no air-exposure
+    # discard - retargeted from base_stone_overworld onto the phonolite that
+    # now forms the strata. Echo slate used to BE the rock from y110 up; this
+    # is what puts it back in the world as something you cut into rather than
+    # something you stand on. Count 8 over the full column: tuff's own
+    # placement is 2 per chunk over a much taller world, and the islands here
+    # occupy a narrow slice of theirs, so a flat 8 lands at a comparable
+    # density in the rock that actually exists.
+    write(cf / "ore_echo_slate.json",
+          _ore(B("echo_slate"), 64, tag=f"{NS}:phonolite_ore_replaceables"))
+    write(pf / "ore_echo_slate_placed.json", {
+        "feature": ev("ore_echo_slate"),
+        "placement": [
+            {"type": "minecraft:count", "count": 8},
+            {"type": "minecraft:in_square"},
+            {"type": "minecraft:height_range", "height": _uniform(0, WORLD_HEIGHT - 1)},
+            {"type": "minecraft:biome"},
+        ],
+    })
+
     # PLAYER: "resonant bismuth should be 1.3x rarer than it is now" - same
     # rule as the Overworld vein above. 14/1.3 = 10.77, rounds to 11 (1.27x,
     # the nearest a whole vein count can land on 1.3x).
@@ -1881,20 +1935,27 @@ def gen_features() -> None:
     write(cf / "ore_knell.json",
           _ore(B("knell_ore"), 3, discard=0.0,
                tag=f"{NS}:phonolite_ore_replaceables"))
-    # PLAYER: "knell should be 1.1x more common than what it currently is."
-    # 2 * 1.1 = 2.2, which is not an integer and `count` normally is one - a
-    # flat 2 rounds straight back to 2 and delivers no change at all. Instead
-    # this is a weighted_list IntProvider (Registry.register(..., "weighted_list",
-    # WeightedListInt.MAP_CODEC) in IntProviders.java) averaging to exactly
-    # 2.2: four chunks in five roll 2 attempts, one in five rolls 3 -
-    # (4*2 + 1*3) / 5 = 2.2.
+    # PLAYER, after playing with the previous pass: "knell should be about 2x
+    # less rare than what it is right now, its completely impossible to find."
+    #
+    # The run before this asked for 1.1x and got a weighted_list averaging 2.2
+    # attempts per chunk. Doubling that is 4.4, which is again not an integer,
+    # so the same mechanism carries it: three chunks in five roll 4 attempts
+    # and two in five roll 5 - (3*4 + 2*5) / 5 = 4.4, exactly 2x the 2.2 that
+    # was there.
+    #
+    # Worth noting alongside the strata change above: Knell hosts in
+    # phonolite_ore_replaceables, and phonolite is now the body of the whole
+    # island band rather than only the rock below y70. So this doubling lands
+    # on top of a much larger volume of eligible host stone than it would
+    # have before, and the two changes compound.
     write(pf / "ore_knell_placed.json", {
         "feature": ev("ore_knell"),
         "placement": [
             {"type": "minecraft:count",
              "count": {"type": "minecraft:weighted_list",
-                       "distribution": [{"data": 2, "weight": 4},
-                                        {"data": 3, "weight": 1}]}},
+                       "distribution": [{"data": 4, "weight": 3},
+                                        {"data": 5, "weight": 2}]}},
             {"type": "minecraft:in_square"},
             # Any depth of the Hollow Horizon, overwhelmingly the deepest. The
             # player was explicit twice over that Knell belongs to this

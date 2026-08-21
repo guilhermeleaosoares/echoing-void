@@ -288,7 +288,7 @@
                         {
                           "type": "minecraft:block",
                           "result_state": {
-                            "Name": "echoing_void:echo_slate"
+                            "Name": "echoing_void:raw_phonolite"
                           }
                         }
                       ]
@@ -657,7 +657,7 @@
                       {
                         "type": "minecraft:block",
                         "result_state": {
-                          "Name": "echoing_void:echo_slate"
+                          "Name": "echoing_void:raw_phonolite"
                         }
                       }
                     ]
@@ -939,7 +939,7 @@
                         {
                           "type": "minecraft:block",
                           "result_state": {
-                            "Name": "echoing_void:echo_slate"
+                            "Name": "echoing_void:raw_phonolite"
                           }
                         }
                       ]
@@ -1294,7 +1294,7 @@
                       {
                         "type": "minecraft:block",
                         "result_state": {
-                          "Name": "echoing_void:echo_slate"
+                          "Name": "echoing_void:raw_phonolite"
                         }
                       }
                     ]
@@ -1575,7 +1575,7 @@
                         {
                           "type": "minecraft:block",
                           "result_state": {
-                            "Name": "echoing_void:echo_slate"
+                            "Name": "echoing_void:raw_phonolite"
                           }
                         }
                       ]
@@ -1929,7 +1929,7 @@
                       {
                         "type": "minecraft:block",
                         "result_state": {
-                          "Name": "echoing_void:echo_slate"
+                          "Name": "echoing_void:raw_phonolite"
                         }
                       }
                     ]
@@ -2199,7 +2199,7 @@
                   {
                     "type": "minecraft:block",
                     "result_state": {
-                      "Name": "echoing_void:echo_slate"
+                      "Name": "echoing_void:raw_phonolite"
                     }
                   }
                 ]
@@ -2553,7 +2553,7 @@
                 {
                   "type": "minecraft:block",
                   "result_state": {
-                    "Name": "echoing_void:echo_slate"
+                    "Name": "echoing_void:raw_phonolite"
                   }
                 }
               ]

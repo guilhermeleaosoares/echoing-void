@@ -28,6 +28,7 @@
     [],
     [],
     [
+      "echoing_void:ore_echo_slate_placed",
       "echoing_void:ore_phonolite_resonant_bismuth_placed",
       "echoing_void:ore_phonolite_null_iron_placed",
       "echoing_void:ore_knell_placed",
