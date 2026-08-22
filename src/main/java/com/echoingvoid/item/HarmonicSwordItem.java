@@ -1,6 +1,6 @@
 package com.echoingvoid.item;
 
-import com.echoingvoid.registry.ModComponents;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
@@ -8,11 +8,14 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 
@@ -117,14 +120,11 @@ public class HarmonicSwordItem extends Item {
         if (!(attacker.level() instanceof ServerLevel)) {
             return;
         }
-        ItemStack resonator = ResonanceArmorItem.resonator(attacker);
-        if (resonator.isEmpty()) {
-            return;
-        }
         // Scale off the sword's own attack damage rather than the damage actually dealt: the
         // post-hit hook is not told how much got through armour, and reading the target's health
         // delta here would credit the swing for another source's damage in the same tick.
-        ModComponents.storeDamage(resonator, attackDamage(stack) * BANK_RATE);
+        // A no-op when no resonating chestplate is worn - the bank lives on the chestplate.
+        ResonanceArmorItem.bankAmount(attacker, attackDamage(stack) * BANK_RATE);
     }
 
     /**
@@ -137,8 +137,30 @@ public class HarmonicSwordItem extends Item {
      */
     public static final float ATTACK_BASELINE = 3.0F;
 
-    /** What this sword swings for, matching the attribute the game builds from the same parts. */
+    /**
+     * What this sword actually swings for, read from the stack rather than recomputed.
+     *
+     * <p>This used to be {@code ATTACK_BASELINE + RESONANT_BISMUTH.attackDamageBonus()}, a
+     * hardcoded 5.5 - correct for the Harmonic Sword and WRONG for the Knell one, which
+     * subclasses this and is registered against {@code KnellMaterials.KNELL} for a real swing of
+     * 3.0 + 5.5 = 8.5. The better sword banked 1.65 a hit where it should have banked 2.55, 35%
+     * short, and being {@code private static} it could not have been overridden to fix it. That
+     * is precisely the "the two drifting apart would silently mis-scale the charge" failure the
+     * javadoc above warns about, so the fix is to stop keeping a second copy of the figure at
+     * all.
+     *
+     * <p>{@code compute} against a zero base returns the sum of the ADD_VALUE modifiers, which is
+     * how {@code ToolMaterial.createSwordAttributes} writes {@code baseline + bonus} - so this is
+     * the same number the game itself will use, for any material, including any added later.
+     * Enchantments do not appear here: Sharpness is applied at hit time, not as a stack modifier.
+     */
     private static float attackDamage(ItemStack stack) {
-        return ATTACK_BASELINE + ModToolMaterials.RESONANT_BISMUTH.attackDamageBonus();
+        ItemAttributeModifiers modifiers =
+                stack.getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.EMPTY);
+        double swing = modifiers.compute(Attributes.ATTACK_DAMAGE, 0.0, EquipmentSlot.MAINHAND);
+        // Falls back to the baseline only if a stack somehow carries no modifiers at all, so a
+        // swing is never banked as zero.
+        return swing > 0.0 ? (float) swing
+                : ATTACK_BASELINE + ModToolMaterials.RESONANT_BISMUTH.attackDamageBonus();
     }
 }

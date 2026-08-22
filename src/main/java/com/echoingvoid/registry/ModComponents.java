@@ -15,7 +15,7 @@ import net.minecraftforge.registries.RegistryObject;
  * Custom data components - the 26.2 replacement for item NBT.
  *
  * <p>These carry the per-stack state the gear needs: the Sonic Lance's absorbed charge and
- * the Resonance set's banked kinetic damage.
+ * the Resonance and Knell sets' banked kinetic damage.
  *
  * <p>Note the registry key: {@code ForgeRegistries} has no DATA_COMPONENT_TYPES entry, so this
  * must go through the vanilla {@link Registries#DATA_COMPONENT_TYPE}.
@@ -33,7 +33,7 @@ public final class ModComponents {
                     .networkSynchronized(ByteBufCodecs.VAR_INT)
                     .build());
 
-    /** Kinetic damage stored by the Resonance armour set, released as a shockwave. */
+    /** Kinetic damage stored by a resonating armour set, released as a shockwave. */
     public static final RegistryObject<DataComponentType<Float>> STORED_DAMAGE =
             COMPONENTS.register("stored_damage", () -> DataComponentType.<Float>builder()
                     .persistent(Codec.FLOAT)
@@ -41,7 +41,6 @@ public final class ModComponents {
                     .build());
 
     public static final int MAX_CHARGE = 100;
-    public static final float MAX_STORED_DAMAGE = 60.0F;
 
     // ------------------------------------------------------------------ helpers
 
@@ -61,9 +60,16 @@ public final class ModComponents {
         return stack.getOrDefault(STORED_DAMAGE.get(), 0.0F);
     }
 
-    public static void storeDamage(ItemStack stack, float amount) {
+    /**
+     * Adds to the banked total, held under a cap the CALLER supplies.
+     *
+     * <p>The cap used to be a constant here, which quietly made it impossible for a second
+     * armour tier to hold more than the first. It belongs to the armour, not to the component -
+     * see {@code ResonanceArmorItem.bankCapacity()} - so it is passed in.
+     */
+    public static void storeDamage(ItemStack stack, float amount, float cap) {
         float current = getStoredDamage(stack);
-        stack.set(STORED_DAMAGE.get(), Math.min(MAX_STORED_DAMAGE, current + Math.max(0.0F, amount)));
+        stack.set(STORED_DAMAGE.get(), Math.min(cap, current + Math.max(0.0F, amount)));
     }
 
     /** Reads and clears the banked damage in one step. */

@@ -22,8 +22,8 @@ import java.util.function.Predicate;
  * Resonance Armour - a null-iron shell strung with bismuth resonators.
  *
  * <p>Every hit the wearer takes is partly stored rather than spent: the chestplate keeps a
- * running total of banked kinetic damage (capped at {@link ModComponents#MAX_STORED_DAMAGE}),
- * and while the full four-piece set is worn the plates also shave a little off each blow.
+ * running total of banked kinetic damage, and while the full four-piece set is worn the plates
+ * also shave a little off each blow.
  *
  * <p>Double-tap crouch and the resonators dump everything at once - a concussive ring that
  * throws nearby hostiles off the wearer and does a fraction of the banked total as damage.
@@ -32,25 +32,66 @@ import java.util.function.Predicate;
  *
  * <p>One class backs all four pieces; which slot a given stack occupies is decided by the
  * {@code humanoidArmor} properties the registry hands to the constructor.
+ *
+ * <h2>Tiers</h2>
+ *
+ * <p>{@link KnellArmorItem} is the tier above and subclasses this, so every figure the ability
+ * is built from is an overridable method rather than a constant. The tier in force is always
+ * read off the <em>chestplate</em>, because that is where the charge physically lives - which
+ * also settles what a mixed set does without anyone needing to invent a rule for it. Wear a
+ * Knell chestplate under three Resonance plates and the bank is Knell's: the resonator is the
+ * part that decides, the other three only complete the circuit.
  */
 public class ResonanceArmorItem extends Item {
 
+    // ------------------------------------------------------------------ tuning
+    // Overridable rather than constant, so a tier above can amplify the ability without a
+    // second copy of the logic below. Every figure read from a worn piece goes through these.
+
     /** Fraction of incoming damage the chestplate alone absorbs outright. */
-    public static final float PIECE_MITIGATION = 0.08F;
+    public float pieceMitigation() {
+        return 0.08F;
+    }
 
     /** Fraction absorbed when all four plates are resonating together. */
-    public static final float SET_MITIGATION = 0.20F;
+    public float setMitigation() {
+        return 0.20F;
+    }
 
     /** Fraction of the damage taken that is banked rather than lost. */
-    public static final float BANK_RATE = 0.5F;
+    public float bankRate() {
+        return 0.5F;
+    }
 
     /** Nothing releases below this much banked damage - it would only waste the charge. */
-    public static final float MIN_RELEASE = 4.0F;
+    public float minRelease() {
+        return 4.0F;
+    }
 
-    private static final double SHOCKWAVE_RADIUS = 6.0;
-    private static final float DAMAGE_RETURN = 0.4F;
-    private static final double MIN_KNOCKBACK = 0.6;
-    private static final double MAX_KNOCKBACK = 2.2;
+    /** Most the resonators will hold. Past this a hit is still absorbed, but not stored. */
+    public float bankCapacity() {
+        return 60.0F;
+    }
+
+    /** How far the released ring reaches. */
+    public double shockwaveRadius() {
+        return 6.0;
+    }
+
+    /** Share of the banked total the ring deals as damage at its centre. */
+    public float damageReturn() {
+        return 0.4F;
+    }
+
+    /** Knockback from a barely-charged bank. */
+    public double minKnockback() {
+        return 0.6;
+    }
+
+    /** Knockback from a full one. */
+    public double maxKnockback() {
+        return 2.2;
+    }
 
     /** Non-capturing, so the broad-phase query reuses one singleton predicate. */
     private static final Predicate<Entity> HOSTILE =
@@ -60,7 +101,7 @@ public class ResonanceArmorItem extends Item {
         super(properties);
     }
 
-    /** True when the stack is any Resonance piece. */
+    /** True when the stack is a resonating piece of either tier. */
     public static boolean isPiece(ItemStack stack) {
         return !stack.isEmpty() && stack.getItem() instanceof ResonanceArmorItem;
     }
@@ -77,11 +118,56 @@ public class ResonanceArmorItem extends Item {
      * The chestplate is where the charge lives, because it is the piece a player is most
      * likely to be wearing and the one the resonators are wired to.
      *
-     * @return the worn Resonance chestplate, or {@link ItemStack#EMPTY} if there is none
+     * @return the worn chestplate of either tier, or {@link ItemStack#EMPTY} if there is none
      */
     public static ItemStack resonator(LivingEntity wearer) {
         ItemStack chest = wearer.getItemBySlot(EquipmentSlot.CHEST);
         return isPiece(chest) ? chest : ItemStack.EMPTY;
+    }
+
+    /** The tuning in force for a wearer, read off the chestplate, or null if none is worn. */
+    public static ResonanceArmorItem tierOf(LivingEntity wearer) {
+        ItemStack chest = wearer.getItemBySlot(EquipmentSlot.CHEST);
+        return chest.getItem() instanceof ResonanceArmorItem tier ? tier : null;
+    }
+
+    /**
+     * Fraction of an incoming blow the plates take off the top, before armour is consulted.
+     *
+     * @return zero when nothing is worn, so a caller can apply it unconditionally
+     */
+    public static float mitigationFor(LivingEntity wearer) {
+        ResonanceArmorItem tier = tierOf(wearer);
+        if (tier == null) {
+            return 0.0F;
+        }
+        return isFullSet(wearer) ? tier.setMitigation() : tier.pieceMitigation();
+    }
+
+    /**
+     * Banks a share of damage the wearer actually took, at the resonator's own rate and cap.
+     *
+     * <p>The rate is the armour's rather than the caller's: being hit is not a choice, and the
+     * set exists to reward standing your ground.
+     */
+    public static void bankIncoming(LivingEntity wearer, float damageTaken) {
+        ResonanceArmorItem tier = tierOf(wearer);
+        if (tier != null) {
+            bankAmount(wearer, damageTaken * tier.bankRate());
+        }
+    }
+
+    /**
+     * Banks an amount the caller has already scaled - the sword pays its own, lower rate - still
+     * respecting whatever the worn resonator can hold.
+     */
+    public static void bankAmount(LivingEntity wearer, float amount) {
+        ResonanceArmorItem tier = tierOf(wearer);
+        if (tier == null) {
+            return;
+        }
+        ModComponents.storeDamage(wearer.getItemBySlot(EquipmentSlot.CHEST), amount,
+                tier.bankCapacity());
     }
 
     /**
@@ -90,15 +176,21 @@ public class ResonanceArmorItem extends Item {
      * @return true if a shockwave actually went off
      */
     public static boolean releaseShockwave(ServerLevel level, Player wearer) {
-        ItemStack chest = resonator(wearer);
-        if (chest.isEmpty() || ModComponents.getStoredDamage(chest) < MIN_RELEASE) {
+        ResonanceArmorItem tier = tierOf(wearer);
+        if (tier == null) {
+            return false;
+        }
+        ItemStack chest = wearer.getItemBySlot(EquipmentSlot.CHEST);
+        if (ModComponents.getStoredDamage(chest) < tier.minRelease()) {
             return false;
         }
 
         float stored = ModComponents.drainStoredDamage(chest);
-        float fraction = Math.min(1.0F, stored / ModComponents.MAX_STORED_DAMAGE);
-        float damage = stored * DAMAGE_RETURN;
-        double knockback = MIN_KNOCKBACK + (MAX_KNOCKBACK - MIN_KNOCKBACK) * fraction;
+        float fraction = Math.min(1.0F, stored / tier.bankCapacity());
+        float damage = stored * tier.damageReturn();
+        double radius = tier.shockwaveRadius();
+        double knockback = tier.minKnockback()
+                + (tier.maxKnockback() - tier.minKnockback()) * fraction;
 
         double px = wearer.getX();
         double py = wearer.getY();
@@ -106,12 +198,12 @@ public class ResonanceArmorItem extends Item {
 
         // One-shot path behind a double-tap, so a single query box here is fine; nothing in
         // the loop below allocates.
-        AABB ring = new AABB(px - SHOCKWAVE_RADIUS, py - SHOCKWAVE_RADIUS, pz - SHOCKWAVE_RADIUS,
-                px + SHOCKWAVE_RADIUS, py + SHOCKWAVE_RADIUS, pz + SHOCKWAVE_RADIUS);
+        AABB ring = new AABB(px - radius, py - radius, pz - radius,
+                px + radius, py + radius, pz + radius);
         List<Entity> caught = level.getEntities(wearer, ring, HOSTILE);
 
         DamageSource source = level.damageSources().sonicBoom(wearer);
-        double radiusSq = SHOCKWAVE_RADIUS * SHOCKWAVE_RADIUS;
+        double radiusSq = radius * radius;
 
         for (int i = 0; i < caught.size(); i++) {
             Entity entity = caught.get(i);
@@ -124,7 +216,7 @@ public class ResonanceArmorItem extends Item {
             }
 
             // Falls off with distance so the ring reads as a wave rather than a box.
-            double falloff = 1.0 - Math.sqrt(distSq) / SHOCKWAVE_RADIUS;
+            double falloff = 1.0 - Math.sqrt(distSq) / radius;
             entity.hurtServer(level, source, (float) (damage * falloff));
             if (entity instanceof LivingEntity living) {
                 // knockback pushes away from (xd, zd): pass the wearer-to-target vector negated.

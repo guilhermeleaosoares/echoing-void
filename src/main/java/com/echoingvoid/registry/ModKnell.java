@@ -2,6 +2,7 @@ package com.echoingvoid.registry;
 
 import com.echoingvoid.EchoingVoid;
 import com.echoingvoid.block.KnellIntegratorBlock;
+import com.echoingvoid.item.KnellArmorItem;
 import com.echoingvoid.item.KnellAxeItem;
 import com.echoingvoid.item.KnellPickaxeItem;
 import com.echoingvoid.item.KnellSwordItem;
@@ -206,10 +207,17 @@ public final class ModKnell {
         return track(ITEMS.register(name, factory));
     }
 
-    /** One of the four humanoid armour slots. */
+    /**
+     * One of the four humanoid armour slots.
+     *
+     * <p>{@link KnellArmorItem}, not a plain {@code Item}: the plates carry the Resonance set's
+     * kinetic bank and shockwave, amplified. Registering them as plain items is exactly what
+     * PLAYER hit - the tier above silently had fewer abilities than the tier below it, because
+     * nothing in the item, the model or the tooltip said otherwise.
+     */
     private static RegistryObject<Item> armor(String name, ArmorType type) {
         return track(ITEMS.register(name,
-                () -> new Item(gearProps(name).humanoidArmor(KnellMaterials.RESONANT, type))));
+                () -> new KnellArmorItem(gearProps(name).humanoidArmor(KnellMaterials.RESONANT, type))));
     }
 
     private static RegistryObject<Item> track(RegistryObject<Item> item) {

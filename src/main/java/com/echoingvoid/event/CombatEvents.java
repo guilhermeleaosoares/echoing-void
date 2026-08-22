@@ -100,15 +100,13 @@ public final class CombatEvents {
             }
         }
 
-        // Resonance: the plates take a slice off the top before armour is even consulted.
-        ItemStack resonator = ResonanceArmorItem.resonator(player);
-        if (resonator.isEmpty()) {
-            return;
+        // Resonance and Knell: the plates take a slice off the top before armour is even
+        // consulted. The figure comes from the worn chestplate rather than from a constant, so
+        // both tiers go through this one path.
+        float mitigation = ResonanceArmorItem.mitigationFor(player);
+        if (mitigation > 0.0F) {
+            event.setAmount(event.getAmount() * (1.0F - mitigation));
         }
-        float mitigation = ResonanceArmorItem.isFullSet(player)
-                ? ResonanceArmorItem.SET_MITIGATION
-                : ResonanceArmorItem.PIECE_MITIGATION;
-        event.setAmount(event.getAmount() * (1.0F - mitigation));
     }
 
     // ------------------------------------------------------- post-mitigation hook
@@ -126,12 +124,9 @@ public final class CombatEvents {
             return;
         }
 
-        // Resonance: bank a share of what actually got through, ready to be thrown back.
-        ItemStack resonator = ResonanceArmorItem.resonator(player);
-        if (resonator.isEmpty()) {
-            return;
-        }
-        ModComponents.storeDamage(resonator, event.getAmount() * ResonanceArmorItem.BANK_RATE);
+        // Resonance and Knell: bank a share of what actually got through, ready to be thrown
+        // back. A no-op when no resonating chestplate is worn.
+        ResonanceArmorItem.bankIncoming(player, event.getAmount());
     }
 
     // ---------------------------------------------------------------- critical hit
