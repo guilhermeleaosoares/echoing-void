@@ -110,12 +110,24 @@ public final class ModCrops {
     /**
      * Hardness 1.0 / Blast 1.0 | Axe | WOOD - vanilla pumpkin's figures. It generates in patches
      * on the Resonant Plains and is the one crop a player meets before they own a hoe.
+     *
+     * <p>PLAYER: "when the echo gourd is pushed by a piston, just like a melon, it is broken and
+     * drops the gourd slices." Vanilla's melon does exactly that, and for exactly this reason -
+     * {@code Blocks.MELON} carries {@code pushReaction(PushReaction.DESTROY)}, and the piston's
+     * own destroy pass calls {@code dropResources} before clearing the block
+     * (PistonBaseBlock.moveBlocks), so the loot table runs and the slices fall. That is what makes
+     * the classic piston-harvest farm work, and without the flag the gourd was simply shoved a
+     * block along instead, which is not a farm.
+     *
+     * <p>Nothing else was missing: the stems have had DESTROY all along through
+     * {@link #cropProps}, and the loot table already pays 3-7 slices with Fortune, capped at 9.
      */
     public static final RegistryObject<Block> ECHO_GOURD = BLOCKS.register("echo_gourd",
             () -> new Block(props("echo_gourd")
                     .mapColor(MapColor.COLOR_CYAN)
                     .strength(1.0F, 1.0F)
                     .sound(SoundType.WOOD)
+                    .pushReaction(PushReaction.DESTROY)
                     .lightLevel(state -> 5)));
 
     public static final RegistryObject<Block> ECHO_GOURD_STEM = BLOCKS.register("echo_gourd_stem",
