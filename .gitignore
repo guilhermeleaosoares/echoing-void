@@ -24,3 +24,10 @@ run
 # Files from Forge MDK
 forge_README.txt
 forge*changelog.txt
+
+# python
+# The asset pipeline is a pile of scripts in tools/, and every run leaves compiled
+# bytecode behind. 29 .pyc files were tracked, so any commit that touched a generator
+# also carried a binary blob nobody reads and that conflicts on every merge.
+__pycache__/
+*.pyc

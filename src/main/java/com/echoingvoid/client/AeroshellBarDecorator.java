@@ -41,11 +41,14 @@ public final class AeroshellBarDecorator implements IItemDecorator {
             return false;
         }
         int left = KnellAeroshellItem.wingsLeft(stack);
-        if (left >= KnellAeroshellItem.WING_MAX) {
-            // A full pool draws nothing, exactly as an undamaged item shows no bar - a bar that is
-            // always present stops carrying information.
-            return false;
-        }
+
+        // ALWAYS drawn, even at full. PLAYER: "the GUI inventory only shows 1 durability bar...
+        // seeing 2 bars is helpful too." It used to hide itself on a full pool, the way an
+        // undamaged item hides its bar - which meant a fresh Aeroshell showed one bar and looked
+        // like an ordinary chestplate, and the second pool was invisible until it was already
+        // being spent. On an item whose whole point is that it has two pools, the bar's job is to
+        // say the pool EXISTS, not only that it is running low. KnellAeroshellItem.isBarVisible
+        // returns true unconditionally for the same reason.
 
         float fraction = (float) left / KnellAeroshellItem.WING_MAX;
         int width = Mth.clamp(Math.round(BAR_WIDTH * fraction), 0, BAR_WIDTH);

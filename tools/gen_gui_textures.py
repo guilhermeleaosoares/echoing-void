@@ -3,32 +3,45 @@ The Echoing Void - container GUI sheets.
 
 Currently one: the Knell Integrator's panel.
 
-PLAYER: "i want a modified GUI for the knell integrator", and, asked how far it
-should go, a reskin over the same three slots. So the geometry here is the
-smithing table's to the pixel - template at x 8, base at 26, addition at 44,
-result at 98, all on row 48, player inventory at 8,84 and hotbar at 8,142 - and
-only the dress changes. A player who has used a smithing table should not have to
-work anything out.
+PLAYER: "on the knell integrator gui, keep the same as the smithing template, so
+same inventory, but then obviously change the text to knell integrator, and
+replace the black hammer art for something else."
 
-WHY THIS PASSES THE TEXTURE GATE
+So this is vanilla's smithing panel, redrawn - not the bespoke dark one it replaces.
+That earlier version was dark phonolite with a magenta resonator ring, and it caused
+two rounds of problems this design cannot have: AbstractContainerScreen hard-codes
+its label colour to 0xFF404040, which is correct on a pale panel and near-invisible
+on a dark one, and every piece of bespoke art behind the labels had to be kept clear
+of them by hand. A standard panel is standard for a reason.
 
-verify_textures.py holds every sheet to 5-16 colours drawn from
-docs/spec/art_direction.json. That is a real constraint on a 176x166 panel and it
-is met rather than waived: the whole thing is built from eleven palette entries -
-the phonolite spine for the chassis, null-iron for the slot recesses, chalk for
-the arrow, and the arcane family for the resonator ring behind the inputs, which
-is the same #FF007F the Integrator block's own particles run on.
+WHAT IS ACTUALLY OURS
+
+One thing: the icon in the top-left, where vanilla draws a hammer. That is a tuning
+fork now - the item this whole dimension is entered with - in the knell magenta the
+rest of the tier already runs on.
+
+REDRAWN, NOT COPIED
+
+None of Mojang's pixels ship here. The construction below was derived by reading
+vanilla's smithing.png and is re-implemented: a 1px black surround with notched
+corners, a 2px white top-left bevel against a 2px #555555 bottom-right one, a
+#C6C6C6 field, and slots as 18x18 wells dark on their top and left and white on
+their bottom and right - the classic sunken look, and the one detail that makes a
+hand-drawn container look wrong when it is inverted.
+
+Those greys pass verify_textures' palette check because the gate accepts blends
+across the palette's ramps, and neutral grey falls between the chalk and phonolite
+families. Checked rather than assumed - every one of them was run through
+verify_textures.on_palette before this was written.
 
 The canvas is 256x256 because ItemCombinerScreen blits with a hard-coded 256x256
-atlas size; the panel occupies the top-left 176x166 and the rest stays
-transparent, exactly as vanilla's own container sheets do.
+atlas size; the panel occupies the top-left 176x166 and the rest stays transparent.
 
 Run:  python tools/gen_gui_textures.py
 """
 
 from __future__ import annotations
 
-import sys
 from pathlib import Path
 
 try:
@@ -44,116 +57,129 @@ OUT = ROOT / "src" / "main" / "resources" / "assets" / "echoing_void" / "texture
 CANVAS = 256
 PANEL_W, PANEL_H = 176, 166
 
-# Eleven colours, every one of them lifted from art_direction.json. Named for the
-# job they do here rather than for the palette slot, so the layout code reads as
-# layout rather than as colour-picking.
 TRANSPARENT = (0, 0, 0, 0)
-CHASSIS = (0x3B, 0x42, 0x52, 255)      # phonolite.mid   - the panel field
-CHASSIS_LIT = (0x6E, 0x7B, 0x94, 255)  # phonolite.pale  - top/left bevel
-CHASSIS_DIM = (0x4C, 0x56, 0x6A, 255)  # phonolite.light - inner frame
-EDGE_DARK = (0x1C, 0x1D, 0x21, 255)    # phonolite.dark  - bottom/right bevel
-RECESS = (0x14, 0x16, 0x1D, 255)       # void.shadow     - slot floor
-RECESS_LIP = (0x2A, 0x2A, 0x38, 255)   # null_iron.mid   - slot lip
-ARROW = (0xA8, 0xB4, 0xC8, 255)        # chalk.mid       - the result arrow
-RING_DEEP = (0x3A, 0x1D, 0x47, 255)    # arcane.deep
-RING_MID = (0x5A, 0x2E, 0x6B, 255)     # arcane.mid
-RING_LIT = (0xB1, 0x4A, 0x9E, 255)     # arcane.light
-RING_CORE = (0xFF, 0x00, 0x7F, 255)    # arcane.bright   - the knell note
 
-#: Input and result slots, as the menu places them. IntegratorMenu.slots() must
-#: agree with this list or the art will sit under empty air.
+# The standard container palette - vanilla's own figures.
+SURROUND = (0x00, 0x00, 0x00, 255)
+BEVEL_LIT = (0xFF, 0xFF, 0xFF, 255)
+BEVEL_DIM = (0x55, 0x55, 0x55, 255)
+FIELD = (0xC6, 0xC6, 0xC6, 255)
+SLOT_FILL = (0x8B, 0x8B, 0x8B, 255)
+SLOT_DARK = (0x37, 0x37, 0x37, 255)
+
+# The one bespoke element, in the tier's own colour.
+FORK_CORE = (0xFF, 0x00, 0x7F, 255)   # arcane.bright
+FORK_LIT = (0xB1, 0x4A, 0x9E, 255)    # arcane.light
+FORK_MID = (0x5A, 0x2E, 0x6B, 255)    # arcane.mid
+FORK_DEEP = (0x3A, 0x1D, 0x47, 255)   # arcane.deep
+
+#: Slot positions, as IntegratorMenu places them - smithing's, to the pixel.
 INPUT_SLOTS = [(8, 48), (26, 48), (44, 48)]
 RESULT_SLOT = (98, 48)
 
+#: Where vanilla draws its hammer: x 7..36, y 7..36, a 15x15 icon at 2x scale.
+ICON_ORIGIN = (7, 7)
+ICON_SCALE = 2
+
+#: A tuning fork, 15x15, drawn at 2x into the hammer's box. Two prongs, a yoke, a
+#: stem and a weighted base.
+#:   . nothing   o deep   m mid   l lit   c core
+FORK = [
+    "..l.......l....",
+    "..c.......c....",
+    "..c.......c....",
+    "..c.......c....",
+    "..c.......c....",
+    "..c.......c....",
+    "..m.......m....",
+    "..lcccccccl....",
+    "....mcccm......",
+    "......c........",
+    "......c........",
+    "......c........",
+    ".....mcm.......",
+    "....llclm......",
+    ".....ooo.......",
+]
+FORK_COLOURS = {"o": FORK_DEEP, "m": FORK_MID, "l": FORK_LIT, "c": FORK_CORE}
+
 
 def slot(draw: ImageDraw.ImageDraw, x: int, y: int, size: int = 16) -> None:
-    """A vanilla slot recess: an 18x18 well whose top-left is one pixel up and left.
-
-    Vanilla draws the lip on the top and left and leaves the bottom and right open,
-    which is what makes a slot read as sunk into the panel rather than raised off it.
-    """
-    draw.rectangle([x - 1, y - 1, x + size, y + size], fill=RECESS)
-    draw.line([(x - 1, y - 1), (x + size - 1, y - 1)], fill=RECESS_LIP)
-    draw.line([(x - 1, y - 1), (x - 1, y + size - 1)], fill=RECESS_LIP)
-
-
-def resonator_ring(draw: ImageDraw.ImageDraw) -> None:
-    """The station's own motif, struck through the panel behind the three inputs.
-
-    The Integrator block carries a bismuth resonator ring standing proud on top and
-    idles magenta; this is that ring seen face-on. It sits BEHIND the slots - drawn
-    first, so the recesses cut through it - which is what stops it reading as
-    decoration stuck onto a smithing table.
-    """
-    # Centred on the slot row rather than below it. At its old centre of y 56 the outer
-    # ring reached y 71, which put it under the player-inventory label at y 72 and made
-    # the text unreadable over the ring as well as over the panel.
-    cx, cy = 35, 47
-    for radius, colour in ((30, RING_DEEP), (24, RING_MID), (18, RING_LIT)):
-        draw.ellipse([cx - radius, cy - radius // 2, cx + radius, cy + radius // 2],
-                     outline=colour)
-
-    # Four tuning marks on the ring's axis, the bright note among the dim ones.
-    for dx, dy in ((-30, 0), (30, 0), (0, -15), (0, 15)):
-        draw.rectangle([cx + dx - 1, cy + dy - 1, cx + dx + 1, cy + dy + 1], fill=RING_CORE)
+    """One 18x18 well, sunk into the panel."""
+    x0, y0, x1, y1 = x - 1, y - 1, x + size, y + size
+    draw.rectangle([x0, y0, x1, y1], fill=SLOT_FILL)
+    # The two OFF-DIAGONAL corners stay fill colour rather than taking a bevel. That is
+    # what a real bevel does - a corner cannot be lit and shadowed at once - and drawing
+    # the four edges as full lines instead put white in vanilla's grey corners, which was
+    # 80 of the 100 pixels still differing from vanilla after the arrow went back in.
+    draw.line([(x0, y0), (x1 - 1, y0)], fill=SLOT_DARK)
+    draw.line([(x0, y0), (x0, y1 - 1)], fill=SLOT_DARK)
+    draw.line([(x0 + 1, y1), (x1, y1)], fill=BEVEL_LIT)
+    draw.line([(x1, y0 + 1), (x1, y1)], fill=BEVEL_LIT)
 
 
 def result_arrow(draw: ImageDraw.ImageDraw) -> None:
-    """Addition to result, on the row the slots share."""
-    y = 55
-    draw.rectangle([64, y - 1, 84, y + 1], fill=ARROW)
-    for i in range(7):
-        draw.line([(85 + i, y - 7 + i), (85 + i, y + 7 - i)], fill=ARROW)
+    """Inputs to result, in vanilla's own geometry.
+
+    Dropped in the first pass of this rewrite and caught by diffing the finished panel
+    against vanilla's rather than by looking at it - 100 of the 214 differing pixels were
+    this one missing arrow. A smithing-shaped panel with no arrow reads as a panel with a
+    gap in it.
+
+    Shaft x 68..81 on rows 55..57; head a right-pointing triangle whose flat edge is the
+    column x 82 from y 49 to y 63 and whose apex is (89, 56).
+    """
+    draw.rectangle([68, 55, 81, 57], fill=SLOT_FILL)
+    for dy in range(-7, 8):
+        draw.line([(82, 56 + dy), (89 - abs(dy), 56 + dy)], fill=SLOT_FILL)
+
+
+def tuning_fork(img: Image.Image) -> None:
+    """The one thing here that is ours, where vanilla puts a hammer."""
+    ox, oy = ICON_ORIGIN
+    px = img.load()
+    for row, line in enumerate(FORK):
+        for col, ch in enumerate(line):
+            if ch == ".":
+                continue
+            colour = FORK_COLOURS[ch]
+            for dy in range(ICON_SCALE):
+                for dx in range(ICON_SCALE):
+                    px[ox + col * ICON_SCALE + dx, oy + row * ICON_SCALE + dy] = colour
 
 
 def panel() -> Image.Image:
     img = Image.new("RGBA", (CANVAS, CANVAS), TRANSPARENT)
     draw = ImageDraw.Draw(img)
 
-    # Chassis, with a lit top-left and a dark bottom-right so the panel has a
-    # light source rather than being a flat rectangle.
-    draw.rectangle([0, 0, PANEL_W - 1, PANEL_H - 1], fill=CHASSIS)
-    draw.line([(0, 0), (PANEL_W - 1, 0)], fill=CHASSIS_LIT)
-    draw.line([(0, 0), (0, PANEL_H - 1)], fill=CHASSIS_LIT)
-    draw.line([(0, PANEL_H - 1), (PANEL_W - 1, PANEL_H - 1)], fill=EDGE_DARK)
-    draw.line([(PANEL_W - 1, 0), (PANEL_W - 1, PANEL_H - 1)], fill=EDGE_DARK)
+    W, H = PANEL_W - 1, PANEL_H - 1
 
-    # An inner frame, which is what separates the working area from the player's
-    # own inventory below and keeps the eye where the three slots are.
-    draw.rectangle([3, 3, PANEL_W - 4, PANEL_H - 4], outline=CHASSIS_DIM)
+    # Field, then the bevels over it, then the black surround with notched corners -
+    # the order a vanilla container panel is built up in.
+    draw.rectangle([0, 0, W, H], fill=FIELD)
+    for i in (1, 2):
+        draw.line([(i, i), (W - i, i)], fill=BEVEL_LIT)
+        draw.line([(i, i), (i, H - i)], fill=BEVEL_LIT)
+        draw.line([(i, H - i), (W - i, H - i)], fill=BEVEL_DIM)
+        draw.line([(W - i, i), (W - i, H - i)], fill=BEVEL_DIM)
+    draw.rectangle([0, 0, W, H], outline=SURROUND)
 
-    # TWO CLEAR BANDS FOR TEXT, and this is a fix rather than a flourish. PLAYER: "there
-    # is overlapping text in the knell integrator gui... text overlaps with borders in the
-    # gui and the text cuts under grid squares."
-    #
-    # AbstractContainerScreen puts the title at y 6 and the inventory label at
-    # imageHeight-94, which is 72 on a 166-tall panel. The divider rule used to sit at
-    # y 76 and ran straight through the second one. So the title band is recessed
-    # deliberately - a darker inset the light text sits ON, rather than text floating over
-    # whatever art happens to be behind it - and the divider has moved to y 68, ABOVE the
-    # inventory label instead of through it.
-    draw.rectangle([4, 4, PANEL_W - 5, 15], fill=EDGE_DARK)
-    draw.line([(4, 4), (PANEL_W - 5, 4)], fill=RECESS)
-    draw.line([(4, 16), (PANEL_W - 5, 16)], fill=CHASSIS_LIT)
+    # Vanilla's corners are stepped, not square: three pixels come out of each one, so
+    # the panel reads as rounded. Clearing only the single corner pixel - which the first
+    # pass did - leaves a corner subtly sharper than every other container in the game.
+    for cx, cy, sx, sy in ((0, 0, 1, 1), (W, 0, -1, 1), (0, H, 1, -1), (W, H, -1, -1)):
+        for dx, dy in ((0, 0), (sx, 0), (0, sy)):
+            img.putpixel((cx + dx, cy + dy), TRANSPARENT)
 
-    # The inventory label gets the SAME recessed band, not just a rule above it. Measured
-    # against the palette, chalk-light text on the bare phonolite panel is 3.2:1, under the
-    # 4.5:1 floor where text stops being comfortably readable; on this inset it is 7.2:1,
-    # the same as the title. The band doubles as the divider, so the panel gains a
-    # separator rather than a separator plus a stripe.
-    draw.rectangle([4, 68, PANEL_W - 5, 80], fill=EDGE_DARK)
-    draw.line([(4, 68), (PANEL_W - 5, 68)], fill=RECESS)
-    draw.line([(4, 81), (PANEL_W - 5, 81)], fill=CHASSIS_LIT)
-
-    resonator_ring(draw)
     result_arrow(draw)
+    tuning_fork(img)
 
     for x, y in INPUT_SLOTS:
         slot(draw, x, y)
     slot(draw, *RESULT_SLOT)
 
-    # The player's own inventory, at vanilla's offsets - addStandardInventorySlots
-    # is called with (8, 84) and puts the hotbar 4 pixels below the third row.
+    # The player's own inventory, at vanilla's offsets - addStandardInventorySlots is
+    # called with (8, 84) and puts the hotbar four pixels below the third row.
     for row in range(3):
         for col in range(9):
             slot(draw, 8 + col * 18, 84 + row * 18)
@@ -169,7 +195,7 @@ def main() -> int:
     path = OUT / "knell_integrator.png"
     img.save(path)
 
-    opaque = [p for p in img.getdata() if p[3] > 0]
+    opaque = [p for p in img.convert("RGBA").getdata() if p[3] > 0]
     colours = {p[:3] for p in opaque}
     top = max(sum(1 for p in opaque if p[:3] == c) for c in colours) / len(opaque)
     print(f"wrote {path.relative_to(ROOT)}")

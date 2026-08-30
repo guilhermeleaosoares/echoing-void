@@ -104,8 +104,17 @@ def main() -> int:
     # the trim sprites come from vanilla's own armor_trims atlas.
     tag("minecraft", "item", "head_armor",
         [b("resonance_helmet"), b("knell_helmet")])
+    # PLAYER: "knell aeroshell should be able to take all chestplate enchantments. so
+    # unbreaking, mending, protection."
+    #
+    # It could take NONE. Enchantability in 26.2 runs through these vanilla class tags -
+    # #chest_armor is the only route into #enchantable/chest_armor (Protection, Blast
+    # Protection, Thorns) and into #enchantable/durability (Unbreaking, Mending) - and the
+    # Aeroshell was registered without being added to any of them. Exactly the bug the
+    # Aero-Stride Greaves had when they sat in leg_armor instead of foot_armor: healthy
+    # material, healthy enchantment value, and not one enchantment would apply.
     tag("minecraft", "item", "chest_armor",
-        [b("resonance_chestplate"), b("knell_chestplate")])
+        [b("resonance_chestplate"), b("knell_chestplate"), b("knell_aeroshell")])
     tag("minecraft", "item", "leg_armor",
         [b("resonance_leggings"), b("knell_leggings")])
     # The Aero-Stride Greaves are BOOTS, whatever the name suggests: ModItems

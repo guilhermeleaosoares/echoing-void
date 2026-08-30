@@ -31,36 +31,19 @@ public class IntegratorScreen extends ItemCombinerScreen<IntegratorMenu> {
     private static final Identifier BACKGROUND =
             EchoingVoid.id("textures/gui/container/knell_integrator.png");
 
-    /**
-     * Vanilla's label colour, {@code -12566464} - that is {@code 0xFF404040}, a dark grey.
-     *
-     * <p>PLAYER: "with a grey background and text the text is nearly illegible." Correct, and it is
-     * not a colour anyone chose here: {@code AbstractContainerScreen.extractLabels} hard-codes that
-     * value, and it is the right one for vanilla's pale {@code #C6C6C6} container panel. On this
-     * station's dark phonolite it is very nearly the background. Chalk light from the mod's own
-     * palette reads the other way round, for the same reason.
-     */
-    private static final int LABEL = 0xFFC9D3E2;
-
     public IntegratorScreen(IntegratorMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title, BACKGROUND);
-        // PLAYER: "text overlaps with borders in the gui and the text cuts under grid squares".
-        // The defaults are titleLabelY 6 and inventoryLabelY imageHeight-94, which is 72 - and the
-        // panel's divider rule sat at 76, straight through the second label. Both labels now have
-        // a band of their own, and gen_gui_textures.py keeps those bands clear of the frame, the
-        // resonator ring and the divider rather than the two being tuned independently and
-        // colliding again.
-        this.titleLabelX = 8;
-        this.titleLabelY = 6;
-        this.inventoryLabelX = 8;
-        this.inventoryLabelY = 72;
-    }
-
-    @Override
-    protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-        graphics.text(this.font, this.title, this.titleLabelX, this.titleLabelY, LABEL, false);
-        graphics.text(this.font, this.playerInventoryTitle,
-                this.inventoryLabelX, this.inventoryLabelY, LABEL, false);
+        // Vanilla SmithingScreen's own title offset, and for vanilla's own reason: the
+        // top-left of the panel is taken by the station's icon - a hammer there, a tuning
+        // fork here - so a title at the default x 8 would sit on top of it. The inventory
+        // label keeps its default.
+        //
+        // Nothing overrides the label COLOUR any more. The panel is pale again, so
+        // AbstractContainerScreen's hard-coded 0xFF404040 is the right colour for it -
+        // that override only existed because the previous dark panel made vanilla's grey
+        // unreadable, which was a problem the dark panel created rather than solved.
+        this.titleLabelX = 44;
+        this.titleLabelY = 15;
     }
 
     @Override

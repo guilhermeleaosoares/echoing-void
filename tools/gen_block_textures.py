@@ -1583,16 +1583,92 @@ def t_petrified_tuning_wood_side() -> Canvas:
     return c
 
 
+def stripped_wood_side(c: Canvas, seed: int, ramp_tones: list[int], noise_scale: float = 0.35) -> None:
+    """Smooth stripped wood side texture matching vanilla stripped log conventions.
+    
+    Long vertical grain lines holding tone >= 4 pixels down each column, with tone
+    changes occurring between adjacent columns. Wraps seamlessly at x=0/15 and y=0/15.
+    """
+    n_tones = len(ramp_tones)
+    col_mid = [0.0] * SIZE
+    for x in range(SIZE):
+        s1 = math.sin(x * 2 * math.pi / SIZE + (seed % 97) * 0.1)
+        s2 = math.cos(x * 4 * math.pi / SIZE + (seed % 53) * 0.2)
+        v = (s1 * 0.7 + s2 * 0.3 + 1.0) / 2.0
+        col_mid[x] = v * (n_tones - 1)
+        
+    for y in range(SIZE):
+        for x in range(SIZE):
+            n = fbm(x * 1.0, y * 0.25, seed + 555, octaves=2, period=SIZE)
+            val = col_mid[x] * (1.0 - noise_scale) + (n * (n_tones - 1)) * noise_scale
+            idx = int(round(val))
+            idx = max(0, min(n_tones - 1, idx))
+            c.set(x, y, ramp_tones[idx])
+            
+    # Vertical run length filter (guarantees run length >= 4)
+    for x in range(SIZE):
+        for _ in range(3):
+            for y in range(SIZE):
+                prev_t = c.get(x, (y - 1) % SIZE)
+                next_t = c.get(x, (y + 1) % SIZE)
+                cur_t = c.get(x, y)
+                if prev_t == next_t and cur_t != prev_t:
+                    c.set(x, y, prev_t)
+                    
+    # Horizontal smoothing to ensure adjacent columns don't jump by > 1 tone
+    for y in range(SIZE):
+        for _ in range(2):
+            for x in range(SIZE):
+                p = c.get((x - 1) % SIZE, y)
+                n = c.get((x + 1) % SIZE, y)
+                cur = c.get(x, y)
+                if abs(cur - p) > 1 and abs(cur - n) > 1:
+                    c.set(x, y, (p + n) // 2)
+
+
+def stripped_log_rings(c: Canvas, seed: int, rim: int, ring_tones: list[int],
+                       heart_accent: int | None = None, corner_tone: int | None = None) -> None:
+    """Smooth concentric growth rings for stripped log tops matching vanilla log tops."""
+    t_sap_outer, t_ring_outer, t_sap_mid, t_ring_inner, t_heart = ring_tones
+    c_tone = corner_tone if corner_tone is not None else max(0, rim - 1)
+    
+    for y in range(SIZE):
+        for x in range(SIZE):
+            dx = abs(x - 7.5)
+            dy = abs(y - 7.5)
+            d_cheb = max(dx, dy)
+            d_eucl = math.hypot(dx, dy)
+            d = d_cheb * 0.75 + (d_eucl / 1.4142 * 7.5 / 5.3) * 0.25
+            
+            is_edge = (x == 0 or x == SIZE - 1 or y == 0 or y == SIZE - 1)
+            if is_edge:
+                is_corner = (x in (0, SIZE - 1) and y in (0, SIZE - 1))
+                t = c_tone if is_corner else rim
+            else:
+                if d > 5.4:
+                    t = t_sap_outer
+                elif d > 4.4:
+                    t = t_ring_outer
+                elif d > 3.0:
+                    t = t_sap_mid
+                elif d > 1.8:
+                    t = t_ring_inner
+                else:
+                    t = t_heart
+                    
+                if hash01(x, y, seed + 404) < 0.06:
+                    t = t_sap_mid if t in (t_ring_outer, t_ring_inner) else t_ring_outer
+                    
+            c.set(x, y, t)
+            
+    if heart_accent is not None:
+        c.set(7, 7, heart_accent)
+
+
 def t_stripped_petrified_tuning_wood_side() -> Canvas:
-    """Stripped: lighter, smoother, one inlay channel left and no bismuth."""
+    """Stripped: lighter, smoother vertical grain."""
     c = Canvas(STRIP_TUNE_RAMP)
-    wood_side(c, 8117, (0.09, 0.20, 0.27, 0.23, 0.15, 0.06), top=5, groove=1)
-    for y in range(2, 14):
-        put(c, 4, y, 6)
-        put(c, 5, y, 1)
-        put(c, 6, y, 5)
-    for y in (5, 10):
-        put(c, 4, y, 7)
+    stripped_wood_side(c, 8117, [0, 1, 2, 3, 4, 5, 6], noise_scale=0.40)
     return c
 
 
@@ -1606,8 +1682,7 @@ def t_petrified_tuning_wood_top() -> Canvas:
 
 def t_stripped_petrified_tuning_wood_top() -> Canvas:
     c = Canvas(STRIP_TUNE_RAMP)
-    log_top(c, 8219, (0.09, 0.20, 0.27, 0.23, 0.15, 0.06),
-            bark_lo=0, bark_hi=2, ring_even=1, ring_odd=4, heart=7)
+    stripped_log_rings(c, 8219, rim=3, ring_tones=[4, 2, 3, 1, 2], corner_tone=0, heart_accent=7)
     return c
 
 
@@ -1647,24 +1722,15 @@ def t_humming_stem_top() -> Canvas:
 
 
 def t_stripped_humming_stem_side() -> Canvas:
-    """Stripped violet stem: the glow seams are gone and the value band is
-    tight, the way stripped_warped_stem only spans 32 luminance."""
+    """Stripped violet stem: smooth vertical grain without harsh noise."""
     c = Canvas(STRIP_STEM_RAMP)
-    wood_side(c, 8347, (0.09, 0.19, 0.26, 0.24, 0.16, 0.06), top=6, groove=1,
-              grain_strength=0.85)
-    # two shallow strip scars, the marks the axe leaves down the trunk
-    for x0 in (5, 11):
-        for y in range(SIZE):
-            put(c, x0, y, 5 if hash01(y, x0, 8353) > 0.4 else 4)
-            put(c, x0 + 1, y, 0)
-            put(c, x0 - 1, y, 6 if hash01(x0, y, 8359) > 0.55 else 5)
+    stripped_wood_side(c, 8347, [0, 1, 2, 3, 4, 5], noise_scale=0.28)
     return c
 
 
 def t_stripped_humming_stem_top() -> Canvas:
     c = Canvas(STRIP_STEM_RAMP)
-    log_top(c, 8363, (0.09, 0.19, 0.26, 0.24, 0.16, 0.06),
-            bark_lo=0, bark_hi=2, ring_even=1, ring_odd=4, heart=6)
+    stripped_log_rings(c, 8363, rim=2, ring_tones=[3, 1, 2, 0, 1], corner_tone=0, heart_accent=4)
     return c
 
 

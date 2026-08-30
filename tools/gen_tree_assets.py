@@ -30,7 +30,7 @@ TOOLS = Path(__file__).resolve().parent
 sys.path.insert(0, str(TOOLS))
 
 import gen_item_textures as gi  # noqa: E402
-from gen_item_textures import Sprite, poly  # noqa: E402
+from gen_item_textures import Sprite, poly, Material  # noqa: E402
 
 NS = "echoing_void"
 ROOT = TOOLS.parent
@@ -84,31 +84,204 @@ TRUNK = {
 }
 
 
-def sapling_sprite(canopy: Material, trunk: Material, seed: int) -> Sprite:
-    """A young tree: a slim stem with a rounded crown, the vanilla sapling read.
-
-    Vanilla saplings are all the same shape and are told apart by colour alone, which is
-    the right call here too - four different silhouettes would say "four different KINDS
-    of thing" when they are four of the same thing.
-    """
+def make_petrified_tuning_sapling(canopy: Material, trunk: Material, seed: int = 7001) -> Sprite:
+    """Narrow, upright, sparse, stony tuning-fork sapling."""
     sp = Sprite()
-
-    crown = poly([(8.0, 1.5), (13.5, 5.0), (13.0, 9.5), (8.0, 12.0),
-                  (3.0, 9.5), (2.5, 5.0)])
-    sp.paint(crown, canopy, 0.56, seed, spread=0.34, light=0.30)
-
-    # A couple of gaps punched through the canopy, so it reads as leaves rather than
-    # as a solid blob at 16 pixels.
-    for (x, y) in poly([(5.0, 6.0), (6.6, 7.4), (5.2, 8.4)]):
-        sp.clear(x, y)
-    for (x, y) in poly([(10.4, 4.6), (12.0, 6.0), (10.6, 7.0)]):
-        sp.clear(x, y)
-
-    stem = poly([(7.0, 11.0), (9.0, 11.0), (9.0, 15.0), (7.0, 15.0)])
-    sp.paint(stem, trunk, 0.44, seed + 11, spread=0.26, light=0.22)
-
+    
+    stem_pts = {
+        # Flared base sitting on y=15
+        (7, 15), (8, 15), (9, 15),
+        (7, 14), (8, 14),
+        (7, 13), (8, 13),
+        (7, 12), (8, 12),
+        (6, 11), (7, 11), (8, 11),
+        (6, 10), (7, 10), (8, 10), (9, 10),
+        # Fork junction & left branch
+        (6, 9), (7, 9), (8, 9),
+        (5, 8), (6, 8),
+        (5, 7), (6, 7),
+        (5, 6), (6, 6),
+        (5, 5), (6, 5),
+        (5, 4),
+        # Right branch (taller)
+        (8, 8), (9, 8),
+        (9, 7), (10, 7),
+        (9, 6), (10, 6),
+        (9, 5), (10, 5),
+        (9, 4), (10, 4),
+        (9, 3), (10, 3),
+        (9, 2),
+    }
+    
+    leaf_pts = {
+        # Left fork cluster
+        (4, 5), (4, 6), (4, 7),
+        (3, 6), (3, 7),
+        (4, 4), (5, 3), (6, 3), (7, 4),
+        (5, 2), (6, 2), (7, 3),
+        # Right fork cluster
+        (8, 2), (8, 3), (8, 4),
+        (10, 2), (11, 2), (11, 3), (11, 4), (12, 4),
+        (9, 1), (10, 1),
+        (10, 3), (11, 5), (10, 6), (11, 6),
+        # Mid-canopy clusters
+        (4, 8), (4, 9), (5, 9), (3, 8),
+        (7, 6), (8, 6), (7, 7), (8, 7),
+        (9, 9), (10, 8), (11, 8), (10, 9), (11, 9),
+        # Lower tufts
+        (4, 10), (5, 10), (5, 11), (4, 11),
+        (9, 11), (10, 11), (10, 12),
+    }
+    leaf_pts -= stem_pts
+    
+    sp.paint(leaf_pts, canopy, 0.58, seed, spread=0.32, light=0.30)
+    sp.paint(stem_pts, trunk, 0.42, seed + 13, spread=0.25, light=0.22)
     sp.outline()
     return sp
+
+
+def make_echo_ash_sapling(canopy: Material, trunk: Material, seed: int = 7038) -> Sprite:
+    """Drooping, wispy, weeping ash sapling with dark slate trunk."""
+    sp = Sprite()
+    
+    stem_pts = {
+        (6, 15), (7, 15), (8, 15),
+        (7, 14), (8, 14),
+        (6, 13), (7, 13), (8, 13),
+        (6, 12), (7, 12),
+        (6, 11), (7, 11),
+        (6, 10), (7, 10),
+        (7, 9), (8, 9),
+        (7, 8), (8, 8),
+        (8, 7), (9, 7),
+        (8, 6), (9, 6),
+        (8, 5),
+    }
+    
+    leaf_pts = {
+        # Top crown with wispy tips
+        (8, 1), (9, 1),
+        (7, 2), (8, 2), (9, 2), (10, 2),
+        (6, 3), (7, 3), (8, 3), (9, 3), (10, 3), (11, 3),
+        (5, 4), (6, 4), (7, 4), (8, 4), (9, 4), (10, 4), (11, 4), (12, 4),
+        (4, 5), (5, 5), (6, 5), (7, 5), (10, 5), (11, 5), (12, 5),
+        (4, 6), (5, 6), (6, 6), (7, 6), (10, 6), (11, 6),
+        # Drooping tendrils on left side
+        (3, 7), (4, 7), (5, 7), (6, 7),
+        (3, 8), (4, 8), (5, 8),
+        (2, 9), (3, 9), (4, 9), (5, 9),
+        (2, 10), (3, 10), (4, 10),
+        (2, 11), (3, 11),
+        (3, 12),
+        # Right side canopy
+        (9, 8), (10, 8), (11, 8), (12, 8),
+        (10, 9), (11, 9), (12, 9),
+        (11, 10), (12, 10),
+        (11, 11),
+        # Center wisps
+        (8, 10), (9, 10), (8, 11),
+    }
+    leaf_pts -= stem_pts
+    
+    sp.paint(leaf_pts, canopy, 0.54, seed, spread=0.36, light=0.30)
+    sp.paint(stem_pts, trunk, 0.40, seed + 17, spread=0.24, light=0.20)
+    sp.outline()
+    return sp
+
+
+def make_amber_bough_sapling(canopy: Material, trunk: Material, seed: int = 7075) -> Sprite:
+    """Broad, full spreading amber bough sapling."""
+    sp = Sprite()
+    
+    stem_pts = {
+        (6, 15), (7, 15), (8, 15),
+        (7, 14), (8, 14),
+        (7, 13), (8, 13),
+        (6, 12), (7, 12), (8, 12),
+        (7, 11), (8, 11),
+        (7, 10), (8, 10),
+        (7, 9), (8, 9), (9, 9),
+        (8, 8), (9, 8),
+        (8, 7),
+    }
+    
+    leaf_pts = {
+        (5, 1), (9, 1), (10, 1),
+        (4, 2), (5, 2), (6, 2), (8, 2), (9, 2), (10, 2), (11, 2),
+        (3, 3), (4, 3), (5, 3), (6, 3), (7, 3), (8, 3), (9, 3), (10, 3), (11, 3), (12, 3),
+        (2, 4), (3, 4), (4, 4), (5, 4), (6, 4), (7, 4), (8, 4), (9, 4), (10, 4), (11, 4), (12, 4), (13, 4),
+        (2, 5), (3, 5), (4, 5), (5, 5), (6, 5), (7, 5), (8, 5), (9, 5), (10, 5), (11, 5), (12, 5), (13, 5), (14, 5),
+        (1, 6), (2, 6), (3, 6), (4, 6), (5, 6), (6, 6), (7, 6), (8, 6), (9, 6), (10, 6), (11, 6), (12, 6), (13, 6),
+        (1, 7), (2, 7), (3, 7), (4, 7), (5, 7), (6, 7), (7, 7), (10, 7), (11, 7), (12, 7), (13, 7),
+        (2, 8), (3, 8), (4, 8), (5, 8), (6, 8), (7, 8), (10, 8), (11, 8), (12, 8), (13, 8),
+        (2, 9), (3, 9), (4, 9), (5, 9), (6, 9), (10, 9), (11, 9), (12, 9),
+        (3, 10), (4, 10), (5, 10), (10, 10), (11, 10),
+        (4, 11), (5, 11), (10, 11),
+        (4, 12), (5, 12),
+    }
+    leaf_pts.discard((7, 2))
+    leaf_pts.discard((1, 5))
+    leaf_pts -= stem_pts
+    
+    sp.paint(leaf_pts, canopy, 0.56, seed, spread=0.34, light=0.30)
+    sp.paint(stem_pts, trunk, 0.44, seed + 19, spread=0.26, light=0.22)
+    sp.outline()
+    return sp
+
+
+def make_humming_sapling(canopy: Material, trunk: Material, seed: int = 7112) -> Sprite:
+    """Bulbous mushroom-like violet glowing sapling."""
+    sp = Sprite()
+    
+    stem_pts = {
+        (6, 15), (7, 15), (8, 15), (9, 15),
+        (6, 14), (7, 14), (8, 14), (9, 14),
+        (7, 13), (8, 13),
+        (7, 12), (8, 12),
+        (7, 11), (8, 11),
+        (7, 10), (8, 10),
+        (7, 9), (8, 9),
+        (7, 8), (8, 8),
+    }
+    
+    leaf_pts = {
+        # Rounded domed top
+        (6, 1), (7, 1), (8, 1),
+        (5, 2), (6, 2), (7, 2), (8, 2), (9, 2), (10, 2),
+        (4, 3), (5, 3), (6, 3), (7, 3), (8, 3), (9, 3), (10, 3), (11, 3),
+        (3, 4), (4, 4), (5, 4), (6, 4), (7, 4), (8, 4), (9, 4), (10, 4), (11, 4), (12, 4),
+        (3, 5), (4, 5), (5, 5), (6, 5), (7, 5), (8, 5), (9, 5), (10, 5), (11, 5), (12, 5), (13, 5),
+        (2, 6), (3, 6), (4, 6), (5, 6), (6, 6), (7, 6), (8, 6), (9, 6), (10, 6), (11, 6), (12, 6), (13, 6),
+        (2, 7), (3, 7), (4, 7), (5, 7), (6, 7), (7, 7), (8, 7), (9, 7), (10, 7), (11, 7), (12, 7), (13, 7),
+        # Mushroom cap overhang rim
+        (2, 8), (3, 8), (4, 8), (5, 8), (6, 8), (9, 8), (10, 8), (11, 8), (12, 8), (13, 8),
+        (3, 9), (4, 9), (5, 9), (6, 9), (9, 9), (10, 9), (11, 9), (12, 9),
+        (4, 10), (5, 10), (10, 10), (11, 10),
+        (4, 11), (11, 11),
+    }
+    # Slight organic asymmetry
+    leaf_pts.discard((2, 6))
+    leaf_pts.discard((13, 8))
+    leaf_pts -= stem_pts
+    
+    sp.paint(leaf_pts, canopy, 0.55, seed, spread=0.35, light=0.28)
+    sp.paint(stem_pts, trunk, 0.40, seed + 23, spread=0.25, light=0.20)
+    sp.outline()
+    return sp
+
+
+SAPLING_BUILDERS = {
+    "petrified_tuning_sapling": make_petrified_tuning_sapling,
+    "echo_ash_sapling": make_echo_ash_sapling,
+    "amber_bough_sapling": make_amber_bough_sapling,
+    "humming_sapling": make_humming_sapling,
+}
+
+
+def sapling_sprite(name: str, canopy: Material, trunk: Material, seed: int) -> Sprite:
+    """Dispatches to the tree-specific sapling generator matching the tree it becomes."""
+    builder = SAPLING_BUILDERS[name]
+    return builder(canopy, trunk, seed)
 
 
 # ---------------------------------------------------------------------------
@@ -116,7 +289,7 @@ def sapling_sprite(canopy: Material, trunk: Material, seed: int) -> Sprite:
 def gen_textures() -> None:
     BLOCK_TEX.mkdir(parents=True, exist_ok=True)
     for i, (name, canopy, trunk, _) in enumerate(TREES):
-        sprite = sapling_sprite(CANOPY[canopy], TRUNK[trunk], 7001 + i * 37)
+        sprite = sapling_sprite(name, CANOPY[canopy], TRUNK[trunk], 7001 + i * 37)
         sprite.save(BLOCK_TEX / f"{name}.png")
         written.append(f"src/main/resources/assets/{NS}/textures/block/{name}.png")
 

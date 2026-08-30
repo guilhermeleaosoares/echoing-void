@@ -84,7 +84,7 @@ for it in ("harmonic_axe", "knell_axe"):
 # --- armour: both full sets, slot by slot -----------------------------------
 for slot, pieces in (
     ("armor.head", ("resonance_helmet", "knell_helmet")),
-    ("armor.chest", ("resonance_chestplate", "knell_chestplate")),
+    ("armor.chest", ("resonance_chestplate", "knell_chestplate", "knell_aeroshell")),
     ("armor.legs", ("resonance_leggings", "knell_leggings")),
     ("armor.feet", ("resonance_boots", "knell_boots")),
 ):
