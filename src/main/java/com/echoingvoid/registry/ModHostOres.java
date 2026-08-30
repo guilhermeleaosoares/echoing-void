@@ -105,7 +105,8 @@ public final class ModHostOres {
 
     private static RegistryObject<Item> blockItem(String name, Supplier<? extends Block> block) {
         RegistryObject<Item> item = ITEMS.register(name,
-                () -> new BlockItem(block.get(), new Item.Properties().setId(ITEMS.key(name))));
+                () -> new BlockItem(block.get(), new Item.Properties().setId(ITEMS.key(name))
+                        .useBlockDescriptionPrefix()));
         TAB_ORDER.add(item);
         return item;
     }

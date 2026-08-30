@@ -819,38 +819,6 @@ def knell_aeroshell() -> Sprite:
     return sp
 
 
-def aeroshell_wings() -> gi.Sheet:
-    """The worn wings, on the elytra's own UV block.
-
-    ElytraModel.createLayer builds each wing as texOffs(22, 0).addBox(-10, 0, 0, 10, 20, 2), and
-    the second wing is the same box mirrored - so one 10x20x2 unwrap at (22, 0) on a 64x32 sheet
-    paints both. Nothing here is guessed: the region comes from gi.box_faces with those exact
-    figures, the same arithmetic the humanoid sheets use.
-
-    Front and back are the two faces a player actually sees in flight, so they carry the structure:
-    a knell membrane with a magenta spar running the length of each wing.
-    """
-    sh = gi.Sheet(64, 32)
-    wing = gi.box_faces(22, 0, 10, 20, 2)
-
-    for key in ("top", "bottom", "right", "left"):
-        sh.plate(gi.face_rect(wing[key]), NULL_IRON, 6121, base=0.40, spread=0.22)
-    for key in ("front", "back"):
-        sh.plate(gi.face_rect(wing[key]), KNELL, 6127, base=0.50, spread=0.30)
-
-    # The spar: a lit rib down the leading edge of each visible face, plus three ribs
-    # fanning off it, which is what stops the wing reading as a flat rectangle.
-    for key in ("front", "back"):
-        x0, y0, w, h = wing[key]
-        for y in range(y0, y0 + h):
-            sh.sp.put(x0, y, HARMONIC, 3 if (y - y0) % 5 else 5)
-        for rib in (4, 9, 14):
-            for dx in range(1, w - 1):
-                if dx <= rib // 2:
-                    sh.sp.put(x0 + dx, y0 + rib + dx, HARMONIC, 2)
-    return sh
-
-
 # ---------------------------------------------------------------------------
 # Worn-armour sheets
 #
@@ -1086,7 +1054,6 @@ EQUIPMENT_SHEETS = [
     ("humanoid/knell.png", resonant_layer_1, (64, 32)),
     ("humanoid_leggings/knell.png", resonant_layer_2, (64, 32)),
     ("humanoid_baby/knell.png", resonant_baby, (64, 64)),
-    ("wings/knell_aeroshell.png", aeroshell_wings, (64, 32)),
 ]
 
 

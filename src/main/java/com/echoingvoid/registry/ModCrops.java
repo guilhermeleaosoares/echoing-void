@@ -265,10 +265,12 @@ public final class ModCrops {
             seed("echo_gourd_seeds", ECHO_GOURD_STEM);
 
     public static final RegistryObject<Item> ECHO_GOURD_ITEM = track(ITEMS.register("echo_gourd",
-            () -> new BlockItem(ECHO_GOURD.get(), itemProps("echo_gourd"))));
+            () -> new BlockItem(ECHO_GOURD.get(),
+                    itemProps("echo_gourd").useBlockDescriptionPrefix())));
 
     public static final RegistryObject<Item> VOID_FARMLAND_ITEM = track(ITEMS.register("void_farmland",
-            () -> new BlockItem(VOID_FARMLAND.get(), itemProps("void_farmland"))));
+            () -> new BlockItem(VOID_FARMLAND.get(),
+                    itemProps("void_farmland").useBlockDescriptionPrefix())));
 
     public static final RegistryObject<Item> RESONANT_BREAD = track(ITEMS.register("resonant_bread",
             () -> new Item(itemProps("resonant_bread")

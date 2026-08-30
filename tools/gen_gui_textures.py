@@ -85,7 +85,10 @@ def resonator_ring(draw: ImageDraw.ImageDraw) -> None:
     first, so the recesses cut through it - which is what stops it reading as
     decoration stuck onto a smithing table.
     """
-    cx, cy = 35, 56
+    # Centred on the slot row rather than below it. At its old centre of y 56 the outer
+    # ring reached y 71, which put it under the player-inventory label at y 72 and made
+    # the text unreadable over the ring as well as over the panel.
+    cx, cy = 35, 47
     for radius, colour in ((30, RING_DEEP), (24, RING_MID), (18, RING_LIT)):
         draw.ellipse([cx - radius, cy - radius // 2, cx + radius, cy + radius // 2],
                      outline=colour)
@@ -118,8 +121,29 @@ def panel() -> Image.Image:
     # An inner frame, which is what separates the working area from the player's
     # own inventory below and keeps the eye where the three slots are.
     draw.rectangle([3, 3, PANEL_W - 4, PANEL_H - 4], outline=CHASSIS_DIM)
-    draw.line([(4, 76), (PANEL_W - 5, 76)], fill=EDGE_DARK)
-    draw.line([(4, 77), (PANEL_W - 5, 77)], fill=CHASSIS_LIT)
+
+    # TWO CLEAR BANDS FOR TEXT, and this is a fix rather than a flourish. PLAYER: "there
+    # is overlapping text in the knell integrator gui... text overlaps with borders in the
+    # gui and the text cuts under grid squares."
+    #
+    # AbstractContainerScreen puts the title at y 6 and the inventory label at
+    # imageHeight-94, which is 72 on a 166-tall panel. The divider rule used to sit at
+    # y 76 and ran straight through the second one. So the title band is recessed
+    # deliberately - a darker inset the light text sits ON, rather than text floating over
+    # whatever art happens to be behind it - and the divider has moved to y 68, ABOVE the
+    # inventory label instead of through it.
+    draw.rectangle([4, 4, PANEL_W - 5, 15], fill=EDGE_DARK)
+    draw.line([(4, 4), (PANEL_W - 5, 4)], fill=RECESS)
+    draw.line([(4, 16), (PANEL_W - 5, 16)], fill=CHASSIS_LIT)
+
+    # The inventory label gets the SAME recessed band, not just a rule above it. Measured
+    # against the palette, chalk-light text on the bare phonolite panel is 3.2:1, under the
+    # 4.5:1 floor where text stops being comfortably readable; on this inset it is 7.2:1,
+    # the same as the title. The band doubles as the divider, so the panel gains a
+    # separator rather than a separator plus a stripe.
+    draw.rectangle([4, 68, PANEL_W - 5, 80], fill=EDGE_DARK)
+    draw.line([(4, 68), (PANEL_W - 5, 68)], fill=RECESS)
+    draw.line([(4, 81), (PANEL_W - 5, 81)], fill=CHASSIS_LIT)
 
     resonator_ring(draw)
     result_arrow(draw)

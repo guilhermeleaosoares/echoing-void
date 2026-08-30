@@ -76,7 +76,8 @@ public final class ModEffects {
 
     public static final RegistryObject<Item> NULL_IRON_JUKEBOX_ITEM = track(ITEMS.register("null_iron_jukebox",
             () -> new BlockItem(NULL_IRON_JUKEBOX.get(),
-                    new Item.Properties().setId(ITEMS.key("null_iron_jukebox")))));
+                    new Item.Properties().setId(ITEMS.key("null_iron_jukebox"))
+                            .useBlockDescriptionPrefix())));
 
     public static final RegistryObject<BlockEntityType<NullIronJukeboxBlockEntity>> NULL_IRON_JUKEBOX_ENTITY =
             BLOCK_ENTITIES.register("null_iron_jukebox",

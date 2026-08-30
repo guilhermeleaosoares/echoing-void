@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cross",
+  "textures": {
+    "cross": "echoing_void:block/amber_bough_sapling"
+  }
+}

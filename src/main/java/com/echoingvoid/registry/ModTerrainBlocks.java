@@ -300,7 +300,8 @@ public final class ModTerrainBlocks {
     /** The item form of a block, tracked for the creative tab. */
     private static RegistryObject<Item> blockItem(String name, Supplier<? extends Block> block) {
         RegistryObject<Item> item = ITEMS.register(name,
-                () -> new BlockItem(block.get(), new Item.Properties().setId(ITEMS.key(name))));
+                () -> new BlockItem(block.get(), new Item.Properties().setId(ITEMS.key(name))
+                        .useBlockDescriptionPrefix()));
         TAB_ORDER.add(item);
         return item;
     }

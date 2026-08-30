@@ -2,6 +2,7 @@ package com.echoingvoid;
 
 import com.echoingvoid.client.EchoingVoidClient;
 import com.echoingvoid.client.VoidTravelOverlay;
+import com.echoingvoid.event.AeroshellEvents;
 import com.echoingvoid.event.CombatEvents;
 import com.echoingvoid.event.FluidEvents;
 import com.echoingvoid.event.PlayerTickEvents;
@@ -15,6 +16,7 @@ import com.echoingvoid.registry.ModCreativeTabs;
 import com.echoingvoid.registry.ModCrops;
 import com.echoingvoid.registry.ModMenus;
 import com.echoingvoid.registry.ModRecipes;
+import com.echoingvoid.registry.ModTrees;
 import com.echoingvoid.registry.ModEffects;
 import com.echoingvoid.registry.ModHostOres;
 import com.echoingvoid.registry.ModEntities;
@@ -57,6 +59,7 @@ public final class EchoingVoid {
         // Farming. After ModFluids because void farmland is watered by hushwater,
         // and after ModTerrainBlocks because it is tilled out of resonance moss.
         ModCrops.register(modBus);
+        ModTrees.register(modBus);
         ModNewEntities.register(modBus);
         // Structure processors - the ground-support legs that stop pieces floating.
         com.echoingvoid.worldgen.ModProcessors.register(modBus);
@@ -76,6 +79,7 @@ public final class EchoingVoid {
 
         // Game-bus listeners. These are EventBus 7 static buses, not an IEventBus instance.
         CombatEvents.register();
+        AeroshellEvents.register();
         PlayerTickEvents.register();
         FluidEvents.register();
 

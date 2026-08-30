@@ -27,6 +27,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from ev_leaf_loot import leaf_pools  # noqa: E402
+
 NS = "echoing_void"
 ROOT = Path(__file__).resolve().parent.parent
 LOOT = ROOT / "src" / "main" / "resources" / "data" / NS / "loot_table"
@@ -88,25 +90,14 @@ def self_drop(block: str) -> None:
     }]))
 
 
-def leaves(block: str, seedling: str) -> None:
-    """Shears or silk touch recover the block; otherwise a rare seedling."""
-    write(f"blocks/{block}.json", block_table(block, [{
-        "rolls": 1.0,
-        "entries": [{
-            "type": "minecraft:alternatives",
-            "children": [
-                {"type": "minecraft:item", "name": f"{NS}:{block}",
-                 "conditions": [SHEARS_OR_SILK]},
-                {"type": "minecraft:item", "name": f"{NS}:{seedling}",
-                 "conditions": [
-                     SURVIVES,
-                     {"condition": "minecraft:table_bonus",
-                      "enchantment": "minecraft:fortune",
-                      "chances": [0.05, 0.0625, 0.083333336, 0.1]},
-                 ]},
-            ],
-        }],
-    }]))
+def leaves(block: str, sapling: str) -> None:
+    """Shears or silk recover the block; otherwise this tree's sapling, or sticks.
+
+    Shared with gen_loot_tables and gen_host_ores through ev_leaf_loot - see there for
+    why these three stopped keeping a copy each.
+    """
+    write(f"blocks/{block}.json",
+          block_table(block, leaf_pools(NS, block, sapling, SHEARS_OR_SILK)))
 
 
 def cluster(block: str, shard: str, max_count: float, hand_count: float) -> None:
@@ -168,12 +159,20 @@ SELF_DROP = [
 LEAF_BLOCKS = ["amber_resonance_leaves", "violet_resonance_leaves"]
 
 
+#: Which sapling each canopy drops. One per tree - see ModTrees. Until now every
+#: canopy in the mod dropped the same unplantable bismuth_seedling.
+LEAF_SAPLING = {
+    "amber_resonance_leaves": "amber_bough_sapling",
+    "violet_resonance_leaves": "humming_sapling",
+}
+
+
 def main() -> int:
     for block in SELF_DROP:
         self_drop(block)
 
     for block in LEAF_BLOCKS:
-        leaves(block, "bismuth_seedling")
+        leaves(block, LEAF_SAPLING[block])
 
     cluster("bismuth_cluster", "resonance_shard", 4.0, 2.0)
 

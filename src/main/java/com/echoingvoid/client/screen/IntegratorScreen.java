@@ -31,8 +31,36 @@ public class IntegratorScreen extends ItemCombinerScreen<IntegratorMenu> {
     private static final Identifier BACKGROUND =
             EchoingVoid.id("textures/gui/container/knell_integrator.png");
 
+    /**
+     * Vanilla's label colour, {@code -12566464} - that is {@code 0xFF404040}, a dark grey.
+     *
+     * <p>PLAYER: "with a grey background and text the text is nearly illegible." Correct, and it is
+     * not a colour anyone chose here: {@code AbstractContainerScreen.extractLabels} hard-codes that
+     * value, and it is the right one for vanilla's pale {@code #C6C6C6} container panel. On this
+     * station's dark phonolite it is very nearly the background. Chalk light from the mod's own
+     * palette reads the other way round, for the same reason.
+     */
+    private static final int LABEL = 0xFFC9D3E2;
+
     public IntegratorScreen(IntegratorMenu menu, Inventory inventory, Component title) {
         super(menu, inventory, title, BACKGROUND);
+        // PLAYER: "text overlaps with borders in the gui and the text cuts under grid squares".
+        // The defaults are titleLabelY 6 and inventoryLabelY imageHeight-94, which is 72 - and the
+        // panel's divider rule sat at 76, straight through the second label. Both labels now have
+        // a band of their own, and gen_gui_textures.py keeps those bands clear of the frame, the
+        // resonator ring and the divider rather than the two being tuned independently and
+        // colliding again.
+        this.titleLabelX = 8;
+        this.titleLabelY = 6;
+        this.inventoryLabelX = 8;
+        this.inventoryLabelY = 72;
+    }
+
+    @Override
+    protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+        graphics.text(this.font, this.title, this.titleLabelX, this.titleLabelY, LABEL, false);
+        graphics.text(this.font, this.playerInventoryTitle,
+                this.inventoryLabelX, this.inventoryLabelY, LABEL, false);
     }
 
     @Override

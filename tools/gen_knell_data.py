@@ -301,7 +301,11 @@ def gen_equipment_asset() -> None:
         "layers": {
             "humanoid": [{"texture": f"{NS}:knell"}],
             "humanoid_baby": [{"texture": f"{NS}:knell"}],
-            "wings": [{"texture": f"{NS}:knell_aeroshell"}],
+            # PLAYER: "replace your custom wing assets for the default elytra assets."
+            # minecraft:elytra with use_player_texture, byte for byte what vanilla's own
+            # elytra.json declares - so a player's cape shows through on the Aeroshell
+            # exactly as it does on an elytra, which a bespoke sheet could never do.
+            "wings": [{"texture": "minecraft:elytra", "use_player_texture": True}],
         }
     })
 
@@ -751,6 +755,11 @@ def gen_lang() -> None:
     for name in MATERIALS + GEAR:
         entries[f"item.{NS}.{name}"] = NAMES[name]
     entries[f"container.{NS}.knell_integrator"] = "Knell Integrator"
+    # The Aeroshell carries two durability pools and a slot can only host one built-in bar,
+    # so the second is drawn by a decorator. Two bars are cryptic without a key - these name
+    # them, in the same colours the bars use.
+    entries[f"tooltip.{NS}.aeroshell_plate"] = "Plate: %s / %s"
+    entries[f"tooltip.{NS}.aeroshell_wings"] = "Wings: %s / %s"
     for key, (title, description) in ADVANCEMENT_LANG.items():
         entries[f"advancements.{NS}.{key}.title"] = title
         entries[f"advancements.{NS}.{key}.description"] = description

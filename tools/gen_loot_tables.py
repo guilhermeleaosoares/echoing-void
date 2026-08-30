@@ -15,7 +15,10 @@ Run:  python tools/gen_loot_tables.py
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
+
+from ev_leaf_loot import leaf_pools  # noqa: E402
 
 NS = "echoing_void"
 ROOT = Path(__file__).resolve().parent.parent
@@ -105,24 +108,16 @@ def ore(block: str, drop: str, count: tuple[int, int] | None) -> None:
     }]))
 
 
-def leaves(block: str, seedling: str) -> None:
-    write(f"blocks/{block}.json", block_table(block, [{
-        "rolls": 1.0,
-        "entries": [{
-            "type": "minecraft:alternatives",
-            "children": [
-                {"type": "minecraft:item", "name": f"{NS}:{block}",
-                 "conditions": [SHEARS_OR_SILK]},
-                {"type": "minecraft:item", "name": f"{NS}:{seedling}",
-                 "conditions": [
-                     SURVIVES,
-                     {"condition": "minecraft:table_bonus",
-                      "enchantment": "minecraft:fortune",
-                      "chances": [0.05, 0.0625, 0.083333336, 0.1]},
-                 ]},
-            ],
-        }],
-    }]))
+def leaves(block: str, sapling: str) -> None:
+    """A canopy drops its OWN tree's sapling, and sticks, at vanilla's rates.
+
+    Structure lives in ev_leaf_loot so that all three generators writing leaf loot -
+    this one, gen_terrain_loot and gen_host_ores - share one definition. They used to
+    hold a copy each, and adding the stick pool to one produced a mod where a single
+    canopy dropped sticks and the other three silently did not.
+    """
+    write(f"blocks/{block}.json",
+          block_table(block, leaf_pools(NS, block, sapling, SHEARS_OR_SILK)))
 
 
 # --------------------------------------------------------------------------
@@ -387,7 +382,7 @@ def main() -> int:
     ore("resonant_bismuth_ore", "resonance_shard", (1, 3))
     ore("deepslate_resonant_bismuth_ore", "resonance_shard", (1, 3))
     ore("null_iron_ore", "raw_null_iron", None)
-    leaves("calcified_resonance_leaves", "bismuth_seedling")
+    leaves("calcified_resonance_leaves", "petrified_tuning_sapling")
     gen_entities()
     gen_chests()
 

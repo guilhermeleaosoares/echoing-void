@@ -5,6 +5,7 @@ import com.echoingvoid.registry.ModCrops;
 import com.echoingvoid.registry.ModFluids;
 import com.echoingvoid.registry.ModKnell;
 import com.echoingvoid.registry.ModItems;
+import com.echoingvoid.registry.ModTrees;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
@@ -346,7 +347,9 @@ public class TraderMob extends AbstractVillager implements BoltCaster {
                     r -> sell(Items.EMERALD, 5, ModCrops.RESONANT_BREAD.get(), 4, 16, 3),
                     r -> sell(Items.EMERALD, 3, ModCrops.RESONANT_WHEAT_SEEDS.get(), 6, 16, 2),
                     r -> sell(Items.EMERALD, 4, ModCrops.CHIME_ROOT.get(), 5, 16, 2),
-                    r -> buy(ModItems.BISMUTH_SEEDLING.get(), 3, Items.EMERALD, 2, 12, 2),
+                    // Was the Bismuth Seedling, which is deprecated - see ModItems. A trader
+                    // buying an item nothing drops any more is a dead trade.
+                    r -> buy(ModTrees.ECHO_ASH_SAPLING_ITEM.get(), 3, Items.EMERALD, 2, 12, 2),
                     r -> sell(Items.EMERALD, 4, ModItems.RAW_PHONOLITE_ITEM.get(), 8, 12, 3)),
 
             // ---- level 2: the tools of getting about the place ----
@@ -362,7 +365,9 @@ public class TraderMob extends AbstractVillager implements BoltCaster {
             // ---- level 3: the first things worth crossing over for ----
             List.of(
                     r -> sell(ModItems.RESONANCE_SHARD.get(), 8, ModItems.NULL_IRON_INGOT.get(), 1, 6, 12),
-                    r -> sell(Items.EMERALD, 14, ModItems.BISMUTH_SEEDLING.get(), 2, 8, 8),
+                    // Likewise. A sapling for a tree you have not found yet is a better
+                    // level-3 offer than a seedling that grows nothing.
+                    r -> sell(Items.EMERALD, 14, ModTrees.AMBER_BOUGH_SAPLING_ITEM.get(), 2, 8, 8),
                     r -> sell(Items.EMERALD, 18, ModCrops.HUMMING_TART.get(), 1, 6, 10),
                     r -> sell(Items.EMERALD, 16, ModItems.VOID_GLASS_ITEM.get(), 4, 8, 8),
                     r -> buy(ModCrops.ECHO_GOURD_SLICE.get(), 12, Items.EMERALD, 3, 10, 6),

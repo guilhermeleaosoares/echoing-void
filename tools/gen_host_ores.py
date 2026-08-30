@@ -16,6 +16,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from ev_leaf_loot import leaf_pools  # noqa: E402
+
 NS = "echoing_void"
 ROOT = Path(__file__).resolve().parent.parent
 RES = ROOT / "src" / "main" / "resources"
@@ -49,7 +51,8 @@ ORES = {
     "deepslate_null_iron_ore": ("raw_null_iron", None),
     "phonolite_null_iron_ore": ("raw_null_iron", None),
 }
-LEAVES = {"ashen_resonance_leaves": "bismuth_seedling"}
+#: Echo Ash canopy -> Echo Ash sapling. Was bismuth_seedling, which grew nothing.
+LEAVES = {"ashen_resonance_leaves": "echo_ash_sapling"}
 
 NAMES = {
     "phonolite_resonant_bismuth_ore": "Phonolite Resonant Bismuth Ore",
@@ -92,23 +95,11 @@ def ore_loot(block: str, drop: str, count: tuple[int, int] | None) -> None:
 
 
 def leaf_loot(block: str, sapling: str) -> None:
+    """Shared with gen_loot_tables and gen_terrain_loot through ev_leaf_loot."""
     write(DATA / NS / "loot_table" / "blocks" / f"{block}.json", {
         "type": "minecraft:block",
         "random_sequence": f"{NS}:blocks/{block}",
-        "pools": [{
-            "rolls": 1.0,
-            "entries": [{
-                "type": "minecraft:alternatives",
-                "children": [
-                    {"type": "minecraft:item", "name": f"{NS}:{block}",
-                     "conditions": [SHEARS_OR_SILK]},
-                    {"type": "minecraft:item", "name": f"{NS}:{sapling}",
-                     "conditions": [SURVIVES, {"condition": "minecraft:table_bonus",
-                                               "enchantment": "minecraft:fortune",
-                                               "chances": [0.05, 0.0625, 0.083333336, 0.1]}]},
-                ],
-            }],
-        }],
+        "pools": leaf_pools(NS, block, sapling, SHEARS_OR_SILK),
     })
 
 

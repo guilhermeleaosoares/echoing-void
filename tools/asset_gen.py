@@ -59,6 +59,10 @@ STAGES = [
     ("knell textures", "gen_knell_textures.py"),
     ("knell data", "gen_knell_data.py"),
 
+    # The four saplings. Before the loot stages, because their loot tables are what
+    # the canopies now drop and verify_resources checks that every id a loot table
+    # hands out is really registered.
+    ("void saplings", "gen_tree_assets.py"),
     ("loot tables", "gen_loot_tables.py"),
     ("recipes", "gen_recipes.py"),
     # Must follow recipes: it reads them to derive each unlock condition.

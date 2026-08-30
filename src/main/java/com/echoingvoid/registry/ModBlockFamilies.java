@@ -458,7 +458,8 @@ public final class ModBlockFamilies {
     /** The item form of a block, tracked for the creative tab. */
     private static RegistryObject<Item> blockItem(String name, RegistryObject<Block> block) {
         RegistryObject<Item> item = ITEMS.register(name,
-                () -> new BlockItem(block.get(), new Item.Properties().setId(ITEMS.key(name))));
+                () -> new BlockItem(block.get(), new Item.Properties().setId(ITEMS.key(name))
+                        .useBlockDescriptionPrefix()));
         TAB_ORDER.add(item);
         return item;
     }
@@ -472,7 +473,11 @@ public final class ModBlockFamilies {
      */
     private static RegistryObject<Item> doorItem(String name, RegistryObject<Block> block) {
         RegistryObject<Item> item = ITEMS.register(name,
-                () -> new DoubleHighBlockItem(block.get(), new Item.Properties().setId(ITEMS.key(name))));
+                () -> new DoubleHighBlockItem(block.get(), new Item.Properties().setId(ITEMS.key(name))
+                        // Same reason as blockItem's - see ModItems.blockItem. DoubleHighBlockItem
+                        // extends BlockItem and inherits the same default, so the four doors were
+                        // the last items in the mod still showing a raw key.
+                        .useBlockDescriptionPrefix()));
         TAB_ORDER.add(item);
         return item;
     }

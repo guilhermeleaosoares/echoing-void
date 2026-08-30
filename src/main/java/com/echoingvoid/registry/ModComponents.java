@@ -40,6 +40,20 @@ public final class ModComponents {
                     .networkSynchronized(ByteBufCodecs.FLOAT)
                     .build());
 
+    /**
+     * Wear on the Knell Aeroshell's WINGS, kept apart from the stack's ordinary
+     * {@code DataComponents.DAMAGE}, which is the plate.
+     *
+     * <p>PLAYER: "the knell aeroshell should have two different durability bars. 1 for wings, 1 for
+     * the chestplate. they degrade seperately." An item has exactly one vanilla damage value, so
+     * the second pool has to live somewhere - here. See {@code KnellAeroshellItem}.
+     */
+    public static final RegistryObject<DataComponentType<Integer>> WING_DAMAGE =
+            COMPONENTS.register("wing_damage", () -> DataComponentType.<Integer>builder()
+                    .persistent(ExtraCodecs.NON_NEGATIVE_INT)
+                    .networkSynchronized(ByteBufCodecs.VAR_INT)
+                    .build());
+
     public static final int MAX_CHARGE = 100;
 
     // ------------------------------------------------------------------ helpers

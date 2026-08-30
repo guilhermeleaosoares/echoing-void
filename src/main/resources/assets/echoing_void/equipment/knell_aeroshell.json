@@ -12,7 +12,8 @@
     ],
     "wings": [
       {
-        "texture": "echoing_void:knell_aeroshell"
+        "texture": "minecraft:elytra",
+        "use_player_texture": true
       }
     ]
   }

@@ -2,6 +2,7 @@ package com.echoingvoid.registry;
 
 import com.echoingvoid.EchoingVoid;
 import com.echoingvoid.block.KnellIntegratorBlock;
+import com.echoingvoid.item.KnellAeroshellItem;
 import com.echoingvoid.item.KnellArmorItem;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.util.Unit;
@@ -214,7 +215,7 @@ public final class ModKnell {
      * worth keeping for a fight you expect to be long.
      */
     public static final RegistryObject<Item> AEROSHELL = track(ITEMS.register("knell_aeroshell",
-            () -> new KnellArmorItem(gearProps("knell_aeroshell")
+            () -> new KnellAeroshellItem(gearProps("knell_aeroshell")
                     .humanoidArmor(KnellMaterials.RESONANT_AERO, ArmorType.CHESTPLATE)
                     .component(DataComponents.GLIDER, Unit.INSTANCE))));
 
@@ -245,7 +246,8 @@ public final class ModKnell {
     /** The item form of a block. */
     private static RegistryObject<Item> blockItem(String name, Supplier<? extends Block> block) {
         return track(ITEMS.register(name,
-                () -> new BlockItem(block.get(), new Item.Properties().setId(ITEMS.key(name)))));
+                () -> new BlockItem(block.get(), new Item.Properties().setId(ITEMS.key(name))
+                        .useBlockDescriptionPrefix())));
     }
 
     /** A tool or weapon, which supplies its own item class. */

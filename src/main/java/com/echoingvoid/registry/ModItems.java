@@ -45,7 +45,27 @@ public final class ModItems {
     public static final RegistryObject<Item> RAW_NULL_IRON = simple("raw_null_iron");
     public static final RegistryObject<Item> NULL_IRON_INGOT = simple("null_iron_ingot");
     public static final RegistryObject<Item> VOID_GLASS_SHARD = simple("void_glass_shard");
-    public static final RegistryObject<Item> BISMUTH_SEEDLING = simple("bismuth_seedling");
+    /**
+     * DEPRECATED. Kept registered, kept out of the way.
+     *
+     * <p>PLAYER: "deprecate the bismuth seedling, and replace it with saplings for every different
+     * void tree type."
+     *
+     * <p>It was never a sapling - a plain {@code Item}, unplantable - and all four canopies dropped
+     * the same one, so felling an Amber Bough and an Echo Ash gave the same souvenir and grew
+     * neither. {@link ModTrees} replaces it with four real saplings, and nothing drops or trades
+     * this any more.
+     *
+     * <p>It is NOT unregistered, and that is deliberate rather than laziness: deleting a registered
+     * item turns every copy of it in an existing world - hotbars, chests, shulkers - into nothing at
+     * load, and this mod has been played. It stays registered so old saves survive, and comes out of
+     * the creative tab so no new copies enter circulation. Note the missing {@code track(...)}
+     * compared with every other item here; that call is what puts an item in the tab.
+     */
+    @Deprecated
+    public static final RegistryObject<Item> BISMUTH_SEEDLING =
+            ITEMS.register("bismuth_seedling",
+                    () -> new Item(new Item.Properties().setId(ITEMS.key("bismuth_seedling"))));
 
     // The discs are playable records. In 26.2 that is a data component naming a jukebox_song
     // registry entry rather than anything hard-coded, so these work in a vanilla jukebox and
@@ -253,7 +273,18 @@ public final class ModItems {
 
     /** The item form of a block. */
     private static RegistryObject<Item> blockItem(String name, Supplier<? extends Block> block) {
-        return track(ITEMS.register(name, () -> new BlockItem(block.get(), props(name))));
+        // useBlockDescriptionPrefix is not decoration. PLAYER: "some items, namely blocks
+        // still show up with code nams like item.echoing_void:(item name)."
+        //
+        // BlockItem no longer derives its name from its block. 26.2 resolves an item's name
+        // through Item.Properties.effectiveDescriptionId(), which defaults to
+        // ITEM_DESCRIPTION_ID - so a BlockItem that does not ask for the block prefix looks
+        // up item.<ns>.<id>, while the lang file rightly carries only block.<ns>.<id>, and
+        // the raw key goes on screen. Every BlockItem in the mod whose id matches its
+        // block's now asks for it; the two crop foods (chime_root, void_tuber) deliberately
+        // do not, because their item id and their block id are different words.
+        return track(ITEMS.register(name,
+                () -> new BlockItem(block.get(), props(name).useBlockDescriptionPrefix())));
     }
 
     /** Every item must carry its own registry id in 26.2. */

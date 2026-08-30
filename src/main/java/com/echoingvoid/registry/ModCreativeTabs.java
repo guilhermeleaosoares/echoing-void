@@ -78,6 +78,7 @@ public final class ModCreativeTabs {
         ModFluids.tabOrder().forEach(emit);
         ModCrops.tabOrder().forEach(emit);
         ModBlockFamilies.tabOrder().forEach(emit);
+        ModTrees.tabOrder().forEach(emit);
     }
 
     public static void register(BusGroup modBus) {
