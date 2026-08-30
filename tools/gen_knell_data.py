@@ -16,7 +16,7 @@ without touching anything else.
 
 Schemas were read out of the real 26.2 client jar rather than recalled:
 
-  * smithing recipes are minecraft:smithing_transform with "template", "base",
+  * integration recipes are echoing_void:integration with "template", "base",
     "addition" and "result" - the field names have NOT changed in 26.2, verified
     against data/minecraft/recipe/netherite_pickaxe_smithing.json, and the
     result is still an object of the {"id": ...} form
@@ -76,13 +76,16 @@ def write(path: Path, data: dict) -> None:
 
 BLOCKS = ["knell_ore", "knell_block", "knell_integrator"]
 
-MATERIALS = ["raw_knell", "knell_ingot", "knell_template"]
+MATERIALS = ["raw_knell", "knell_ingot", "knell_template",
+             # The elytra template is a material rather than gear: it is consumed by
+             # an integration, exactly as knell_template is, and never worn.
+             "knell_elytra_template"]
 
 #: The five tools, then the four armour pieces. Order matters: it is the order
 #: the smithing recipes, the advancement icons and the lang file all follow.
 TOOLS = ["sword", "pickaxe", "axe", "shovel", "hoe"]
 ARMOUR = ["helmet", "chestplate", "leggings", "boots"]
-GEAR = [f"knell_{p}" for p in TOOLS + ARMOUR]
+GEAR = [f"knell_{p}" for p in TOOLS + ARMOUR] + ["knell_aeroshell"]
 
 NAMES = {
     "knell_ore": "Knell Ore",
@@ -91,6 +94,8 @@ NAMES = {
     "raw_knell": "Raw Knell",
     "knell_ingot": "Knell Ingot",
     "knell_template": "Knell Template",
+    "knell_elytra_template": "Knell Elytra Template",
+    "knell_aeroshell": "Knell Aeroshell",
     "knell_sword": "Knell Sword",
     "knell_pickaxe": "Knell Pickaxe",
     "knell_axe": "Knell Axe",
@@ -269,6 +274,8 @@ def gen_models() -> None:
         flat_item(f"knell_{piece}", parent="minecraft:item/handheld")
     for piece in ARMOUR:
         flat_item(f"knell_{piece}")
+    flat_item("knell_elytra_template")
+    flat_item("knell_aeroshell")
 
 
 def gen_equipment_asset() -> None:
@@ -279,6 +286,22 @@ def gen_equipment_asset() -> None:
             "humanoid": [{"texture": f"{NS}:knell"}],
             "humanoid_baby": [{"texture": f"{NS}:knell"}],
             "humanoid_leggings": [{"texture": f"{NS}:knell"}],
+        }
+    })
+
+    # The Aeroshell wears the same plate as the chestplate it was made from - same
+    # humanoid sheet, deliberately - and adds the one layer that actually draws the
+    # elytra. An equipment asset is where 26.2 declares which layers an item renders,
+    # so a chestplate that carries DataComponents.GLIDER but has no `wings` layer
+    # flies perfectly well and shows nothing on the player's back.
+    #
+    # No humanoid_leggings entry: this is a chest piece and that layer would never be
+    # consulted. Vanilla's own elytra.json declares `wings` alone for the same reason.
+    write(EQUIPMENT / "knell_aeroshell.json", {
+        "layers": {
+            "humanoid": [{"texture": f"{NS}:knell"}],
+            "humanoid_baby": [{"texture": f"{NS}:knell"}],
+            "wings": [{"texture": f"{NS}:knell_aeroshell"}],
         }
     })
 
@@ -481,9 +504,27 @@ def smithing(piece: str) -> None:
     the recipe book renders it in the same three slots and the player reads it
     without being taught anything new. Only the base differs, and that is the
     whole design: the thing being upgraded is our own mid-tier gear.
+
+    THE TYPE IS NOT VANILLA'S, and that is the one thing here that matters.
+
+    PLAYER: "the smithing table should be unable to make knell tools with the
+    knell template, which it currently can, as this defeats the purpose of
+    making the knell integrator."
+
+    These were minecraft:smithing_transform, and a recipe's TYPE is what decides
+    which station may run it - SmithingMenu.createResult asks for every recipe of
+    RecipeType.SMITHING and never checks which block the menu was opened over. So
+    every smithing table in the world could perform them and the Integrator, the
+    station that is meant to gate the whole tier, was a decoration you could skip.
+
+    Nothing hides a recipe from a menu that queries by type, so they have a type
+    of their own now: echoing_void:integration, read only by IntegratorMenu. The
+    schema is byte-for-byte identical - IntegrationRecipe reuses
+    SmithingTransformRecipe's codecs verbatim - because behaving differently from
+    a smithing upgrade was never the goal. Being performable somewhere else was.
     """
     write(RECIPE / f"knell_{piece}_smithing.json", {
-        "type": "minecraft:smithing_transform",
+        "type": f"{NS}:integration",
         "addition": item("knell_ingot"),
         "base": item(RESONANCE_BASE[piece]),
         "result": {"id": item(f"knell_{piece}")},
@@ -510,6 +551,45 @@ def gen_recipes() -> None:
     # key inside a structure would make the whole ladder hostage to worldgen.
     shaped("knell_template", [" S ", "SNS", " S "],
            {"S": shard, "N": null_iron}, item("knell_template"), count=2)
+
+    # ---- the elytra template, and why it is not made of the same stuff ------
+    #
+    # PLAYER: "i want an elytra template, that makes, only the knell chestplate, be
+    # able to integrate with an elytra. this would require an especially crafted
+    # template that is crafted using knell rather than null iron and resonance
+    # shards, so it is harder to obtain but gives players a reason to seek knell
+    # sets."
+    #
+    # Same silhouette as the ordinary template so it reads as one, but every
+    # material is a tier up: four KNELL INGOTS where that recipe uses resonance
+    # shards, around a phantom membrane rather than a null-iron ingot. Knell is the
+    # rarest ore in the mod - bottom-biased, raw phonolite only, three blocks a vein
+    # - so four ingots is a real expedition rather than a shopping trip.
+    #
+    # And it yields ONE, where knell_template yields two. A player who wants to fly
+    # pays four knell ingots per pair of wings, every time.
+    shaped("knell_elytra_template", [" K ", "KMK", " K "],
+           {"K": ingot, "M": "minecraft:phantom_membrane"},
+           item("knell_elytra_template"), count=1)
+
+    # ---- the integration itself --------------------------------------------
+    #
+    # ONLY the knell chestplate, as asked - the base is that item and nothing else,
+    # so a resonance chestplate, a netherite one or a bare elytra all leave the
+    # result slot empty. And it is an echoing_void:integration recipe like every
+    # other upgrade here, so it happens at the Integrator or not at all.
+    #
+    # IntegrationRecipe.assemble keeps the base's components, which matters more here
+    # than anywhere else in this file: the chestplate you feed in carries its
+    # enchantments, its name, its trim and whatever charge it had banked, and all of
+    # that survives into the Aeroshell.
+    write(RECIPE / "knell_aeroshell_integration.json", {
+        "type": f"{NS}:integration",
+        "addition": "minecraft:elytra",
+        "base": item("knell_chestplate"),
+        "result": {"id": item("knell_aeroshell")},
+        "template": item("knell_elytra_template"),
+    })
 
     # The station itself. It costs one knell ingot, so the order of
     # operations is find the ore, smelt one ingot, build the machine, then
@@ -605,6 +685,12 @@ def gen_advancements() -> None:
     # these the nine upgrades would never show in the book.
     for piece in TOOLS + ARMOUR:
         recipe_advancement(f"knell_{piece}_smithing", item("knell_template"), "equipment")
+
+    # Unlocked by the knell ingot, not by the template: a player holding knell can
+    # see what it is for, which is the whole point of a recipe that exists to give
+    # them a reason to go and mine it.
+    recipe_advancement("knell_elytra_template", item("knell_ingot"), "equipment")
+    recipe_advancement("knell_aeroshell_integration", item("knell_elytra_template"), "equipment")
 
     # ---- the tier's own tab ----------------------------------------------
     display_advancement(

@@ -260,6 +260,25 @@ def check_blockstate_coverage(blocks: set[str]) -> None:
         fail(f"block '{b}' is registered in Java but has no blockstate")
 
 
+def check_recipe_types() -> None:
+    """Every recipe type of ours that a recipe file names must be registered in Java.
+
+    Dropping "type" from the item scan above would otherwise leave it unchecked, and a
+    typo there fails in the worst possible way: the recipe loads, the game logs nothing
+    a player would see, and the recipe simply never fires. Cheaper to catch here.
+    """
+    src = ROOT / "src" / "main" / "java" / "com" / "echoingvoid" / "registry" / "ModRecipes.java"
+    registered = set(re.findall(r'TYPES\.register\("([a-z0-9_]+)"', src.read_text(encoding="utf-8")))         if src.exists() else set()
+
+    for f in sorted((DATA / NS / "recipe").rglob("*.json")):
+        data = load_json(f)
+        if data is None:
+            continue
+        kind = data.get("type", "")
+        if kind.startswith(f"{NS}:") and kind.split(":", 1)[1] not in registered:
+            fail(f"{f.relative_to(RES)}: recipe type {kind} is not registered in ModRecipes.java")
+
+
 def check_data_item_refs(items: set[str], blocks: set[str]) -> None:
     """Every item id handed out by a recipe or loot table must really be registered.
 
@@ -276,8 +295,15 @@ def check_data_item_refs(items: set[str], blocks: set[str]) -> None:
             if data is None:
                 continue
             rel = f.relative_to(RES)
-            # only look at positions that actually name an item
-            text = json.dumps({k: v for k, v in data.items() if k != "random_sequence"})
+            # only look at positions that actually name an item. "type" is dropped for
+            # the same reason "random_sequence" is: it names a RECIPE TYPE, not an item,
+            # and echoing_void:integration - the Knell Integrator's private type, which
+            # is what stops a vanilla smithing table performing knell upgrades - would
+            # otherwise be reported as an unregistered item on all ten of its recipes.
+            # It is not unchecked: check_recipe_types below verifies it separately, and
+            # against the right registry.
+            text = json.dumps({k: v for k, v in data.items()
+                               if k not in ("random_sequence", "type")})
             for ref in sorted(set(pattern.findall(text))):
                 if ref not in known:
                     fail(f"{rel}: hands out {NS}:{ref} which is not registered in Java")
@@ -391,6 +417,7 @@ def main() -> int:
     check_blockstate_coverage(blocks)
     check_lang(blocks, items)
     check_data_item_refs(items, blocks)
+    check_recipe_types()
     check_geo()
     check_equipment()
     check_structures(blocks)

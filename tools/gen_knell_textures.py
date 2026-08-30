@@ -765,6 +765,92 @@ def knell_boots() -> Sprite:
     return sp
 
 
+def knell_elytra_template() -> Sprite:
+    """The elytra template: the ordinary template's plate, with a WING punched through it.
+
+    PLAYER asked for "an especially crafted template" that only integrates an elytra, so it has
+    to read as a template at a glance and as a DIFFERENT template on a second look. Same silhouette
+    as knell_template above - the clipped-corner plate every smithing template shares, which is what
+    makes a player recognise the category - but the aperture is a swept wing rather than the plain
+    diamond, and the lip is knell rather than the null-iron inlay.
+
+    The hole is still doing the same job it does on the ordinary template: without it this is an
+    ingot with decoration on.
+    """
+    sp = Sprite()
+    plate = poly([(3.0, 1.0), (13.0, 1.0), (15.0, 3.0), (15.0, 13.0),
+                  (13.0, 15.0), (3.0, 15.0), (1.0, 13.0), (1.0, 3.0)])
+    sp.paint(plate, NULL_IRON, 0.46, 6101, spread=0.34, light=0.30)
+
+    # A knell lip, laid before the aperture is cut so it keeps its full width after.
+    lip = poly([(8.0, 2.2), (14.0, 8.0), (8.0, 13.8), (2.0, 8.0)])
+    sp.paint(lip & plate, KNELL, 0.66, 6107, spread=0.26, light=0.26)
+
+    # The wing: a swept triangle with a notched trailing edge, punched clean through.
+    for (x, y) in poly([(4.0, 10.6), (11.6, 4.4), (11.6, 8.0), (7.4, 10.6)]):
+        sp.clear(x, y)
+
+    sp.outline()
+    sp.stamp([(3, 3), (12, 3), (3, 12), (12, 12)], HARMONIC, 1.0)
+    return sp
+
+
+def knell_aeroshell() -> Sprite:
+    """The chestplate, with wings swept back off the pauldrons.
+
+    Built from the same CHESTPLATE_SPANS mask as knell_chestplate so the two read as the same piece
+    of armour - which they are - and then the wings are added outside that mask, low and swept, so
+    the silhouette says "this one flies" before the tooltip does.
+    """
+    mask = spans(gi.CHESTPLATE_SPANS)
+    sp = _plate(mask, 9113, [(7, 9), (8, 9), (7, 10), (8, 10)],
+                base=0.50, spread=0.20, bands=[5, 9], cutouts=[(2, 3), (13, 3)])
+
+    # Wings, drawn after the plate and outside its mask so they never eat into the torso.
+    left = poly([(2.4, 6.0), (0.6, 12.4), (4.4, 11.0), (4.4, 7.0)])
+    right = poly([(13.6, 6.0), (15.4, 12.4), (11.6, 11.0), (11.6, 7.0)])
+    sp.paint((left | right) - mask, KNELL, 0.44, 6113, spread=0.30, light=0.28)
+
+    sp.outline()
+    sp.stamp([(6, 9), (9, 9)], HARMONIC, 0.50)
+    sp.stamp([(3, 3), (12, 3)], HARMONIC, 0.60)
+    # One bright note at each wingtip, so the pink reads at hotbar size.
+    sp.stamp([(1, 11), (14, 11)], HARMONIC, 1.0)
+    return sp
+
+
+def aeroshell_wings() -> gi.Sheet:
+    """The worn wings, on the elytra's own UV block.
+
+    ElytraModel.createLayer builds each wing as texOffs(22, 0).addBox(-10, 0, 0, 10, 20, 2), and
+    the second wing is the same box mirrored - so one 10x20x2 unwrap at (22, 0) on a 64x32 sheet
+    paints both. Nothing here is guessed: the region comes from gi.box_faces with those exact
+    figures, the same arithmetic the humanoid sheets use.
+
+    Front and back are the two faces a player actually sees in flight, so they carry the structure:
+    a knell membrane with a magenta spar running the length of each wing.
+    """
+    sh = gi.Sheet(64, 32)
+    wing = gi.box_faces(22, 0, 10, 20, 2)
+
+    for key in ("top", "bottom", "right", "left"):
+        sh.plate(gi.face_rect(wing[key]), NULL_IRON, 6121, base=0.40, spread=0.22)
+    for key in ("front", "back"):
+        sh.plate(gi.face_rect(wing[key]), KNELL, 6127, base=0.50, spread=0.30)
+
+    # The spar: a lit rib down the leading edge of each visible face, plus three ribs
+    # fanning off it, which is what stops the wing reading as a flat rectangle.
+    for key in ("front", "back"):
+        x0, y0, w, h = wing[key]
+        for y in range(y0, y0 + h):
+            sh.sp.put(x0, y, HARMONIC, 3 if (y - y0) % 5 else 5)
+        for rib in (4, 9, 14):
+            for dx in range(1, w - 1):
+                if dx <= rib // 2:
+                    sh.sp.put(x0 + dx, y0 + rib + dx, HARMONIC, 2)
+    return sh
+
+
 # ---------------------------------------------------------------------------
 # Worn-armour sheets
 #
@@ -992,12 +1078,15 @@ ITEM_TEXTURES = [
     ("knell_chestplate", knell_chestplate),
     ("knell_leggings", knell_leggings),
     ("knell_boots", knell_boots),
+    ("knell_elytra_template", knell_elytra_template),
+    ("knell_aeroshell", knell_aeroshell),
 ]
 
 EQUIPMENT_SHEETS = [
     ("humanoid/knell.png", resonant_layer_1, (64, 32)),
     ("humanoid_leggings/knell.png", resonant_layer_2, (64, 32)),
     ("humanoid_baby/knell.png", resonant_baby, (64, 64)),
+    ("wings/knell_aeroshell.png", aeroshell_wings, (64, 32)),
 ]
 
 

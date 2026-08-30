@@ -148,7 +148,19 @@ def stone_recipes() -> None:
 
     for source_base, prefixes in WORKED_FROM.items():
         for prefix in prefixes:
-            cuts = stone_cuts(by_prefix[prefix])
+            worked = by_prefix[prefix]
+
+            # PLAYER: "we should be able to make whole block polished phonolite,
+            # phonolite bricks and chalk bricks from the stonecutter." The stonecutter
+            # only ever cut the three SHAPES, so a player could saw a phonolite brick
+            # STAIR out of raw phonolite but not a phonolite brick - which is backwards,
+            # and left polished phonolite with no route at all, having no crafting recipe
+            # of its own either. Vanilla cuts stone straight into stone_bricks, one for
+            # one, and this is that.
+            stonecutting(f"{worked['base']}_from_{source_base}_stonecutting",
+                         block(source_base), block(worked["base"]), 1)
+
+            cuts = stone_cuts(worked)
             for variant, count in CUT_YIELD:
                 # Suffixed, because this is a second recipe producing an item that
                 # already has one and two recipe files may not share an id.

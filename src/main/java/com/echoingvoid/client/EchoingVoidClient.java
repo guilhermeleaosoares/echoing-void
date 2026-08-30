@@ -23,13 +23,17 @@ import com.echoingvoid.client.renderer.TunerShadeRenderer;
 import com.echoingvoid.EchoingVoid;
 import com.echoingvoid.registry.ModEntities;
 import com.echoingvoid.registry.ModFluids;
+import com.echoingvoid.registry.ModMenus;
 import com.echoingvoid.registry.ModNewEntities;
+import com.echoingvoid.client.screen.IntegratorScreen;
+import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.block.FluidModel;
 import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.ModelEvent;
 import net.minecraftforge.eventbus.api.bus.BusGroup;
+import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.loading.FMLEnvironment;
 
 /**
@@ -58,7 +62,7 @@ public final class EchoingVoidClient {
         if (FMLEnvironment.dist != Dist.CLIENT) {
             return;
         }
-        Wiring.attach();
+        Wiring.attach(modBusGroup);
     }
 
     /**
@@ -68,7 +72,7 @@ public final class EchoingVoidClient {
     private static final class Wiring {
         private Wiring() {}
 
-        static void attach() {
+        static void attach(BusGroup modBusGroup) {
             // EventBus 7: these are SelfDestructing static-bus events, not mod bus events, so they
             // are reached through the event class's own BUS field rather than through the mod bus
             // group. Forge posts both from ForgeHooksClient during client startup, after every mod
@@ -78,6 +82,18 @@ public final class EchoingVoidClient {
             // Not SelfDestructing, unlike the two above: this one is re-posted on every model
             // bake, so the listener has to survive the first one.
             ModelEvent.BakeFluidModels.BUS.addListener(Wiring::onBakeFluidModels);
+
+            // Screens are the exception: Forge 26.2 has no RegisterMenuScreensEvent, so the
+            // binding goes on the MOD bus at client setup. MenuScreens.SCREENS is a plain HashMap
+            // with no synchronisation, so this must be enqueued onto the main thread rather than
+            // written from the parallel dispatch worker.
+            FMLClientSetupEvent.getBus(modBusGroup).addListener(Wiring::onClientSetup);
+        }
+
+        /** Binds the Knell Integrator's menu to the screen that draws it. */
+        private static void onClientSetup(FMLClientSetupEvent event) {
+            event.enqueueWork(() ->
+                    MenuScreens.register(ModMenus.KNELL_INTEGRATOR.get(), IntegratorScreen::new));
         }
 
         /**

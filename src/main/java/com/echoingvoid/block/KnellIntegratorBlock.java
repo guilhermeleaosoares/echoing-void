@@ -1,6 +1,6 @@
 package com.echoingvoid.block;
 
-import com.echoingvoid.registry.ModKnell;
+import com.echoingvoid.inventory.IntegratorMenu;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.DustParticleOptions;
@@ -14,7 +14,6 @@ import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ContainerLevelAccess;
-import net.minecraft.world.inventory.SmithingMenu;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -28,22 +27,16 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 /**
  * The Knell Integrator - the station that fuses Knell onto finished netherite gear.
  *
- * <p>Gameplay intent, and the reason there is no custom screen here: the player already knows how a
- * smithing table works, and a knell upgrade is the same operation as a netherite upgrade -
- * template, base item, addition. So right-clicking this opens the <em>vanilla</em> smithing menu.
- * Nothing new to learn, no new UI to get wrong, and the upgrades themselves are ordinary
- * {@code minecraft:smithing_transform} recipes in the datapack rather than hand-rolled logic.
+ * <p>Right-clicking opens {@link IntegratorMenu}, whose slot layout is the smithing table's to the
+ * pixel - template, base, addition - because a knell upgrade is the same operation as a netherite
+ * one and there is nothing to be gained by making a player learn a second grammar for it. What has
+ * changed is who may perform it: the upgrades are {@code echoing_void:integration} recipes now, not
+ * {@code minecraft:smithing_transform}, so a smithing table no longer finds them and this station
+ * is a real gate rather than a shortcut a player can skip.
  *
- * <p>The one thing that cannot be reused verbatim is validity. {@link SmithingMenu#isValidBlock}
- * asks {@code state.is(Blocks.SMITHING_TABLE)}, and {@code ItemCombinerMenu.stillValid} consults it
- * every tick - so a plain {@code SmithingMenu} opened over this block would close itself
- * immediately. {@link IntegratorMenu} below overrides that single method and changes nothing else.
- * It keeps {@code MenuType.SMITHING}, so the client still builds and renders the stock
- * {@code SmithingScreen}; this subclass only ever exists on the server side of the connection.
- *
- * <p>Passing {@link ContainerLevelAccess#NULL} instead would also satisfy {@code stillValid}, and
- * would be a bug: {@code ItemCombinerMenu.removed} returns the input slots through that same
- * accessor, so a player closing the screen with items in it would simply lose them.
+ * <p>Passing {@link ContainerLevelAccess#NULL} to the menu would compile and would be a bug:
+ * {@code ItemCombinerMenu.removed} returns the input slots through that same accessor, so a player
+ * closing the screen with items in it would simply lose them.
  *
  * <p>The block is a real machine shape rather than a cube - a squat null-iron chassis on four
  * corner conduits, a deck, and a bismuth resonator ring standing proud on top. The model in
@@ -100,7 +93,8 @@ public class KnellIntegratorBlock extends Block {
     protected MenuProvider getMenuProvider(BlockState state, Level level, BlockPos pos) {
         return new SimpleMenuProvider(
                 (containerId, inventory, player) ->
-                        new IntegratorMenu(containerId, inventory, ContainerLevelAccess.create(level, pos)),
+                        new IntegratorMenu(containerId, inventory,
+                                ContainerLevelAccess.create(level, pos)),
                 CONTAINER_TITLE);
     }
 
@@ -157,21 +151,4 @@ public class KnellIntegratorBlock extends Block {
         }
     }
 
-    /**
-     * The vanilla smithing menu, retargeted at this block.
-     *
-     * <p>Only {@link #isValidBlock} differs. Everything else - the three input slots, the recipe
-     * lookup against {@code RecipeType.SMITHING}, the result slot, the take handler - is vanilla's,
-     * which is the entire point: a knell upgrade behaves identically to a netherite one.
-     */
-    private static final class IntegratorMenu extends SmithingMenu {
-        private IntegratorMenu(int containerId, Inventory inventory, ContainerLevelAccess access) {
-            super(containerId, inventory, access);
-        }
-
-        @Override
-        protected boolean isValidBlock(BlockState state) {
-            return state.is(ModKnell.RESONANCE_INTEGRATOR.get());
-        }
-    }
 }

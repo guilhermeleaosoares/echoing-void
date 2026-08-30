@@ -85,6 +85,19 @@ public final class KnellMaterials {
      * under {@code textures/entity/equipment/humanoid/knell.png} and its leggings and baby
      * companions.
      */
+    /**
+     * The Aeroshell's own worn-armour asset.
+     *
+     * <p>Identical to {@link #RESONANT_ASSET} in every layer a chestplate uses - it points at the
+     * same {@code echoing_void:knell} sheet, so an Aeroshell looks like the Knell chestplate it was
+     * made from - and adds a {@code wings} layer, which is what actually draws the elytra. That
+     * layer is the whole reason a second asset exists: an equipment asset is where 26.2 declares
+     * which layers an item renders, and a chestplate that glides but has no wings layer flies
+     * invisibly.
+     */
+    public static final ResourceKey<EquipmentAsset> AEROSHELL_ASSET =
+            ResourceKey.create(EquipmentAssets.ROOT_ID, EchoingVoid.id("knell_aeroshell"));
+
     public static final ResourceKey<EquipmentAsset> RESONANT_ASSET =
             ResourceKey.create(EquipmentAssets.ROOT_ID, EchoingVoid.id("knell"));
 
@@ -111,6 +124,31 @@ public final class KnellMaterials {
             0.2F,
             REPAIRS_RESONANT_ARMOR,
             RESONANT_ASSET);
+
+    /**
+     * The Aeroshell's material: {@link #RESONANT} to the last digit, pointed at
+     * {@link #AEROSHELL_ASSET}.
+     *
+     * <p>A copy exists only because an {@code ArmorMaterial} carries its equipment asset as a
+     * field, so there is no way to keep one material and vary the asset per item. Every protection
+     * figure, the toughness, the knockback resistance and the repair tag are deliberately the same:
+     * an Aeroshell is a Knell chestplate that flies, not a different chestplate, and a player
+     * trading protection for flight would have been a different feature from the one asked for.
+     */
+    public static final ArmorMaterial RESONANT_AERO = new ArmorMaterial(
+            59,
+            Map.of(
+                    ArmorType.HELMET, 3,
+                    ArmorType.CHESTPLATE, 8,
+                    ArmorType.LEGGINGS, 6,
+                    ArmorType.BOOTS, 3,
+                    ArmorType.BODY, 19),
+            18,
+            SoundEvents.ARMOR_EQUIP_NETHERITE,
+            5.0F,
+            0.2F,
+            REPAIRS_RESONANT_ARMOR,
+            AEROSHELL_ASSET);
 
     // ---------------------------------------------------------------- helpers
 

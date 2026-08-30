@@ -1,5 +1,5 @@
 {
-  "type": "minecraft:smithing_transform",
+  "type": "echoing_void:integration",
   "addition": "echoing_void:knell_ingot",
   "base": "echoing_void:resonance_helmet",
   "result": {

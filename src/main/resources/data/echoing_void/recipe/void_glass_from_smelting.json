@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "cookingtime": 200,
+  "experience": 0.1,
+  "group": "void_glass",
+  "ingredient": "echoing_void:chime_sand",
+  "result": {
+    "id": "echoing_void:void_glass"
+  }
+}

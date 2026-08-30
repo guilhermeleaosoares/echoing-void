@@ -13,6 +13,8 @@ import com.echoingvoid.registry.ModKnell;
 import com.echoingvoid.registry.ModComponents;
 import com.echoingvoid.registry.ModCreativeTabs;
 import com.echoingvoid.registry.ModCrops;
+import com.echoingvoid.registry.ModMenus;
+import com.echoingvoid.registry.ModRecipes;
 import com.echoingvoid.registry.ModEffects;
 import com.echoingvoid.registry.ModHostOres;
 import com.echoingvoid.registry.ModEntities;
@@ -61,6 +63,8 @@ public final class EchoingVoid {
         ModItems.register(modBus);
         ModBlockEntities.register(modBus);
         ModComponents.register(modBus);
+        ModRecipes.register(modBus);
+        ModMenus.register(modBus);
         ModEffects.register(modBus);
         ModCreativeTabs.register(modBus);
 

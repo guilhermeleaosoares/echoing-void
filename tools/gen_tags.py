@@ -140,6 +140,25 @@ def main() -> int:
     tag("minecraft", "block", "animals_spawnable_on",
         [f"#{NS}:hollow_horizon_natural_ground"])
 
+    # ---- what a gourd will REST on, as against what a stem GROWS from ------
+    #
+    # PLAYER: "does the echo gourd grow on normal moss or only tilled? i dont mean the
+    # seeds, the plant grows fine, im talking about the block fruit?"
+    #
+    # Only tilled, and that was an accident. Vanilla StemBlock takes TWO tags -
+    # stemSupportBlocks and fruitSupportBlocks - and melon passes different ones for
+    # each: #supports_crops (farmland alone) for the stem, and #supports_stem_fruit ->
+    # #supports_vegetation (dirt, grass, podzol, moss, mud) for the fruit. That is why a
+    # real melon farm has the stems on a tilled row and the melons landing on plain
+    # ground either side.
+    #
+    # ModCrops passed VOID_SOIL into BOTH slots, so the gourd demanded tilled soil where
+    # a melon does not. This tag is the second half of that pair: the stem still insists
+    # on void farmland beneath itself, and the fruit will now settle on bare Resonance
+    # Moss the way a melon settles on grass.
+    tag(NS, "block", "void_stem_fruit_soil",
+        [b("void_farmland"), b("resonance_moss")])
+
     # ---- tool and weapon classes, which is what makes ENCHANTING work ------
     #
     # PLAYER: "make sure all enchantments work as normal in all the new armors

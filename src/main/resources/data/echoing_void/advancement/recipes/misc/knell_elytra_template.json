@@ -1,0 +1,32 @@
+{
+  "parent": "minecraft:recipes/root",
+  "criteria": {
+    "has_knell_ingot": {
+      "conditions": {
+        "items": [
+          {
+            "items": "echoing_void:knell_ingot"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    },
+    "has_the_recipe": {
+      "conditions": {
+        "recipe": "echoing_void:knell_elytra_template"
+      },
+      "trigger": "minecraft:recipe_unlocked"
+    }
+  },
+  "requirements": [
+    [
+      "has_the_recipe",
+      "has_knell_ingot"
+    ]
+  ],
+  "rewards": {
+    "recipes": [
+      "echoing_void:knell_elytra_template"
+    ]
+  }
+}

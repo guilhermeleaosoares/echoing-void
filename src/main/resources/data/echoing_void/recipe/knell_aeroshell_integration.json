@@ -1,0 +1,9 @@
+{
+  "type": "echoing_void:integration",
+  "addition": "minecraft:elytra",
+  "base": "echoing_void:knell_chestplate",
+  "result": {
+    "id": "echoing_void:knell_aeroshell"
+  },
+  "template": "echoing_void:knell_elytra_template"
+}

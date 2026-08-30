@@ -1,5 +1,8 @@
 package com.echoingvoid.item;
 
+import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.core.particles.ParticleOptions;
+
 /**
  * The Resonance set's kinetic bank and shockwave, amplified.
  *
@@ -70,5 +73,32 @@ public class KnellArmorItem extends ResonanceArmorItem {
     @Override
     public double maxKnockback() {
         return 3.0;
+    }
+
+    /**
+     * Knell pink - the same 0xFF007F the Integrator's resonator ring runs on, so the armour and
+     * the station that made it hum on one note.
+     */
+    private static final int KNELL_PINK = 0xFF007F;
+
+    /**
+     * PLAYER: "the particle effect of the knell chestplate should be exactly the same, except
+     * recolored to knell pink."
+     *
+     * <p>Exactly the same was not available. {@link net.minecraft.core.particles.ParticleTypes
+     * #SONIC_BOOM} is a fixed sprite - it carries no colour field, and nothing in the engine tints
+     * one - so this is coloured dust instead, emitted from the same point, over the same spread, at
+     * the same instant, alongside the same Warden boom. The scale is up at 3.0 and the count up
+     * from 6 to 28 because a dust mote is a fraction of a sonic boom's size; without both, a
+     * faithful recolour would have read as a quieter ability rather than a pink one.
+     */
+    @Override
+    protected ParticleOptions releaseParticle() {
+        return new DustParticleOptions(KNELL_PINK, 3.0F);
+    }
+
+    @Override
+    protected int releaseParticleCount() {
+        return 28;
     }
 }

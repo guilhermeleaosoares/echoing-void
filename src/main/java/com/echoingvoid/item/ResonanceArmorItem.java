@@ -1,6 +1,7 @@
 package com.echoingvoid.item;
 
 import com.echoingvoid.registry.ModComponents;
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -91,6 +92,24 @@ public class ResonanceArmorItem extends Item {
     /** Knockback from a full one. */
     public double maxKnockback() {
         return 2.2;
+    }
+
+    /**
+     * What the release throws off.
+     *
+     * <p>Overridable because the tier above wants its own colour, and this is the awkward part:
+     * {@link ParticleTypes#SONIC_BOOM} is a fixed sprite with no tint field, so "the same particle
+     * in another colour" is not a thing the engine offers. {@link KnellArmorItem} substitutes
+     * coloured dust and raises the count to carry comparable visual weight - same position, same
+     * spread, same moment, different particle.
+     */
+    protected ParticleOptions releaseParticle() {
+        return ParticleTypes.SONIC_BOOM;
+    }
+
+    /** How many of {@link #releaseParticle()} to emit. Scales with how small the particle is. */
+    protected int releaseParticleCount() {
+        return 6;
     }
 
     /** Non-capturing, so the broad-phase query reuses one singleton predicate. */
@@ -224,7 +243,8 @@ public class ResonanceArmorItem extends Item {
             }
         }
 
-        level.sendParticles(ParticleTypes.SONIC_BOOM, px, py + 1.0, pz, 6, 0.4, 0.2, 0.4, 0.0);
+        level.sendParticles(tier.releaseParticle(), px, py + 1.0, pz,
+                tier.releaseParticleCount(), 0.4, 0.2, 0.4, 0.0);
         level.playSound(null, px, py, pz, SoundEvents.WARDEN_SONIC_BOOM, SoundSource.PLAYERS,
                 1.0F, 1.2F - fraction * 0.4F);
         return true;

@@ -68,6 +68,25 @@ public final class ModCrops {
     public static final TagKey<Block> VOID_SOIL =
             TagKey.create(Registries.BLOCK, EchoingVoid.id("void_farmland"));
 
+    /**
+     * What a grown gourd will settle ON, as opposed to what its stem grows FROM.
+     *
+     * <p>These are two different questions and vanilla asks them with two different tags.
+     * {@code StemBlock} takes {@code stemSupportBlocks} and {@code fruitSupportBlocks}
+     * separately, and melon passes {@code #supports_crops} (farmland alone) for the first and
+     * {@code #supports_stem_fruit} -> {@code #supports_vegetation} (dirt, grass, podzol, moss,
+     * mud) for the second - which is exactly why a melon farm puts its stems on a tilled row and
+     * lets the melons land on plain ground either side.
+     *
+     * <p>PLAYER: "does the echo gourd grow on normal moss or only tilled? i dont mean the seeds,
+     * the plant grows fine, im talking about the block fruit?" Only tilled, because
+     * {@link #ECHO_GOURD_STEM} was handing {@link #VOID_SOIL} to both slots - the one tag that
+     * existed, rather than a decision that gourds should be stricter than melons. This is the
+     * missing half.
+     */
+    public static final TagKey<Block> VOID_STEM_FRUIT_SOIL =
+            TagKey.create(Registries.BLOCK, EchoingVoid.id("void_stem_fruit_soil"));
+
     // ------------------------------------------------------------- item keys
     // Named before the items exist. A crop block is built during BLOCK registration and has to
     // name its seed then; an Item reference at that point would be null.
@@ -132,7 +151,8 @@ public final class ModCrops {
 
     public static final RegistryObject<Block> ECHO_GOURD_STEM = BLOCKS.register("echo_gourd_stem",
             () -> new VoidStemBlock(K_ECHO_GOURD, K_ATTACHED_STEM, K_GOURD_SEEDS,
-                    VOID_SOIL, VOID_SOIL, cropProps("echo_gourd_stem", MapColor.COLOR_CYAN)));
+                    VOID_SOIL, VOID_STEM_FRUIT_SOIL,
+                    cropProps("echo_gourd_stem", MapColor.COLOR_CYAN)));
 
     /**
      * The bent stem that appears once a gourd has grown beside it.

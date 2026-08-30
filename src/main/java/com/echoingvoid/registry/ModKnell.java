@@ -3,6 +3,8 @@ package com.echoingvoid.registry;
 import com.echoingvoid.EchoingVoid;
 import com.echoingvoid.block.KnellIntegratorBlock;
 import com.echoingvoid.item.KnellArmorItem;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.util.Unit;
 import com.echoingvoid.item.KnellAxeItem;
 import com.echoingvoid.item.KnellPickaxeItem;
 import com.echoingvoid.item.KnellSwordItem;
@@ -167,10 +169,54 @@ public final class ModKnell {
     public static final RegistryObject<Item> RESONANT_HOE = tool("knell_hoe",
             () -> new HoeItem(KnellMaterials.KNELL, -4.0F, 0.0F, gearProps("knell_hoe")));
 
+    /**
+     * The template that lets an elytra be integrated, and the one piece of knell kit that is not
+     * made of the same stuff as the rest.
+     *
+     * <p>PLAYER: "this would require an especially crafted template that is crafted using knell
+     * rather than null iron and resonance shards, so it is harder to obtain but gives players a
+     * reason to seek knell sets."
+     *
+     * <p>So where {@code knell_template} is four resonance shards around a null-iron ingot -
+     * materials a player already has before they reach this dimension's floor - this one is four
+     * knell ingots around an elytra membrane. Knell is the rarest ore in the mod, bottom-biased and
+     * confined to raw phonolite, and the recipe yields ONE where the ordinary template yields two.
+     * A player who wants to fly in armour has to go and mine for it.
+     */
+    public static final RegistryObject<Item> ELYTRA_TEMPLATE = simple("knell_elytra_template");
+
     public static final RegistryObject<Item> RESONANT_HELMET = armor("knell_helmet", ArmorType.HELMET);
     public static final RegistryObject<Item> RESONANT_CHESTPLATE = armor("knell_chestplate", ArmorType.CHESTPLATE);
     public static final RegistryObject<Item> RESONANT_LEGGINGS = armor("knell_leggings", ArmorType.LEGGINGS);
     public static final RegistryObject<Item> RESONANT_BOOTS = armor("knell_boots", ArmorType.BOOTS);
+
+    /**
+     * A Knell chestplate with an elytra folded into it.
+     *
+     * <p>PLAYER: "i want an elytra template, that makes, only the knell chestplate, be able to
+     * integrate with an elytra... so players get the benefits of an elytra and extra protection
+     * from the armor."
+     *
+     * <p>It is a {@link KnellArmorItem} like the plate it was made from, so it banks and releases
+     * exactly as before - 65% of every hit, up to 100, out through a 9-block ring. The armour
+     * figures are {@link KnellMaterials#RESONANT_AERO}, which is {@code RESONANT} to the last
+     * digit; nothing is traded away for the wings.
+     *
+     * <p>{@link DataComponents#GLIDER} is the whole of the flight. {@code LivingEntity.canGlideUsing}
+     * asks only whether the stack carries it, whether the slot matches the item's own
+     * {@code EQUIPPABLE} slot, and whether the item is about to break - so a chestplate holding it
+     * glides on exactly the terms an elytra does.
+     *
+     * <p>One consequence worth knowing rather than discovering: gliding costs durability.
+     * {@code LivingEntity.tickFallFlying} spends one point per twenty ticks of flight, and here that
+     * comes out of the same pool the armour is protecting you with. Flying wears your chestplate.
+     * That is the trade the single item makes, and it is why the plain Knell chestplate is still
+     * worth keeping for a fight you expect to be long.
+     */
+    public static final RegistryObject<Item> AEROSHELL = track(ITEMS.register("knell_aeroshell",
+            () -> new KnellArmorItem(gearProps("knell_aeroshell")
+                    .humanoidArmor(KnellMaterials.RESONANT_AERO, ArmorType.CHESTPLATE)
+                    .component(DataComponents.GLIDER, Unit.INSTANCE))));
 
     // ---------------------------------------------------------------- helpers
 

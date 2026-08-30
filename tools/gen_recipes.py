@@ -101,8 +101,24 @@ def main() -> int:
     # ---- stone set ----------------------------------------------------------
     shaped("phonolite_bricks", ["##", "##"], {"#": f"{NS}:raw_phonolite"},
            f"{NS}:phonolite_bricks", count=4, category="building")
+    # PLAYER: "create a crafting recipe to make chalk bricks by arranging void chalk in
+    # a 4x4 grid." A 4x4 grid does not exist - the crafting table is 3x3 - so this is
+    # the 2x2 square that four blocks actually make, which is also vanilla's own brick
+    # pattern and the one phonolite_bricks directly above already uses. Same 4-for-4
+    # yield, so the two worked stones stay consistent with each other.
+    shaped("chalk_bricks", ["##", "##"], {"#": f"{NS}:resonant_chalk"},
+           f"{NS}:chalk_bricks", count=4, category="building")
     shaped("void_glass", ["##", "##"], {"#": glass_shard},
            f"{NS}:void_glass", count=2, category="building")
+
+    # ---- chime sand -> void glass, the way sand smelts into glass -----------
+    # PLAYER: "we should be able to smelt chime sand into void glass." Vanilla's
+    # sand -> glass is 0.1 xp over 200 ticks, and this is the same trade, so it takes
+    # the same figures. It is also a second, cheaper route to a block that until now
+    # only came from four void-glass shards - shards being rapier and tool stock, this
+    # stops a player having to choose between a window and a weapon.
+    cooking("void_glass_from_smelting", "smelting",
+            f"{NS}:chime_sand", f"{NS}:void_glass", 0.1, 200, "void_glass")
 
     # ---- the Tuner's Mask: the key to building a guardian -------------------
     # PLAYER: "make sure the tuners mask can be crafted and/or obtained naturally."
