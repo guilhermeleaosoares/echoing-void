@@ -26,11 +26,23 @@ import net.minecraftforge.client.IItemDecorator;
 @OnlyIn(Dist.CLIENT)
 public final class AeroshellBarDecorator implements IItemDecorator {
 
-    /** Vanilla's bar geometry: 13 pixels wide, inset one from the slot's left edge. */
+    /**
+     * Vanilla's own bar geometry, read off GuiGraphicsExtractor: left is x+2, the bar is 13
+     * wide, its black backing occupies rows 13 and 14 and the coloured fill sits on row 13.
+     */
+    private static final int BAR_LEFT = 2;
     private static final int BAR_WIDTH = 13;
 
-    /** One row above the stock bar, which vanilla draws at y offset 13. */
-    private static final int BAR_Y = 11;
+    /**
+     * Row 15 - directly under vanilla's, and the last row the 16x16 slot has.
+     *
+     * <p>PLAYER: "the pink durability bar for the aeroshell needs to render below the green
+     * durability bar." It was at row 11, ABOVE it. There is exactly one row left beneath
+     * vanilla's two, so this bar is one pixel tall rather than two; the black backing and the
+     * coloured fill share it, which still reads because the unfilled remainder stays black
+     * exactly as vanilla's does.
+     */
+    private static final int BAR_Y = 15;
 
     private static final int BACKING = 0xFF000000;
 
@@ -42,26 +54,31 @@ public final class AeroshellBarDecorator implements IItemDecorator {
         }
         int left = KnellAeroshellItem.wingsLeft(stack);
 
-        // ALWAYS drawn, even at full. PLAYER: "the GUI inventory only shows 1 durability bar...
-        // seeing 2 bars is helpful too." It used to hide itself on a full pool, the way an
-        // undamaged item hides its bar - which meant a fresh Aeroshell showed one bar and looked
-        // like an ordinary chestplate, and the second pool was invisible until it was already
-        // being spent. On an item whose whole point is that it has two pools, the bar's job is to
-        // say the pool EXISTS, not only that it is running low. KnellAeroshellItem.isBarVisible
-        // returns true unconditionally for the same reason.
+        // Hidden at full, exactly as vanilla hides an undamaged item's bar. PLAYER: "they
+        // should only show up after each of their durabilities is below full, just like
+        // vanilla. normal knell chestplate for instance, the durability bar only shows from
+        // 943 durability below."
+        //
+        // This reverses what I did last round, when the complaint was that only one bar
+        // showed - I made both permanent, which was the wrong fix for the right problem. The
+        // problem was the pink bar being ABOVE the green one and easy to miss, not its being
+        // hidden when there was nothing to report.
+        if (left >= KnellAeroshellItem.WING_MAX) {
+            return false;
+        }
 
         float fraction = (float) left / KnellAeroshellItem.WING_MAX;
         int width = Mth.clamp(Math.round(BAR_WIDTH * fraction), 0, BAR_WIDTH);
 
-        // Magenta at full, sliding to red as it goes, so colour carries the same warning the
-        // length does.
         int r = 0xFF;
         int g = Math.round(0x30 * fraction);
         int b = Math.round(0x7F * fraction);
         int colour = 0xFF000000 | (r << 16) | (g << 8) | b;
 
-        graphics.fill(xOffset + 2, yOffset + BAR_Y, xOffset + 15, yOffset + BAR_Y + 2, BACKING);
-        graphics.fill(xOffset + 2, yOffset + BAR_Y, xOffset + 2 + width, yOffset + BAR_Y + 1, colour);
+        graphics.fill(xOffset + BAR_LEFT, yOffset + BAR_Y,
+                xOffset + BAR_LEFT + BAR_WIDTH, yOffset + BAR_Y + 1, BACKING);
+        graphics.fill(xOffset + BAR_LEFT, yOffset + BAR_Y,
+                xOffset + BAR_LEFT + width, yOffset + BAR_Y + 1, colour);
         return true;
     }
 }

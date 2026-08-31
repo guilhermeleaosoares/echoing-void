@@ -165,15 +165,13 @@ public class KnellAeroshellItem extends KnellArmorItem {
 
     // ------------------------------------------------------------------ readouts
 
-    /**
-     * The stock bar stays the PLATE's, so it means the same thing it means on every other piece of
-     * armour. The wings get a second bar of their own, drawn above this one by
-     * {@code AeroshellBarDecorator} on the client - a slot can only host one built-in bar.
-     */
-    @Override
-    public boolean isBarVisible(ItemStack stack) {
-        return true;
-    }
+    // No isBarVisible override any more. Item's default is stack.isDamaged(), which is
+    // exactly what was asked for: "the durability bar only shows from 943 durability below."
+    // Forcing it true showed an empty-looking bar on a brand new Aeroshell, which is not what
+    // any other piece of armour in the game does.
+    //
+    // The wings get their own bar one row beneath vanilla's, drawn by AeroshellBarDecorator -
+    // a slot hosts only one built-in bar.
 
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display,

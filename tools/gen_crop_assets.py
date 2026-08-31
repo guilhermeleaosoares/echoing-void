@@ -294,6 +294,11 @@ def field_fill(sp: Sprite, cells, mat: Material, seed: int,
 EVEN_SIX = [0.05, 0.17, 0.28, 0.28, 0.17, 0.05]
 
 
+#: How many rows of the side face read as turned earth. Three, because that is
+#: exactly how many rows of living moss resonance_moss_side carries on its top edge.
+TILLED_ROWS = 3
+
+
 def farmland_top(mat: Material, seed: int, furrow: int) -> Sprite:
     """Tilled ground seen from above: three broken furrows in a mottled bed.
 
@@ -312,6 +317,39 @@ def farmland_top(mat: Material, seed: int, furrow: int) -> Sprite:
             if pfbm(x / 2.0, row / 2.0, 16, 16, seed + 991) > 0.42:
                 sp.put(x, row, mat, furrow, lock=True)
     return sp
+
+
+def write_farmland_sides() -> None:
+    """The moss's OWN side, with only its top edge turned over.
+
+    PLAYER: "the void farmland should not be distinct from the resonance moss. seeing that
+    we till the resonance moss to turn to farmland, the base block should be the same, only
+    really the top, block height and the top region of the side texture should change. it
+    should still look like a block with a black loose rocky base."
+
+    The block was using `resonance_moss` - the moss block's TOP texture, bright cyan edge to
+    edge - on all four sides. The moss block itself uses `resonance_moss_side`, which is
+    three rows of living cyan over twelve rows of dark phonolite. So the farmland had no
+    rocky base at all and, beside the moss it was cut from, looked like a different block.
+    The comment in this file even claimed "sides and bottom are the moss it was cut from":
+    the intent was right and the texture reference was wrong.
+
+    Built with PIL rather than through Sprite, because Sprite paints through Materials and
+    this is a composite of two finished textures, not a drawing.
+    """
+    from PIL import Image
+    moss = Image.open(TEX_BLOCK / "resonance_moss_side.png").convert("RGBA")
+
+    for name in ("void_farmland", "void_farmland_moist"):
+        top = Image.open(TEX_BLOCK / f"{name}.png").convert("RGBA")
+        out = moss.copy()
+        mp, tp = out.load(), top.load()
+        for y in range(TILLED_ROWS):
+            for x in range(16):
+                # Read DOWN the tilled top rather than across it, so the cut edge is a
+                # section through the soil instead of one of its rows repeated three times.
+                mp[x, y] = tp[x, (y * 5 + x) % 16]
+        out.save(TEX_BLOCK / f"{name}_side.png")
 
 
 def gourd_side() -> Sprite:
@@ -605,12 +643,33 @@ def gen_models() -> None:
             "moisture=7": {"model": f"{NS}:block/void_farmland_moist"},
         }
     })
-    for name, top in (("void_farmland", "void_farmland"),
-                      ("void_farmland_moist", "void_farmland_moist")):
+    write_farmland_sides()
+    for name in ("void_farmland", "void_farmland_moist"):
+        # Not minecraft:block/template_farmland any more. That template has a single
+        # `dirt` slot serving all four sides AND the bottom, so there is no way to give
+        # the sides the moss's side texture and the bottom the phonolite the moss block
+        # sits on. Same geometry as the template - 15/16 tall, and the side faces sampled
+        # from v=1 so the texture does not stretch over the missing pixel - written out.
         write_json(ASSETS / "models" / "block" / f"{name}.json", {
-            "parent": "minecraft:block/template_farmland",
-            "textures": {"dirt": f"{NS}:block/resonance_moss",
-                         "top": f"{NS}:block/{top}"},
+            "parent": "minecraft:block/block",
+            "textures": {
+                "particle": f"{NS}:block/{name}_side",
+                "top": f"{NS}:block/{name}",
+                "side": f"{NS}:block/{name}_side",
+                "bottom": f"{NS}:block/raw_phonolite",
+            },
+            "elements": [{
+                "from": [0, 0, 0],
+                "to": [16, 15, 16],
+                "faces": {
+                    "down": {"uv": [0, 0, 16, 16], "texture": "#bottom", "cullface": "down"},
+                    "up": {"uv": [0, 0, 16, 16], "texture": "#top"},
+                    "north": {"uv": [0, 1, 16, 16], "texture": "#side", "cullface": "north"},
+                    "south": {"uv": [0, 1, 16, 16], "texture": "#side", "cullface": "south"},
+                    "west": {"uv": [0, 1, 16, 16], "texture": "#side", "cullface": "west"},
+                    "east": {"uv": [0, 1, 16, 16], "texture": "#side", "cullface": "east"},
+                },
+            }],
         })
     write_json(ASSETS / "items" / "void_farmland.json",
                {"model": {"type": "minecraft:model", "model": f"{NS}:block/void_farmland"}})
