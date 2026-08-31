@@ -81,27 +81,24 @@ RESULT_SLOT = (98, 48)
 ICON_ORIGIN = (7, 7)
 ICON_SCALE = 2
 
-#: A tuning fork, 15x15, drawn at 2x into the hammer's box. Two prongs, a yoke, a
-#: stem and a weighted base.
-#:   . nothing   o deep   m mid   l lit   c core
-FORK = [
-    "..l.......l....",
-    "..c.......c....",
-    "..c.......c....",
-    "..c.......c....",
-    "..c.......c....",
-    "..c.......c....",
-    "..m.......m....",
-    "..lcccccccl....",
-    "....mcccm......",
-    "......c........",
-    "......c........",
-    "......c........",
-    ".....mcm.......",
-    "....llclm......",
-    ".....ooo.......",
-]
-FORK_COLOURS = {"o": FORK_DEEP, "m": FORK_MID, "l": FORK_LIT, "c": FORK_CORE}
+#: The KNELL INGOT's own sprite, upscaled into the hammer's box.
+#:
+#: PLAYER, seeing the first attempt: "please review that artwork, its a bit strange."
+#: It was. It was a symmetric magenta stick figure with no outline, a few purple pixels
+#: stuck on at arbitrary points that read as artefacts rather than shading, and a chroma
+#: far louder than anything else on the panel. Beside vanilla's hammer - which is drawn
+#: on a diagonal, in two materials, fully outlined, shaded top-left to bottom-right, with
+#: one small gem accent - it read as a logo rather than an object.
+#:
+#: Inventing art was the first mistake and picking the wrong subject was the second.
+#: PLAYER: "the tuning fork uses resonant shards, has little to do with knell. make it look
+#: like something made from knell or something."
+#:
+#: Correct - the Tuning Fork is a BISMUTH item, and this station's whole job is applying
+#: knell. So the icon is the Knell Ingot: the material the Integrator adds, which is
+#: exactly what vanilla's hammer says about a smithing table. Read from the generated item
+#: sprite rather than redrawn, so the icon and the item in a player's hand can never drift.
+ICON_ITEM = ROOT / "src" / "main" / "resources" / "assets" / "echoing_void" / "textures" / "item" / "knell_ingot.png"
 
 
 def slot(draw: ImageDraw.ImageDraw, x: int, y: int, size: int = 16) -> None:
@@ -134,18 +131,28 @@ def result_arrow(draw: ImageDraw.ImageDraw) -> None:
         draw.line([(82, 56 + dy), (89 - abs(dy), 56 + dy)], fill=SLOT_FILL)
 
 
-def tuning_fork(img: Image.Image) -> None:
-    """The one thing here that is ours, where vanilla puts a hammer."""
-    ox, oy = ICON_ORIGIN
-    px = img.load()
-    for row, line in enumerate(FORK):
-        for col, ch in enumerate(line):
-            if ch == ".":
-                continue
-            colour = FORK_COLOURS[ch]
-            for dy in range(ICON_SCALE):
-                for dx in range(ICON_SCALE):
-                    px[ox + col * ICON_SCALE + dx, oy + row * ICON_SCALE + dy] = colour
+def station_icon(img: Image.Image) -> None:
+    """The Knell Ingot, at 2x, centred in the box vanilla gives its hammer.
+
+    Read from the generated item sprite rather than redrawn, so the two can never drift:
+    gen_item_textures runs before this stage in asset_gen.py, so the file is always the
+    current one.
+    """
+    if not ICON_ITEM.exists():
+        raise SystemExit(f"FAIL: {ICON_ITEM} is missing - run gen_item_textures.py first")
+
+    icon = Image.open(ICON_ITEM).convert("RGBA")
+    bbox = icon.getbbox()
+    cropped = icon.crop(bbox)
+    scaled = cropped.resize((cropped.width * ICON_SCALE, cropped.height * ICON_SCALE),
+                            Image.NEAREST)
+
+    # Centred in vanilla's 30x30 hammer box rather than pinned to its corner, because the
+    # fork's own aspect is taller and narrower than the hammer's diagonal.
+    box_x, box_y, box_w, box_h = ICON_ORIGIN[0], ICON_ORIGIN[1], 30, 30
+    ox = box_x + (box_w - scaled.width) // 2
+    oy = box_y + (box_h - scaled.height) // 2
+    img.alpha_composite(scaled, (ox, oy))
 
 
 def panel() -> Image.Image:
@@ -172,7 +179,7 @@ def panel() -> Image.Image:
             img.putpixel((cx + dx, cy + dy), TRANSPARENT)
 
     result_arrow(draw)
-    tuning_fork(img)
+    station_icon(img)
 
     for x, y in INPUT_SLOTS:
         slot(draw, x, y)

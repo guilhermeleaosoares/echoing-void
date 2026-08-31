@@ -1,6 +1,6 @@
 package com.echoingvoid.item;
 
-import net.minecraft.core.particles.DustParticleOptions;
+import com.echoingvoid.registry.ModParticles;
 import net.minecraft.core.particles.ParticleOptions;
 
 /**
@@ -76,29 +76,30 @@ public class KnellArmorItem extends ResonanceArmorItem {
     }
 
     /**
-     * Knell pink - the same 0xFF007F the Integrator's resonator ring runs on, so the armour and
-     * the station that made it hum on one note.
-     */
-    private static final int KNELL_PINK = 0xFF007F;
-
-    /**
      * PLAYER: "the particle effect of the knell chestplate should be exactly the same, except
-     * recolored to knell pink."
+     * recolored to knell pink", and then, having watched it: "the particles... linger around too
+     * long, that doesnt look like an explosion."
      *
-     * <p>Exactly the same was not available. {@link net.minecraft.core.particles.ParticleTypes
-     * #SONIC_BOOM} is a fixed sprite - it carries no colour field, and nothing in the engine tints
-     * one - so this is coloured dust instead, emitted from the same point, over the same spread, at
-     * the same instant, alongside the same Warden boom. The scale is up at 3.0 and the count up
-     * from 6 to 28 because a dust mote is a fraction of a sonic boom's size; without both, a
-     * faithful recolour would have read as a quieter ability rather than a pink one.
+     * <p>Both complaints had the same cause. {@code ParticleTypes.SONIC_BOOM} is a fixed sprite
+     * with no tint field, so the first attempt substituted {@code DustParticleOptions} - the only
+     * tintable particle available. Dust drifts and fades on its own schedule, so twenty-eight of
+     * them at triple scale hung in the air long after the shockwave was over.
+     *
+     * <p>{@link ModParticles#KNELL_BOOM} is the real answer: sixteen frames with vanilla's exact
+     * timing, radii and coverage - measured off its own sonic_boom sequence rather than copied -
+     * in knell's colours. It plays once and it is gone in 16 ticks, which is what an explosion
+     * looks like.
+     *
+     * <p>One is enough. The old count of 28 existed only because a dust mote is a fraction of a
+     * sonic boom; a boom is a boom.
      */
     @Override
     protected ParticleOptions releaseParticle() {
-        return new DustParticleOptions(KNELL_PINK, 3.0F);
+        return ModParticles.KNELL_BOOM.get();
     }
 
     @Override
     protected int releaseParticleCount() {
-        return 28;
+        return 1;
     }
 }

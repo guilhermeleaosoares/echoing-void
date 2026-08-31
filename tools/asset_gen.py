@@ -34,6 +34,8 @@ STAGES = [
     # Container GUI sheets. Independent of everything else - it draws a panel from
     # the palette and nothing reads it back - so it sits with the other art stages.
     ("gui textures", "gen_gui_textures.py"),
+    # The Knell shockwave animation. Independent of everything else.
+    ("particle textures", "gen_particle_textures.py"),
     ("block & item models", "gen_models.py"),
     ("creature geometry", "gen_geo_models.py"),
     # Code generation, not an asset: turns the .geo.json above into the Java

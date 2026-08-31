@@ -25,6 +25,7 @@ import com.echoingvoid.registry.ModEntities;
 import com.echoingvoid.registry.ModFluids;
 import com.echoingvoid.registry.ModKnell;
 import com.echoingvoid.registry.ModMenus;
+import com.echoingvoid.registry.ModParticles;
 import com.echoingvoid.registry.ModNewEntities;
 import com.echoingvoid.client.screen.IntegratorScreen;
 import net.minecraft.client.gui.screens.MenuScreens;
@@ -33,6 +34,7 @@ import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
 import net.minecraftforge.client.event.RegisterItemDecorationsEvent;
+import net.minecraftforge.client.event.RegisterParticleProvidersEvent;
 import net.minecraftforge.client.event.ModelEvent;
 import net.minecraftforge.eventbus.api.bus.BusGroup;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
@@ -87,12 +89,19 @@ public final class EchoingVoidClient {
             // The Aeroshell's second durability bar. A slot hosts one built-in bar, so the
             // wings get a decorator drawn over the top of the stock one.
             RegisterItemDecorationsEvent.BUS.addListener(Wiring::onRegisterDecorations);
+            RegisterParticleProvidersEvent.BUS.addListener(Wiring::onRegisterParticles);
 
             // Screens are the exception: Forge 26.2 has no RegisterMenuScreensEvent, so the
             // binding goes on the MOD bus at client setup. MenuScreens.SCREENS is a plain HashMap
             // with no synchronisation, so this must be enqueued onto the main thread rather than
             // written from the parallel dispatch worker.
             FMLClientSetupEvent.getBus(modBusGroup).addListener(Wiring::onClientSetup);
+        }
+
+        /** Binds the Knell shockwave's sixteen frames to the particle that plays them. */
+        private static void onRegisterParticles(RegisterParticleProvidersEvent event) {
+            event.registerSpriteSet(ModParticles.KNELL_BOOM.get(),
+                    KnellBoomParticle.Provider::new);
         }
 
         private static void onRegisterDecorations(RegisterItemDecorationsEvent event) {

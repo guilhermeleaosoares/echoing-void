@@ -1583,7 +1583,39 @@ def t_petrified_tuning_wood_side() -> Canvas:
     return c
 
 
-def stripped_wood_side(c: Canvas, seed: int, ramp_tones: list[int], noise_scale: float = 0.35) -> None:
+#: (retired) The edge-step pass this replaced is gone - see stripped_wood_side, which
+#: now builds a genuinely cylindrical column profile instead of patching a random one.
+#: Kept only as the note about the two copies:
+#: How much to step a column darker, by its distance from the nearest vertical edge.
+#:
+#: PLAYER: "those stripped log side textures are too flat, the vanilla have some minor
+#: shading on left and right sides that make it look cylindrical."
+#:
+#: Right, and ours were doing the OPPOSITE. As mean column brightness, vanilla DARKENS
+#: its edges - stripped_oak_log runs 121 at the edges against 144 in the middle, birch
+#: 152 against 171 - which is the log curving away from the light. Ours ran BRIGHTER at
+#: the edges by about the same margin, so they read as the inside of a trough.
+#:
+#: Applied as a post-pass on the finished tones rather than as a nudge to the value
+#: before rounding. Nudging first was tried and mostly washed out: the column sinusoid
+#: and then the run-length filter between them absorbed it, and three of the four
+#: textures still came out edge-brighter.
+#:
+#: It does NOT break horizontal tiling. Vanilla's own stripped oak has a seam delta of
+#: 8.3 against a mean interior delta of 8.9 - it tiles fine, because the shading is
+#: SYMMETRIC, so dark meets dark at the wrap. Two of these are in verify_textures'
+#: SEAMLESS_BLOCKS and stay green for that reason.
+#:
+#: NOTE: gen_family_textures.py and gen_block_textures.py each hold a copy of
+#: stripped_wood_side and split these four textures between them - family draws echo ash
+#: and amber bough, block draws humming and petrified tuning. Editing one and
+#: regenerating changed half the set and left the other half untouched, which is exactly
+#: how the leaf-loot generators drifted. Both copies carry this pass; change them together.
+CYLINDER_STEPS = [1, 1, 0, 0]
+
+
+def stripped_wood_side(c: Canvas, seed: int, ramp_tones: list[int], noise_scale: float = 0.35,
+                       cylinder: float = 1.0) -> None:
     """Smooth stripped wood side texture matching vanilla stripped log conventions.
     
     Long vertical grain lines holding tone >= 4 pixels down each column, with tone
@@ -1591,11 +1623,20 @@ def stripped_wood_side(c: Canvas, seed: int, ramp_tones: list[int], noise_scale:
     """
     n_tones = len(ramp_tones)
     col_mid = [0.0] * SIZE
+    # A CYLINDER, not a sinusoid. The column profile used to be two sine waves with
+    # a seed-derived phase, which is a random light profile per texture rather than a
+    # lighting model - for the echo ash seed it happened to put its dark trough dead
+    # centre, so the face read as a groove. Measured, its edges came out 21 BRIGHTER
+    # than its middle where vanilla's stripped oak is 23 darker.
+    #
+    # Brightest down the middle, falling to about 55% at both edges, which is the
+    # ratio vanilla's own stripped logs hold. A little per-column jitter on top so the
+    # four textures do not look like the same gradient in four colours.
     for x in range(SIZE):
-        s1 = math.sin(x * 2 * math.pi / SIZE + (seed % 97) * 0.1)
-        s2 = math.cos(x * 4 * math.pi / SIZE + (seed % 53) * 0.2)
-        v = (s1 * 0.7 + s2 * 0.3 + 1.0) / 2.0
-        col_mid[x] = v * (n_tones - 1)
+        d = min(x, SIZE - 1 - x) / (SIZE / 2 - 0.5)
+        lit = 0.35 + 0.65 * d
+        jitter = 0.07 * math.sin(x * 2 * math.pi / SIZE + (seed % 97) * 0.1)
+        col_mid[x] = max(0.0, min(1.0, lit + jitter)) * (n_tones - 1)
         
     for y in range(SIZE):
         for x in range(SIZE):
@@ -1625,6 +1666,29 @@ def stripped_wood_side(c: Canvas, seed: int, ramp_tones: list[int], noise_scale:
                 if abs(cur - p) > 1 and abs(cur - n) > 1:
                     c.set(x, y, (p + n) // 2)
 
+
+    # Grain streaks: a few columns carry a contiguous vertical run one tone off the
+    # rest. Vanilla's stripped logs are full of these - they are what stops a log
+    # reading as a smooth gradient - and here they also solve a real constraint.
+    #
+    # The cylindrical profile plus the run-length filter between them flatten most
+    # columns to a single tone, which took two of these textures down to 3 and 4
+    # distinct colours against verify_textures' floor of 5. Every attempt to fix that
+    # by widening the cylinder or raising the noise traded the colour count against
+    # the roughness budget and lost. A streak adds a tone in a run of 5+ rows, so it
+    # survives the filter, costs almost nothing in neighbour delta, and is what the
+    # reference actually looks like.
+    for k in range(3):
+        sx = (seed // (7 ** (k + 1))) % SIZE
+        sy = (seed // (11 ** (k + 1))) % SIZE
+        run = 5 + (seed // (13 ** (k + 1))) % 4
+        delta = 1 if k % 2 == 0 else -1
+        for dy in range(run):
+            y = (sy + dy) % SIZE
+            t = c.get(sx, y)
+            if t in ramp_tones:
+                i = ramp_tones.index(t)
+                c.set(sx, y, ramp_tones[max(0, min(len(ramp_tones) - 1, i + delta))])
 
 def stripped_log_rings(c: Canvas, seed: int, rim: int, ring_tones: list[int],
                        heart_accent: int | None = None, corner_tone: int | None = None) -> None:
@@ -1724,7 +1788,7 @@ def t_humming_stem_top() -> Canvas:
 def t_stripped_humming_stem_side() -> Canvas:
     """Stripped violet stem: smooth vertical grain without harsh noise."""
     c = Canvas(STRIP_STEM_RAMP)
-    stripped_wood_side(c, 8347, [0, 1, 2, 3, 4, 5], noise_scale=0.28)
+    stripped_wood_side(c, 8347, [0, 1, 2, 3, 4, 5], noise_scale=0.38, cylinder=0.3)
     return c
 
 

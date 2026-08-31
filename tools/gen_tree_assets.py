@@ -59,78 +59,116 @@ def write(path: Path, data: dict) -> None:
 # sprites stay inside the same budget verify_textures.py holds every other sheet to.
 # ---------------------------------------------------------------------------
 
-#: name, canopy material, trunk material, the leaf block it drops from
+#: name, the LEAF block, the TRUNK block, and the canopy this sapling drops from.
+#:
+#: PLAYER: "the saplings for the echo ash and the purple tree do not look like the actual
+#: tree. they need to look like what the actual tree looks like."
+#:
+#: Right, and measuring it showed three of the four were wrong, not two:
+#:
+#:   echo ash    real leaves #A3A1A2 pale grey and a nearly WHITE log - ours was #1C1D21,
+#:               near black. It is a birch-like tree and the sapling was a charred stick.
+#:   humming     real leaves are magenta-dominant (#B14A9E) - ours was mostly the dark
+#:               #3A1D47 with magenta as a rare accent.
+#:   petrified   real leaves are CYAN, #29A4B4 - ours had no cyan in it at all.
+#:   amber       the only one that was close.
+#:
+#: The cause was picking a named material by eye - gi.SLATE for echo ash, gi.ARCANE for
+#: humming - rather than the tree's own colours. So the palette is no longer named at all:
+#: each sapling now SAMPLES the block textures it grows into. A sapling cannot look like
+#: the wrong tree if it is made of that tree's own pixels, and it cannot drift if those
+#: textures are ever retouched.
 TREES = [
-    ("petrified_tuning_sapling", "chalk", "phonolite", "calcified_resonance_leaves"),
-    ("echo_ash_sapling", "phonolite", "null_iron", "ashen_resonance_leaves"),
-    ("amber_bough_sapling", "amber", "amber_dark", "amber_bough_log"),
-    ("humming_sapling", "arcane", "arcane_deep", "humming_stem"),
+    ("petrified_tuning_sapling", "calcified_resonance_leaves", "petrified_tuning_wood_side",
+     "calcified_resonance_leaves"),
+    ("echo_ash_sapling", "ashen_resonance_leaves", "echo_ash_log_side",
+     "ashen_resonance_leaves"),
+    ("amber_bough_sapling", "amber_resonance_leaves", "amber_bough_log_side",
+     "amber_bough_log"),
+    ("humming_sapling", "violet_resonance_leaves", "humming_stem_side",
+     "humming_stem"),
 ]
 
-# Materials come from gen_item_textures rather than being redefined here. A Material is
-# a ramp of blended palette entries, not a list of hex values, and a second definition of
-# "amber" would drift from the one every other amber sprite in the mod already uses.
-CANOPY = {
-    "chalk": gi.PALE_BONE,
-    "phonolite": gi.SLATE,
-    "amber": gi.AMBER,
-    "arcane": gi.ARCANE,
-}
-TRUNK = {
-    "phonolite": gi.SLATE,
-    "null_iron": gi.NULL_IRON,
-    "amber_dark": gi.TUNING_WOOD,
-    "arcane_deep": gi.NULL_IRON,
-}
+BLOCK_TEX_SRC = ROOT / "src" / "main" / "resources" / "assets" / NS / "textures" / "block"
+
+
+def sampled(block: str, tones: int = 5) -> Material:
+    """A Material built from a real block texture's own colours.
+
+    Takes the most-used colours, drops near-duplicates so the ramp actually steps, and
+    orders them dark to light - which is the order Material requires and asserts.
+
+    Five tones rather than the whole histogram: a Material is a lit ramp, and a 16x16
+    block face carries more colours than a 16x16 sprite is allowed (verify_textures caps
+    an item at 16, and a sapling has to fit its canopy AND its trunk inside that).
+    """
+    from PIL import Image
+    img = Image.open(BLOCK_TEX_SRC / f"{block}.png").convert("RGBA")
+    px = img.load()
+    counts: dict[tuple[int, int, int], int] = {}
+    for y in range(img.height):
+        for x in range(img.width):
+            if px[x, y][3]:
+                c = px[x, y][:3]
+                counts[c] = counts.get(c, 0) + 1
+
+    ordered = sorted(counts, key=lambda c: -counts[c])
+    picked: list[tuple[int, int, int]] = []
+    for c in ordered:
+        # Skip anything within a short distance of a tone already taken, or the ramp
+        # collapses to five shades of the same pixel and the sprite reads flat.
+        if all(sum(abs(c[i] - q[i]) for i in range(3)) > 40 for q in picked):
+            picked.append(c)
+        if len(picked) == tones:
+            break
+    while len(picked) < tones:                      # very flat source texture
+        picked.append(ordered[len(picked) % len(ordered)])
+
+    picked.sort(key=lambda c: 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2])
+    # Material asserts strictly increasing luminance; nudge any tie apart.
+    out = []
+    for i, c in enumerate(picked):
+        if i and sum(out[-1][:3]) >= sum(c[:3]):
+            c = tuple(min(255, v + 6) for v in c)
+        out.append((c[0], c[1], c[2], 255))
+    return Material(block, out)
 
 
 def make_petrified_tuning_sapling(canopy: Material, trunk: Material, seed: int = 7001) -> Sprite:
-    """Narrow, upright, sparse, stony tuning-fork sapling."""
+    """Narrow, upright, sparse, stony tuning-fork sapling with airy foliage."""
     sp = Sprite()
     
     stem_pts = {
-        # Flared base sitting on y=15
-        (7, 15), (8, 15), (9, 15),
-        (7, 14), (8, 14),
-        (7, 13), (8, 13),
-        (7, 12), (8, 12),
-        (6, 11), (7, 11), (8, 11),
-        (6, 10), (7, 10), (8, 10), (9, 10),
-        # Fork junction & left branch
-        (6, 9), (7, 9), (8, 9),
-        (5, 8), (6, 8),
-        (5, 7), (6, 7),
-        (5, 6), (6, 6),
-        (5, 5), (6, 5),
-        (5, 4),
-        # Right branch (taller)
-        (8, 8), (9, 8),
-        (9, 7), (10, 7),
-        (9, 6), (10, 6),
-        (9, 5), (10, 5),
-        (9, 4), (10, 4),
-        (9, 3), (10, 3),
         (9, 2),
+        (9, 3), (10, 3),
+        (5, 4), (9, 4), (10, 4),
+        (5, 5), (6, 5), (9, 5), (10, 5),
+        (5, 6), (6, 6), (9, 6), (10, 6),
+        (5, 7), (6, 7), (9, 7), (10, 7),
+        (5, 8), (6, 8), (8, 8), (9, 8),
+        (6, 9), (7, 9), (8, 9),
+        (6, 10), (7, 10), (8, 10), (9, 10),
+        (6, 11), (7, 11), (8, 11),
+        (7, 12), (8, 12),
+        (7, 13), (8, 13),
+        (7, 14), (8, 14),
+        (7, 15), (8, 15), (9, 15),
     }
     
     leaf_pts = {
-        # Left fork cluster
-        (4, 5), (4, 6), (4, 7),
-        (3, 6), (3, 7),
-        (4, 4), (5, 3), (6, 3), (7, 4),
-        (5, 2), (6, 2), (7, 3),
-        # Right fork cluster
-        (8, 2), (8, 3), (8, 4),
-        (10, 2), (11, 2), (11, 3), (11, 4), (12, 4),
         (9, 1), (10, 1),
-        (10, 3), (11, 5), (10, 6), (11, 6),
-        # Mid-canopy clusters
-        (4, 8), (4, 9), (5, 9), (3, 8),
-        (7, 6), (8, 6), (7, 7), (8, 7),
-        (9, 9), (10, 8), (11, 8), (10, 9), (11, 9),
-        # Lower tufts
-        (4, 10), (5, 10), (5, 11), (4, 11),
-        (9, 11), (10, 11), (10, 12),
+        (8, 2), (10, 2),
+        (6, 3), (8, 3), (11, 3),
+        (6, 4), (8, 4), (11, 4), (12, 4),
+        (4, 5), (8, 5), (11, 5), (13, 5),
+        (3, 6), (4, 6), (8, 6), (11, 6), (12, 6), (13, 6),
+        (2, 7), (3, 7), (4, 7), (8, 7), (12, 7), (13, 7),
+        (3, 8), (4, 8), (11, 8), (12, 8), (13, 8),
+        (4, 9), (5, 9), (10, 9), (11, 9), (12, 9),
+        (4, 10), (10, 10), (11, 10),
+        (5, 11), (10, 11), (11, 11),
+        (6, 12), (9, 12), (10, 12),
+        (9, 13),
     }
     leaf_pts -= stem_pts
     
@@ -145,41 +183,31 @@ def make_echo_ash_sapling(canopy: Material, trunk: Material, seed: int = 7038) -
     sp = Sprite()
     
     stem_pts = {
-        (6, 15), (7, 15), (8, 15),
-        (7, 14), (8, 14),
-        (6, 13), (7, 13), (8, 13),
-        (6, 12), (7, 12),
-        (6, 11), (7, 11),
-        (6, 10), (7, 10),
-        (7, 9), (8, 9),
-        (7, 8), (8, 8),
-        (8, 7), (9, 7),
-        (8, 6), (9, 6),
         (8, 5),
+        (8, 6), (9, 6),
+        (8, 7), (9, 7),
+        (7, 8), (8, 8),
+        (7, 9), (8, 9),
+        (6, 10), (7, 10),
+        (6, 11), (7, 11),
+        (6, 12), (7, 12),
+        (6, 13), (7, 13), (8, 13),
+        (7, 14), (8, 14),
+        (6, 15), (7, 15), (8, 15),
     }
     
     leaf_pts = {
-        # Top crown with wispy tips
-        (8, 1), (9, 1),
+        (8, 1),
         (7, 2), (8, 2), (9, 2), (10, 2),
         (6, 3), (7, 3), (8, 3), (9, 3), (10, 3), (11, 3),
-        (5, 4), (6, 4), (7, 4), (8, 4), (9, 4), (10, 4), (11, 4), (12, 4),
-        (4, 5), (5, 5), (6, 5), (7, 5), (10, 5), (11, 5), (12, 5),
-        (4, 6), (5, 6), (6, 6), (7, 6), (10, 6), (11, 6),
-        # Drooping tendrils on left side
-        (3, 7), (4, 7), (5, 7), (6, 7),
-        (3, 8), (4, 8), (5, 8),
-        (2, 9), (3, 9), (4, 9), (5, 9),
-        (2, 10), (3, 10), (4, 10),
-        (2, 11), (3, 11),
-        (3, 12),
-        # Right side canopy
-        (9, 8), (10, 8), (11, 8), (12, 8),
-        (10, 9), (11, 9), (12, 9),
-        (11, 10), (12, 10),
-        (11, 11),
-        # Center wisps
-        (8, 10), (9, 10), (8, 11),
+        (5, 4), (6, 4), (7, 4), (9, 4), (10, 4), (12, 4),
+        (4, 5), (5, 5), (7, 5), (10, 5), (11, 5), (12, 5),
+        (3, 6), (4, 6), (5, 6), (6, 6), (7, 6), (10, 6), (11, 6), (12, 6), (13, 6),
+        (3, 7), (4, 7), (5, 7), (6, 7), (10, 7), (11, 7), (12, 7), (13, 7), (14, 7),
+        (3, 8), (5, 8), (10, 8), (12, 8), (13, 8),
+        (2, 9), (3, 9), (4, 9), (5, 9), (9, 9), (11, 9), (12, 9), (13, 9),
+        (2, 10), (3, 10), (4, 10), (8, 10), (9, 10), (11, 10), (12, 10),
+        (2, 11), (3, 11), (8, 11), (11, 11),
     }
     leaf_pts -= stem_pts
     
@@ -194,15 +222,15 @@ def make_amber_bough_sapling(canopy: Material, trunk: Material, seed: int = 7075
     sp = Sprite()
     
     stem_pts = {
-        (6, 15), (7, 15), (8, 15),
-        (7, 14), (8, 14),
-        (7, 13), (8, 13),
-        (6, 12), (7, 12), (8, 12),
-        (7, 11), (8, 11),
-        (7, 10), (8, 10),
-        (7, 9), (8, 9), (9, 9),
-        (8, 8), (9, 8),
         (8, 7),
+        (8, 8), (9, 8),
+        (7, 9), (8, 9), (9, 9),
+        (7, 10), (8, 10),
+        (7, 11), (8, 11),
+        (6, 12), (7, 12), (8, 12),
+        (7, 13), (8, 13),
+        (7, 14), (8, 14),
+        (6, 15), (7, 15), (8, 15),
     }
     
     leaf_pts = {
@@ -210,17 +238,16 @@ def make_amber_bough_sapling(canopy: Material, trunk: Material, seed: int = 7075
         (4, 2), (5, 2), (6, 2), (8, 2), (9, 2), (10, 2), (11, 2),
         (3, 3), (4, 3), (5, 3), (6, 3), (7, 3), (8, 3), (9, 3), (10, 3), (11, 3), (12, 3),
         (2, 4), (3, 4), (4, 4), (5, 4), (6, 4), (7, 4), (8, 4), (9, 4), (10, 4), (11, 4), (12, 4), (13, 4),
-        (2, 5), (3, 5), (4, 5), (5, 5), (6, 5), (7, 5), (8, 5), (9, 5), (10, 5), (11, 5), (12, 5), (13, 5), (14, 5),
-        (1, 6), (2, 6), (3, 6), (4, 6), (5, 6), (6, 6), (7, 6), (8, 6), (9, 6), (10, 6), (11, 6), (12, 6), (13, 6),
-        (1, 7), (2, 7), (3, 7), (4, 7), (5, 7), (6, 7), (7, 7), (10, 7), (11, 7), (12, 7), (13, 7),
-        (2, 8), (3, 8), (4, 8), (5, 8), (6, 8), (7, 8), (10, 8), (11, 8), (12, 8), (13, 8),
-        (2, 9), (3, 9), (4, 9), (5, 9), (6, 9), (10, 9), (11, 9), (12, 9),
+        (2, 5), (3, 5), (5, 5), (6, 5), (7, 5), (8, 5), (9, 5), (10, 5), (11, 5), (12, 5), (14, 5),
+        (1, 6), (2, 6), (3, 6), (4, 6), (6, 6), (7, 6), (8, 6), (9, 6), (10, 6), (11, 6), (12, 6), (13, 6), (14, 6),
+        (1, 7), (2, 7), (3, 7), (4, 7), (5, 7), (6, 7), (10, 7), (11, 7), (12, 7), (13, 7),
+        (2, 8), (3, 8), (4, 8), (5, 8), (7, 8), (10, 8), (12, 8), (13, 8),
+        (2, 9), (3, 9), (4, 9), (6, 9), (10, 9), (11, 9), (12, 9),
         (3, 10), (4, 10), (5, 10), (10, 10), (11, 10),
         (4, 11), (5, 11), (10, 11),
-        (4, 12), (5, 12),
+        (5, 12),
+        (9, 13),
     }
-    leaf_pts.discard((7, 2))
-    leaf_pts.discard((1, 5))
     leaf_pts -= stem_pts
     
     sp.paint(leaf_pts, canopy, 0.56, seed, spread=0.34, light=0.30)
@@ -234,34 +261,32 @@ def make_humming_sapling(canopy: Material, trunk: Material, seed: int = 7112) ->
     sp = Sprite()
     
     stem_pts = {
-        (6, 15), (7, 15), (8, 15), (9, 15),
-        (6, 14), (7, 14), (8, 14), (9, 14),
-        (7, 13), (8, 13),
-        (7, 12), (8, 12),
-        (7, 11), (8, 11),
-        (7, 10), (8, 10),
-        (7, 9), (8, 9),
         (7, 8), (8, 8),
+        (7, 9), (8, 9),
+        (7, 10), (8, 10),
+        (7, 11), (8, 11),
+        (7, 12), (8, 12),
+        (7, 13), (8, 13),
+        (6, 14), (7, 14), (8, 14), (9, 14),
+        (6, 15), (7, 15), (8, 15), (9, 15),
     }
     
     leaf_pts = {
-        # Rounded domed top
-        (6, 1), (7, 1), (8, 1),
-        (5, 2), (6, 2), (7, 2), (8, 2), (9, 2), (10, 2),
-        (4, 3), (5, 3), (6, 3), (7, 3), (8, 3), (9, 3), (10, 3), (11, 3),
-        (3, 4), (4, 4), (5, 4), (6, 4), (7, 4), (8, 4), (9, 4), (10, 4), (11, 4), (12, 4),
-        (3, 5), (4, 5), (5, 5), (6, 5), (7, 5), (8, 5), (9, 5), (10, 5), (11, 5), (12, 5), (13, 5),
-        (2, 6), (3, 6), (4, 6), (5, 6), (6, 6), (7, 6), (8, 6), (9, 6), (10, 6), (11, 6), (12, 6), (13, 6),
-        (2, 7), (3, 7), (4, 7), (5, 7), (6, 7), (7, 7), (8, 7), (9, 7), (10, 7), (11, 7), (12, 7), (13, 7),
-        # Mushroom cap overhang rim
-        (2, 8), (3, 8), (4, 8), (5, 8), (6, 8), (9, 8), (10, 8), (11, 8), (12, 8), (13, 8),
-        (3, 9), (4, 9), (5, 9), (6, 9), (9, 9), (10, 9), (11, 9), (12, 9),
+        (6, 1), (7, 1), (8, 1), (10, 1), (11, 1),
+        (5, 2), (7, 2), (8, 2), (9, 2), (10, 2), (11, 2),
+        (5, 3), (6, 3), (7, 3), (8, 3), (9, 3), (10, 3), (11, 3), (12, 3),
+        (4, 4), (5, 4), (7, 4), (8, 4), (10, 4), (11, 4),
+        (3, 5), (4, 5), (6, 5), (7, 5), (8, 5), (9, 5), (10, 5), (12, 5),
+        (2, 6), (3, 6), (4, 6), (5, 6), (7, 6), (8, 6), (9, 6), (10, 6), (11, 6), (12, 6),
+        (4, 7), (5, 7), (6, 7), (7, 7), (8, 7), (9, 7), (11, 7), (12, 7), (13, 7),
+        (2, 8), (3, 8), (4, 8), (6, 8), (10, 8), (11, 8), (12, 8),
+        (3, 9), (4, 9), (6, 9), (9, 9), (11, 9), (12, 9),
         (4, 10), (5, 10), (10, 10), (11, 10),
-        (4, 11), (11, 11),
+        (3, 11), (4, 11), (6, 11), (11, 11),
+        (9, 12),
+        (5, 13),
+        (5, 14),
     }
-    # Slight organic asymmetry
-    leaf_pts.discard((2, 6))
-    leaf_pts.discard((13, 8))
     leaf_pts -= stem_pts
     
     sp.paint(leaf_pts, canopy, 0.55, seed, spread=0.35, light=0.28)
@@ -288,8 +313,8 @@ def sapling_sprite(name: str, canopy: Material, trunk: Material, seed: int) -> S
 
 def gen_textures() -> None:
     BLOCK_TEX.mkdir(parents=True, exist_ok=True)
-    for i, (name, canopy, trunk, _) in enumerate(TREES):
-        sprite = sapling_sprite(name, CANOPY[canopy], TRUNK[trunk], 7001 + i * 37)
+    for i, (name, leaf_block, trunk_block, _) in enumerate(TREES):
+        sprite = sapling_sprite(name, sampled(leaf_block), sampled(trunk_block), 7001 + i * 37)
         sprite.save(BLOCK_TEX / f"{name}.png")
         written.append(f"src/main/resources/assets/{NS}/textures/block/{name}.png")
 

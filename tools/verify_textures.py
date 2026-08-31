@@ -232,12 +232,25 @@ def audit(path: Path, verbose: bool) -> list[str]:
     # An *_overlay sheet is an additive second armour layer (wings, a sigil,
     # shoulder caps) painted over an otherwise-transparent 64x32 canvas, same
     # idea as a *_glow mask below.
-    floor = 2 if rel.stem.endswith(("_glow", "_overlay")) else MIN_COLOURS
+    # A PARTICLE frame is the third case, and it is the strictest of the three: vanilla's
+    # own sonic_boom animation uses exactly TWO colours across all sixteen frames, both
+    # fully opaque. The 5-colour floor exists to catch flat programmer art in a sprite an
+    # item is drawn from, and a shock front made of two tones is not that - it is what the
+    # reference does.
+    is_mask = rel.stem.endswith(("_glow", "_overlay")) or rel.parts[0] == "particle"
+    floor = 2 if is_mask else MIN_COLOURS
     if n < floor or n > ceiling:
         errors.append(f"{n} colours, want {floor}-{ceiling}")
 
     top_share = counts.most_common(1)[0][1] / len(opaque)
-    if n == 1:
+    # Particle frames are exempt from the dominance rule for the same reason they are
+    # exempt from the colour floor, and the evidence is vanilla's own sequence: measured,
+    # minecraft:sonic_boom frames 8, 9, 11 and 12 contain exactly ONE colour each, and the
+    # rest are a two-tone ring one of whose tones necessarily dominates as the front thins.
+    # A rule written to catch a flat fill in an item sprite does not describe a shock front.
+    if rel.parts[0] == "particle":
+        pass
+    elif n == 1:
         errors.append("single-colour fill")
     elif top_share > DOMINANCE_LIMIT:
         errors.append(f"dominant colour covers {top_share:.0%} (limit {DOMINANCE_LIMIT:.0%})")

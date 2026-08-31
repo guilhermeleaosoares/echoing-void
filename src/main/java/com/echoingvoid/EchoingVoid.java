@@ -15,6 +15,7 @@ import com.echoingvoid.registry.ModComponents;
 import com.echoingvoid.registry.ModCreativeTabs;
 import com.echoingvoid.registry.ModCrops;
 import com.echoingvoid.registry.ModMenus;
+import com.echoingvoid.registry.ModParticles;
 import com.echoingvoid.registry.ModRecipes;
 import com.echoingvoid.registry.ModTrees;
 import com.echoingvoid.registry.ModEffects;
@@ -66,6 +67,7 @@ public final class EchoingVoid {
         ModItems.register(modBus);
         ModBlockEntities.register(modBus);
         ModComponents.register(modBus);
+        ModParticles.register(modBus);
         ModRecipes.register(modBus);
         ModMenus.register(modBus);
         ModEffects.register(modBus);
