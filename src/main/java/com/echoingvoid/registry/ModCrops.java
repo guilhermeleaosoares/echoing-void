@@ -106,11 +106,27 @@ public final class ModCrops {
      * Hardness 0.6 / Blast 0.6 | Shovel-ish | GRAVEL - one step harder than the moss it comes
      * from, exactly as vanilla farmland is one step harder than dirt.
      */
+    /**
+     * Tilled Resonance Moss. Hardness 0.6 / Blast 0.6 | Shovel | MOSS.
+     *
+     * <p>PLAYER: "when i break tilled resonant moss, it makes the dirt breaking sound, it should
+     * use the same breaking sound as unfarmed resonant moss."
+     *
+     * <p>It was {@code SoundType.GRAVEL}, which is what vanilla farmland uses and is the dirt
+     * sound. Copying vanilla's figure was right for the hardness and wrong here: this block is
+     * not tilled dirt, it is tilled MOSS, and {@link ModTerrainBlocks#RESONANCE_MOSS} - the block
+     * it is made from and reverts to - is {@code SoundType.MOSS}. Turning soil over should not
+     * change what it sounds like underfoot.
+     *
+     * <p>The hardness stays at vanilla farmland's 0.6 rather than the moss's 0.4. That one is
+     * about how long it takes to dig, which tilling plausibly does change, and it was not what
+     * was reported.
+     */
     public static final RegistryObject<Block> VOID_FARMLAND = BLOCKS.register("void_farmland",
             () -> new VoidFarmlandBlock(props("void_farmland")
                     .mapColor(MapColor.WARPED_NYLIUM)
                     .strength(0.6F, 0.6F)
-                    .sound(SoundType.GRAVEL)
+                    .sound(SoundType.MOSS)
                     .randomTicks()));
 
     // ----------------------------------------------------------------- crops
